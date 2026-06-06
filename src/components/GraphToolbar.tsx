@@ -1,5 +1,5 @@
-import React from 'react'
-import { Search, Maximize2, AlertTriangle } from 'lucide-react'
+import React, { useState } from 'react'
+import { Search, Maximize2, AlertTriangle, ChevronDown } from 'lucide-react'
 
 interface GraphToolbarProps {
   filterQuery: string
@@ -30,6 +30,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = ({
   hasData,
   setIsFullscreen
 }) => {
+  const [isExtDropdownOpen, setIsExtDropdownOpen] = useState(false)
   return (
     <div
       style={{
@@ -90,35 +91,94 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = ({
         )}
 
         {availableExtensions.length > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderLeft: '1px solid var(--border)', paddingLeft: '12px' }}>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Exts :</span>
-            {availableExtensions.map(ext => {
-              const isSelected = selectedExtensions.includes(ext)
-              return (
-                <button
-                  key={ext}
-                  onClick={() => {
-                    if (isSelected) {
-                      setSelectedExtensions(selectedExtensions.filter(e => e !== ext))
-                    } else {
-                      setSelectedExtensions([...selectedExtensions, ext])
-                    }
-                  }}
-                  style={{
-                    padding: '2px 8px',
-                    borderRadius: '4px',
-                    border: isSelected ? '1px solid var(--accent)' : '1px solid var(--border)',
-                    backgroundColor: isSelected ? 'var(--accent-muted)' : 'var(--input-bg)',
-                    color: isSelected ? 'var(--text)' : 'var(--text-muted)',
-                    fontSize: '11px',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s'
-                  }}
-                >
-                  {ext}
-                </button>
-              )
-            })}
+          <div style={{ position: 'relative' }} onMouseLeave={() => setIsExtDropdownOpen(false)}>
+            <button
+              onClick={() => setIsExtDropdownOpen(!isExtDropdownOpen)}
+              style={{
+                padding: '4px 10px',
+                borderRadius: '6px',
+                border: '1px solid var(--border)',
+                backgroundColor: 'var(--input-bg)',
+                color: 'var(--text)',
+                fontSize: '12px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'background-color 0.2s, border-color 0.2s'
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--accent-muted)')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--input-bg)')}
+            >
+              <span>Extensions ({selectedExtensions.length})</span>
+              <ChevronDown size={12} style={{ transform: isExtDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+            </button>
+
+            {isExtDropdownOpen && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  marginTop: '6px',
+                  width: '160px',
+                  maxHeight: '200px',
+                  overflowY: 'auto',
+                  backgroundColor: 'var(--dropdown-bg)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  boxShadow: '0 10px 25px -5px var(--shadow)',
+                  backdropFilter: 'blur(12px)',
+                  padding: '6px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px',
+                  zIndex: 100
+                }}
+              >
+                {availableExtensions.map((ext) => {
+                  const isSelected = selectedExtensions.includes(ext)
+                  return (
+                    <label
+                      key={ext}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '6px 8px',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        color: isSelected ? 'var(--text)' : 'var(--text-muted)',
+                        backgroundColor: isSelected ? 'var(--accent-muted)' : 'transparent',
+                        transition: 'background-color 0.15s',
+                        userSelect: 'none'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)'
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent'
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => {
+                          if (isSelected) {
+                            setSelectedExtensions(selectedExtensions.filter((e) => e !== ext))
+                          } else {
+                            setSelectedExtensions([...selectedExtensions, ext])
+                          }
+                        }}
+                        style={{ cursor: 'pointer' }}
+                      />
+                      <span>{ext}</span>
+                    </label>
+                  )
+                })}
+              </div>
+            )}
           </div>
         )}
       </div>
