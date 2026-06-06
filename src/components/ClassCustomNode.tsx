@@ -7,12 +7,12 @@ export const ClassCustomNode: React.FC<any> = ({ data }) => {
       style={{
         borderRadius: '6px',
         border: '1px solid var(--accent)',
-        backgroundColor: 'rgba(15, 15, 20, 0.95)',
-        backdropFilter: 'blur(8px)',
-        color: '#fff',
+        backgroundColor: 'var(--panel-bg)',
+        backdropFilter: 'blur(12px)',
+        color: 'var(--text)',
         fontSize: '12px',
         minWidth: '220px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+        boxShadow: '0 4px 20px var(--shadow)',
         textAlign: 'left',
         overflow: 'hidden',
         position: 'relative'
@@ -24,7 +24,7 @@ export const ClassCustomNode: React.FC<any> = ({ data }) => {
         style={{
           padding: '8px 12px',
           fontWeight: 'bold',
-          backgroundColor: 'rgba(255,255,255,0.05)',
+          backgroundColor: 'var(--input-bg)',
           borderBottom: '1px solid var(--border)',
           color: 'var(--accent)',
           display: 'flex',
@@ -44,7 +44,7 @@ export const ClassCustomNode: React.FC<any> = ({ data }) => {
       <div style={{ padding: '6px 12px', borderBottom: '1px solid var(--border)' }}>
         {data.properties && data.properties.length > 0 ? (
           data.properties.map((prop: string, idx: number) => (
-            <div key={idx} style={{ fontFamily: 'monospace', color: '#e0e0e0', fontSize: '11px' }}>
+            <div key={idx} style={{ fontFamily: 'monospace', color: 'var(--text)', opacity: 0.9, fontSize: '11px' }}>
               + {prop}
             </div>
           ))
@@ -59,7 +59,7 @@ export const ClassCustomNode: React.FC<any> = ({ data }) => {
       <div style={{ padding: '6px 12px' }}>
         {data.methods && data.methods.length > 0 ? (
           data.methods.map((method: string, idx: number) => (
-            <div key={idx} style={{ fontFamily: 'monospace', color: '#a0e0a0', fontSize: '11px' }}>
+            <div key={idx} style={{ fontFamily: 'monospace', color: '#22c55e', fontSize: '11px' }}>
               + {method}()
             </div>
           ))

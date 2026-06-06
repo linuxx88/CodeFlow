@@ -17,7 +17,9 @@ export const Explorer: React.FC<ExplorerProps> = ({
         borderRight: '1px solid var(--border)',
         display: 'flex',
         flexDirection: 'column',
-        backgroundColor: 'rgba(10, 10, 15, 0.4)'
+        backgroundColor: 'var(--panel-bg)',
+        backdropFilter: 'blur(12px)',
+        transition: 'background-color 0.3s, border-color 0.3s'
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>
@@ -49,7 +51,7 @@ export const Explorer: React.FC<ExplorerProps> = ({
                   transition: 'background-color 0.2s',
                   userSelect: 'none'
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)')}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--accent-muted)')}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
               >
                 {file.isDir ? (
@@ -57,7 +59,7 @@ export const Explorer: React.FC<ExplorerProps> = ({
                 ) : (
                   <FileText size={14} color={iconColor} />
                 )}
-                <span style={{ fontSize: '13px', color: '#e4e4e7', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', flex: 1 }}>
+                <span style={{ fontSize: '13px', color: 'var(--text)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', flex: 1 }}>
                   {file.name}
                 </span>
                 {file.sizeStr && (

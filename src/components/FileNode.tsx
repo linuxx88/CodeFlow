@@ -16,7 +16,7 @@ export const FileNode: React.FC<any> = ({ data }) => {
     bgColor = 'var(--bottleneck-muted)'
     textColor = '#fff'
   } else if (isPackage) {
-    borderColor = 'rgba(255,255,255,0.15)'
+    borderColor = 'var(--border)'
     bgColor = 'var(--package-muted)'
     textColor = 'var(--text-muted)'
   }

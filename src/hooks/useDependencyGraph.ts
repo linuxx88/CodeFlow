@@ -162,16 +162,23 @@ export const useDependencyGraph = ({
         strokeColor = isHighlighted ? (isPartOfCycle ? 'var(--cycle)' : (isExternal ? 'var(--package)' : 'var(--accent)')) : 'rgba(255, 255, 255, 0.04)'
       }
 
+      let edgeClass = 'edge-normal'
+      if (isPartOfCycle) {
+        edgeClass = 'edge-cycle'
+      } else if (isHighlighted) {
+        edgeClass = 'edge-highlighted'
+      } else if (isExternal) {
+        edgeClass = 'edge-package'
+      }
+
       return {
         id: `e-${idx}`,
         source: l.source,
         target: l.target,
         type: 'smoothstep',
-        animated: isPartOfCycle || (!isExternal && (hoveredNodeId === null || isHighlighted)),
+        className: edgeClass,
         style: {
           stroke: strokeColor,
-          strokeWidth: isPartOfCycle ? 2 : (isHighlighted ? 2.5 : (isExternal ? 1 : 1.5)),
-          strokeDasharray: isExternal ? '4 4' : undefined,
           opacity: isDimmed ? 0.15 : 1
         },
         markerEnd: {

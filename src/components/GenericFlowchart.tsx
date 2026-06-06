@@ -105,16 +105,18 @@ export const GenericFlowchart: React.FC<GenericFlowchartProps> = ({
         style={{
           width: '320px',
           borderRight: '1px solid var(--border)',
-          backgroundColor: 'rgba(10, 10, 15, 0.5)',
+          backgroundColor: 'var(--panel-bg)',
+          backdropFilter: 'blur(12px)',
           padding: '20px',
           display: 'flex',
           flexDirection: 'column',
           gap: '20px',
-          overflowY: 'auto'
+          overflowY: 'auto',
+          transition: 'background-color 0.3s, border-color 0.3s'
         }}
       >
         <div>
-          <h2 style={{ fontSize: '15px', fontWeight: 'bold', color: '#fff', marginBottom: '12px' }}>
+          <h2 style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--text)', marginBottom: '12px' }}>
             {title}
           </h2>
           
@@ -133,8 +135,8 @@ export const GenericFlowchart: React.FC<GenericFlowchartProps> = ({
                         padding: '10px',
                         borderRadius: '6px',
                         border: '1px solid var(--border)',
-                        backgroundColor: activeTemplate === key ? 'var(--accent)' : 'rgba(255,255,255,0.02)',
-                        color: '#fff',
+                        backgroundColor: activeTemplate === key ? 'var(--accent)' : 'var(--input-bg)',
+                        color: activeTemplate === key ? '#fff' : 'var(--text)',
                         textAlign: 'left',
                         cursor: 'pointer',
                         fontSize: '13px',
@@ -166,8 +168,8 @@ export const GenericFlowchart: React.FC<GenericFlowchartProps> = ({
                       padding: '10px',
                       borderRadius: '6px',
                       border: '1px solid var(--border)',
-                      backgroundColor: activeTemplate === key ? 'var(--accent)' : 'rgba(255,255,255,0.02)',
-                      color: '#fff',
+                      backgroundColor: activeTemplate === key ? 'var(--accent)' : 'var(--input-bg)',
+                      color: activeTemplate === key ? '#fff' : 'var(--text)',
                       textAlign: 'left',
                       cursor: 'pointer',
                       fontSize: '13px',
@@ -188,7 +190,7 @@ export const GenericFlowchart: React.FC<GenericFlowchartProps> = ({
         <div style={{ height: '1px', backgroundColor: 'var(--border)' }}></div>
 
         <div>
-          <h2 style={{ fontSize: '15px', fontWeight: 'bold', color: '#fff', marginBottom: '12px' }}>
+          <h2 style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--text)', marginBottom: '12px' }}>
             Éditeur de Nœud
           </h2>
           {selectedNodeId ? (
@@ -206,8 +208,8 @@ export const GenericFlowchart: React.FC<GenericFlowchartProps> = ({
                     padding: '8px',
                     borderRadius: '6px',
                     border: '1px solid var(--border)',
-                    backgroundColor: 'rgba(255,255,255,0.03)',
-                    color: '#fff',
+                    backgroundColor: 'var(--input-bg)',
+                    color: 'var(--text)',
                     fontSize: '13px',
                     outline: 'none',
                     boxSizing: 'border-box'
@@ -228,8 +230,8 @@ export const GenericFlowchart: React.FC<GenericFlowchartProps> = ({
                       padding: '8px',
                       borderRadius: '6px',
                       border: '1px solid var(--border)',
-                      backgroundColor: '#1f1f23',
-                      color: '#fff',
+                      backgroundColor: 'var(--dropdown-bg)',
+                      color: 'var(--text)',
                       fontSize: '13px',
                       outline: 'none'
                     }}
@@ -289,7 +291,7 @@ export const GenericFlowchart: React.FC<GenericFlowchartProps> = ({
         <div style={{ height: '1px', backgroundColor: 'var(--border)' }}></div>
 
         <div>
-          <h2 style={{ fontSize: '15px', fontWeight: 'bold', color: '#fff', marginBottom: '12px' }}>
+          <h2 style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--text)', marginBottom: '12px' }}>
             Ajouter un Élément
           </h2>
           <div style={{ display: 'flex', gap: '8px' }}>
@@ -346,7 +348,7 @@ export const GenericFlowchart: React.FC<GenericFlowchartProps> = ({
           onNodeClick={handleNodeClick}
           fitView
         >
-          <Background color="#2e303a" gap={16} />
+          <Background color="var(--border)" gap={16} />
           <Controls />
         </ReactFlow>
       </div>

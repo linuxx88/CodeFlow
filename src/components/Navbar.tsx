@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { GitBranch, Play, ChevronDown } from 'lucide-react'
+import { GitBranch, Play, ChevronDown, Palette } from 'lucide-react'
 import { VIEW_OPTIONS, getViewLabel } from '../constants/views'
 import type { FlowchartView } from '../constants/views'
 
@@ -10,7 +10,17 @@ interface NavbarProps {
   onScan: () => void
   currentView: FlowchartView
   onViewChange: (view: FlowchartView) => void
+  theme: 'dark' | 'light' | 'cyberpunk' | 'nord' | 'matrix'
+  setTheme: (theme: 'dark' | 'light' | 'cyberpunk' | 'nord' | 'matrix') => void
 }
+
+const THEME_OPTIONS = [
+  { value: 'dark', label: 'Sombre', color: '#8b5cf6' },
+  { value: 'light', label: 'Clair', color: '#6366f1' },
+  { value: 'cyberpunk', label: 'Cyberpunk', color: '#ff007f' },
+  { value: 'nord', label: 'Nord', color: '#88c0d0' },
+  { value: 'matrix', label: 'Matrix', color: '#00ff00' }
+] as const
 
 export const Navbar: React.FC<NavbarProps> = ({
   projectPath,
@@ -18,9 +28,12 @@ export const Navbar: React.FC<NavbarProps> = ({
   isScanning,
   onScan,
   currentView,
-  onViewChange
+  onViewChange,
+  theme,
+  setTheme
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [isThemeDropdownOpen, setIsThemeDropdownOpen] = useState(false)
 
   return (
     <div
@@ -30,9 +43,11 @@ export const Navbar: React.FC<NavbarProps> = ({
         alignItems: 'center',
         padding: '12px 24px',
         borderBottom: '1px solid var(--border)',
-        backgroundColor: 'rgba(10, 10, 15, 0.8)',
-        backdropFilter: 'blur(8px)',
-        zIndex: 10
+        backgroundColor: 'var(--panel-bg)',
+        backdropFilter: 'blur(12px)',
+        zIndex: 10,
+        boxShadow: '0 4px 20px var(--shadow)',
+        transition: 'background-color 0.3s, border-color 0.3s, box-shadow 0.3s'
       }}
     >
       <div 
@@ -40,7 +55,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         onClick={() => onViewChange('all')}
       >
         <GitBranch size={20} color="var(--accent)" />
-        <h1 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff', margin: 0, letterSpacing: 'normal' }}>
+        <h1 style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--text)', margin: 0, letterSpacing: 'normal' }}>
           Interactive Dependency Flow
         </h1>
       </div>
@@ -55,13 +70,100 @@ export const Navbar: React.FC<NavbarProps> = ({
             padding: '6px 12px',
             borderRadius: '6px',
             border: '1px solid var(--border)',
-            backgroundColor: 'rgba(255,255,255,0.03)',
-            color: '#fff',
+            backgroundColor: 'var(--input-bg)',
+            color: 'var(--text)',
             fontSize: '13px',
             width: '240px',
-            outline: 'none'
+            outline: 'none',
+            transition: 'border-color 0.2s, background-color 0.2s'
           }}
         />
+
+        {/* Theme Dropdown */}
+        <div style={{ position: 'relative' }} onMouseLeave={() => setIsThemeDropdownOpen(false)}>
+          <button
+            onClick={() => setIsThemeDropdownOpen(!isThemeDropdownOpen)}
+            title="Changer le thème"
+            style={{
+              padding: '6px 10px',
+              borderRadius: '6px',
+              border: '1px solid var(--border)',
+              backgroundColor: 'var(--input-bg)',
+              color: 'var(--text)',
+              fontSize: '13px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'background-color 0.2s, border-color 0.2s'
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--accent-muted)')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--input-bg)')}
+          >
+            <Palette size={14} color="var(--accent)" />
+            <span style={{ textTransform: 'capitalize' }}>{theme}</span>
+            <ChevronDown size={12} style={{ transform: isThemeDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+          </button>
+
+          {isThemeDropdownOpen && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '100%',
+                right: 0,
+                marginTop: '6px',
+                width: '160px',
+                backgroundColor: 'var(--dropdown-bg)',
+                border: '1px solid var(--border)',
+                borderRadius: '8px',
+                boxShadow: '0 10px 25px -5px var(--shadow)',
+                backdropFilter: 'blur(12px)',
+                padding: '6px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '4px',
+                zIndex: 100
+              }}
+            >
+              {THEME_OPTIONS.map((opt) => {
+                const isActive = theme === opt.value
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => {
+                      setTheme(opt.value)
+                      setIsThemeDropdownOpen(false)
+                    }}
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      backgroundColor: isActive ? 'var(--accent-muted)' : 'transparent',
+                      color: isActive ? 'var(--text)' : 'var(--text-muted)',
+                      fontSize: '13px',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      transition: 'background-color 0.2s',
+                      fontWeight: isActive ? 600 : 400
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)'
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) e.currentTarget.style.backgroundColor = 'transparent'
+                    }}
+                  >
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: opt.color, display: 'inline-block' }}></span>
+                    <span>{opt.label}</span>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
 
         {/* Dropdown for Flowchart Type */}
         <div style={{ position: 'relative' }} onMouseLeave={() => setIsDropdownOpen(false)}>
@@ -71,15 +173,15 @@ export const Navbar: React.FC<NavbarProps> = ({
               padding: '6px 12px',
               borderRadius: '6px',
               border: '1px solid var(--border)',
-              backgroundColor: 'rgba(255,255,255,0.03)',
-              color: '#fff',
+              backgroundColor: 'var(--input-bg)',
+              color: 'var(--text)',
               fontSize: '13px',
               cursor: 'pointer',
               fontWeight: 500,
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              transition: 'background-color 0.2s'
+              transition: 'background-color 0.2s, border-color 0.2s'
             }}
           >
             <span>Type de Flowchart : {getViewLabel(currentView)}</span>
@@ -94,11 +196,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                 right: 0,
                 marginTop: '6px',
                 width: '240px',
-                backgroundColor: 'rgba(15, 15, 20, 0.95)',
+                backgroundColor: 'var(--dropdown-bg)',
                 border: '1px solid var(--border)',
                 borderRadius: '8px',
-                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5)',
-                backdropFilter: 'blur(8px)',
+                boxShadow: '0 10px 25px -5px var(--shadow)',
+                backdropFilter: 'blur(12px)',
                 padding: '6px',
                 display: 'flex',
                 flexDirection: 'column',
@@ -120,7 +222,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       borderRadius: '6px',
                       border: 'none',
                       backgroundColor: isActive ? 'var(--accent)' : 'transparent',
-                      color: '#fff',
+                      color: isActive ? '#fff' : 'var(--text)',
                       fontSize: '13px',
                       textAlign: 'left',
                       cursor: 'pointer',
@@ -128,7 +230,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       fontWeight: isActive ? 600 : 400
                     }}
                     onMouseEnter={(e) => {
-                      if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'
+                      if (!isActive) e.currentTarget.style.backgroundColor = 'var(--accent-muted)'
                     }}
                     onMouseLeave={(e) => {
                       if (!isActive) e.currentTarget.style.backgroundColor = 'transparent'
@@ -156,8 +258,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '6px'
+            gap: '6px',
+            transition: 'background-color 0.2s'
           }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--accent-hover)')}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--accent)')}
         >
           {isScanning ? (
             <span

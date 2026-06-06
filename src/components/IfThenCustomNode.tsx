@@ -16,12 +16,12 @@ export const IfThenCustomNode: React.FC<any> = ({ data }) => {
         padding: '12px 18px',
         borderRadius: '8px',
         border: `1px solid ${color}`,
-        backgroundColor: 'rgba(15, 15, 20, 0.95)',
-        backdropFilter: 'blur(8px)',
-        color: '#fff',
+        backgroundColor: 'var(--panel-bg)',
+        backdropFilter: 'blur(12px)',
+        color: 'var(--text)',
         fontSize: '13px',
         minWidth: '180px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+        boxShadow: '0 4px 20px var(--shadow)',
         textAlign: 'center',
         position: 'relative'
       }}

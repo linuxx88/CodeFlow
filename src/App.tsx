@@ -19,6 +19,7 @@ import { FileNode } from './components/FileNode'
 import { FlowchartRenderer } from './components/FlowchartRenderer'
 import { flattenTree, checkIsWebProject } from './utils/projectUtils'
 import { useDependencyGraph } from './hooks/useDependencyGraph'
+import { useTheme } from './hooks/useTheme'
 import type { FlowchartView } from './constants/views'
 
 const nodeTypes = {
@@ -26,6 +27,7 @@ const nodeTypes = {
 }
 
 function App() {
+  const { theme, setTheme } = useTheme()
   const [projectPath, setProjectPath] = useState('')
   const [isScanning, setIsScanning] = useState(false)
   const [scanProgress, setScanProgress] = useState<{ stage: string; current?: number; total?: number; message: string } | null>(null)
@@ -177,7 +179,7 @@ function App() {
   }, [scanData, gitSortBy])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh', backgroundColor: 'var(--bg)' }}>
+    <div className={`theme-${theme}`} style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh', backgroundColor: 'var(--bg)' }}>
       <Navbar
         projectPath={projectPath}
         setProjectPath={setProjectPath}
@@ -185,6 +187,8 @@ function App() {
         onScan={handleScanProject}
         currentView={currentView}
         onViewChange={setCurrentView}
+        theme={theme}
+        setTheme={setTheme}
       />
 
       {currentView !== 'all' && currentView !== 'web' ? (

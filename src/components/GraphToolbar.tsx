@@ -38,11 +38,13 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = ({
         alignItems: 'center',
         padding: '8px 16px',
         borderBottom: '1px solid var(--border)',
-        backgroundColor: 'rgba(15, 15, 20, 0.3)'
+        backgroundColor: 'var(--panel-bg)',
+        backdropFilter: 'blur(12px)',
+        transition: 'background-color 0.3s, border-color 0.3s'
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'rgba(255,255,255,0.03)', padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--border)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'var(--input-bg)', padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--border)' }}>
           <Search size={13} color="var(--text-muted)" />
           <input
             type="text"
@@ -52,7 +54,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = ({
             style={{
               border: 'none',
               backgroundColor: 'transparent',
-              color: '#fff',
+              color: 'var(--text)',
               fontSize: '12px',
               outline: 'none',
               width: '120px'
@@ -106,7 +108,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = ({
                     padding: '2px 8px',
                     borderRadius: '4px',
                     border: isSelected ? '1px solid var(--accent)' : '1px solid var(--border)',
-                    backgroundColor: isSelected ? 'var(--accent-muted)' : 'rgba(255,255,255,0.02)',
+                    backgroundColor: isSelected ? 'var(--accent-muted)' : 'var(--input-bg)',
                     color: isSelected ? 'var(--text)' : 'var(--text-muted)',
                     fontSize: '11px',
                     cursor: 'pointer',
@@ -128,16 +130,17 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = ({
             padding: '4px 10px',
             borderRadius: '6px',
             border: '1px solid var(--border)',
-            backgroundColor: 'rgba(255,255,255,0.03)',
-            color: '#fff',
+            backgroundColor: 'var(--input-bg)',
+            color: 'var(--text)',
             fontSize: '12px',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '6px'
+            gap: '6px',
+            transition: 'background-color 0.2s, border-color 0.2s'
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.07)')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)')}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--accent-muted)')}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--input-bg)')}
         >
           <Maximize2 size={12} />
           <span>Plein écran</span>
