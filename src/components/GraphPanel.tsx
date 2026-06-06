@@ -34,6 +34,8 @@ interface GraphPanelProps {
   onNodeMouseEnter?: (event: React.MouseEvent, node: Node) => void
   onNodeMouseLeave?: (event: React.MouseEvent, node: Node) => void
   isWebWarning?: boolean
+  isScanning: boolean
+  scanProgress: { stage: string; current?: number; total?: number; message: string } | null
 }
 
 const nodeTypes = {
@@ -62,7 +64,9 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
   setIsFullscreen,
   onNodeMouseEnter,
   onNodeMouseLeave,
-  isWebWarning
+  isWebWarning,
+  isScanning,
+  scanProgress
 }) => {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -83,7 +87,30 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
 
       {/* Flow Viewer / Warning Card */}
       <div style={{ flex: 1, position: 'relative' }}>
-        {hasData ? (
+        {isScanning ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '16px', color: '#fff', backgroundColor: 'rgba(10, 10, 15, 0.4)' }}>
+            <span
+              className="spinner"
+              style={{
+                width: '32px',
+                height: '32px',
+                border: '3px solid var(--accent)',
+                borderTopColor: 'transparent',
+                borderRadius: '50%',
+                display: 'inline-block',
+                animation: 'spin 0.8s linear infinite'
+              }}
+            ></span>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '14px', fontWeight: 600 }}>{scanProgress?.message || 'Scan en cours...'}</span>
+              {scanProgress?.current !== undefined && scanProgress?.total !== undefined && (
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                  Progression : {Math.round((scanProgress.current / scanProgress.total) * 100)}% ({scanProgress.current} / {scanProgress.total})
+                </span>
+              )}
+            </div>
+          </div>
+        ) : hasData ? (
           isWebWarning ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', gap: '12px', padding: '24px', textAlign: 'center' }}>
               <AlertTriangle size={48} color="var(--bottleneck)" />
@@ -143,3 +170,4 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
     </div>
   )
 }
+

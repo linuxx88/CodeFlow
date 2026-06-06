@@ -28,6 +28,7 @@ const nodeTypes = {
 function App() {
   const [projectPath, setProjectPath] = useState('')
   const [isScanning, setIsScanning] = useState(false)
+  const [scanProgress, setScanProgress] = useState<{ stage: string; current?: number; total?: number; message: string } | null>(null)
   const [scanData, setScanData] = useState<any>(null)
   
   const [collapsedDirs, setCollapsedDirs] = useState<Record<string, boolean>>({})
@@ -99,18 +100,58 @@ function App() {
     setForceDisplay(false)
     setFilterQuery('')
     setSelectedExtensions([])
+    setScanProgress({ stage: 'reading', message: 'Démarrage du scan...' })
+    
     try {
-      const res = await fetch(`/api/scan?path=${encodeURIComponent(projectPath)}`)
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.error || 'Failed to scan')
+      const response = await fetch(`/api/scan?path=${encodeURIComponent(projectPath)}`)
+      if (!response.ok) {
+        throw new Error('Erreur de connexion au scanner')
       }
-      const data = await res.json()
-      setScanData(data)
+      
+      const reader = response.body?.getReader()
+      if (!reader) {
+        throw new Error('Le flux de réponse n\'est pas lisible')
+      }
+      
+      const decoder = new TextDecoder()
+      let buffer = ''
+      
+      while (true) {
+        const { value, done } = await reader.read()
+        if (done) break
+        
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
+        
+        for (const line of lines) {
+          const trimmed = line.trim()
+          if (!trimmed || !trimmed.startsWith('data: ')) continue
+          
+          try {
+            const parsed = JSON.parse(trimmed.substring(6))
+            if (parsed.type === 'progress') {
+              setScanProgress({
+                stage: parsed.stage,
+                current: parsed.current,
+                total: parsed.total,
+                message: parsed.message
+              })
+            } else if (parsed.type === 'result') {
+              setScanData(parsed.result)
+            } else if (parsed.type === 'error') {
+              throw new Error(parsed.error)
+            }
+          } catch (e: any) {
+            console.error('Erreur parsing SSE:', e)
+          }
+        }
+      }
     } catch (e: any) {
       alert(`Erreur de scan: ${e.message}`)
     } finally {
       setIsScanning(false)
+      setScanProgress(null)
     }
   }
 
@@ -351,6 +392,8 @@ function App() {
             onNodeMouseEnter={(_, node) => setHoveredNodeId(node.id)}
             onNodeMouseLeave={() => setHoveredNodeId(null)}
             isWebWarning={isWebWarning}
+            isScanning={isScanning}
+            scanProgress={scanProgress}
           />
           <GitPanel
             isGitRepo={scanData?.git?.is_git_repo ?? false}

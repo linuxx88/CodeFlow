@@ -1,17 +1,17 @@
-import fs from 'fs'
+import fs from 'fs/promises'
 import path from 'path'
 
 const EXCLUDED_DIRS = new Set([
   'node_modules', '.git', '__pycache__', '.venv', '.states', '.web', 'dist', 'build'
 ])
 
-export function scanDir(dirPath: string, rootPath: string): any {
+export async function scanDir(dirPath: string, rootPath: string): Promise<any> {
   const name = path.basename(dirPath) || dirPath
   const relativePath = path.relative(rootPath, dirPath)
   
-  let stats: fs.Stats
+  let stats: any
   try {
-    stats = fs.statSync(dirPath)
+    stats = await fs.stat(dirPath)
   } catch (e) {
     return null
   }
@@ -21,9 +21,9 @@ export function scanDir(dirPath: string, rootPath: string): any {
     
     const children: any[] = []
     try {
-      const files = fs.readdirSync(dirPath)
+      const files = await fs.readdir(dirPath)
       for (const file of files) {
-        const child = scanDir(path.join(dirPath, file), rootPath)
+        const child = await scanDir(path.join(dirPath, file), rootPath)
         if (child) children.push(child)
       }
     } catch (e) {}
@@ -49,15 +49,20 @@ export function scanDir(dirPath: string, rootPath: string): any {
   }
 }
 
-export function getAllFiles(dirPath: string, rootPath: string, fileList: string[] = []): string[] {
+export async function getAllFiles(dirPath: string, rootPath: string, fileList: string[] = []): Promise<string[]> {
   try {
-    const files = fs.readdirSync(dirPath)
+    const files = await fs.readdir(dirPath)
     for (const file of files) {
       const fullPath = path.join(dirPath, file)
-      const stats = fs.statSync(fullPath)
+      let stats: any
+      try {
+        stats = await fs.stat(fullPath)
+      } catch (e) {
+        continue
+      }
       if (stats.isDirectory()) {
         if (!EXCLUDED_DIRS.has(file)) {
-          getAllFiles(fullPath, rootPath, fileList)
+          await getAllFiles(fullPath, rootPath, fileList)
         }
       } else {
         fileList.push(path.relative(rootPath, fullPath))

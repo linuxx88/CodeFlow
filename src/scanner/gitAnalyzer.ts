@@ -1,18 +1,19 @@
-import fs from 'fs'
-import path from 'path'
-import { execSync } from 'child_process'
+import { exec } from 'child_process'
+import { promisify } from 'util'
 
-export function analyzeGit(rootPath: string) {
+const execPromise = promisify(exec)
+
+export async function analyzeGit(rootPath: string, existingFiles: Set<string>) {
   try {
-    execSync('git rev-parse --is-inside-work-tree', { cwd: rootPath, stdio: 'ignore' })
+    await execPromise('git rev-parse --is-inside-work-tree', { cwd: rootPath })
   } catch (e) {
     return { hotspots: [], is_git: false }
   }
   
   try {
-    const logOutput = execSync(
+    const { stdout: logOutput } = await execPromise(
       'git log --name-only --pretty=format:"COMMIT:%ae"',
-      { cwd: rootPath, encoding: 'utf-8' }
+      { cwd: rootPath, maxBuffer: 10 * 1024 * 1024 }
     )
     
     const fileCommits = new Map<string, number>()
@@ -25,7 +26,7 @@ export function analyzeGit(rootPath: string) {
         currentAuthor = line.substring(7)
       } else if (line.trim()) {
         const file = line.trim()
-        if (fs.existsSync(path.join(rootPath, file))) {
+        if (existingFiles.has(file)) {
           fileCommits.set(file, (fileCommits.get(file) || 0) + 1)
           if (!fileAuthors.has(file)) fileAuthors.set(file, new Set())
           if (currentAuthor) fileAuthors.get(file)!.add(currentAuthor)
