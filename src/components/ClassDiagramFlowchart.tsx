@@ -124,7 +124,12 @@ export const ClassDiagramFlowchart: React.FC<ClassDiagramFlowchartProps> = ({ sc
 
   const [lastLayoutKey, setLastLayoutKey] = useState('')
   useEffect(() => {
-    const key = `${nodes.length}-${edges.length}-${direction}-${nodesep}-${ranksep}-${nodes.map(n => `${n.id}:${n.data?.name || ''}:${(n.data?.properties || []).join(',')}:${(n.data?.methods || []).join(',')}`).join(',')}`
+    const key = `${nodes.length}-${edges.length}-${direction}-${nodesep}-${ranksep}-${nodes.map(n => {
+      const data = n.data as any;
+      const props = Array.isArray(data?.properties) ? data.properties : [];
+      const meths = Array.isArray(data?.methods) ? data.methods : [];
+      return `${n.id}:${data?.name || ''}:${props.join(',')}:${meths.join(',')}`;
+    }).join(',')}`
     if (key !== lastLayoutKey && nodes.length > 0) {
       const timer = setTimeout(() => {
         setLastLayoutKey(key)

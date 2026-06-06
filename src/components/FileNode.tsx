@@ -38,14 +38,17 @@ export const FileNode: React.FC<any> = ({ data, sourcePosition, targetPosition }
         color: textColor,
         fontSize: '13px',
         fontFamily: 'monospace',
-        whiteSpace: 'nowrap',
         boxShadow: `0 8px 32px 0 var(--shadow), 0 0 12px ${glowColor}`,
         display: 'flex',
+        flexDirection: 'row',
         alignItems: 'center',
         gap: '10px',
         opacity: data.isDimmed ? 0.25 : 1,
         transition: 'all 0.3s ease',
-        position: 'relative'
+        position: 'relative',
+        minWidth: '120px',
+        maxWidth: '320px',
+        boxSizing: 'border-box'
       }}
     >
       <Handle
@@ -56,17 +59,29 @@ export const FileNode: React.FC<any> = ({ data, sourcePosition, targetPosition }
           borderRadius: '50%',
           width: '8px',
           height: '8px',
-          border: '1.5px solid var(--bg)'
+          border: '1.5px solid var(--bg)',
+          flexShrink: 0
         }}
       />
       {isPackage ? (
-        <span style={{ fontSize: '10px', opacity: 0.7, fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--text-muted)' }}>[pkg]</span>
+        <span style={{ fontSize: '10px', opacity: 0.7, fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--text-muted)', flexShrink: 0 }}>[pkg]</span>
       ) : (
-        <FileText size={14} color={isPartOfCycle ? 'var(--cycle)' : (isBottleneck ? 'var(--bottleneck)' : 'var(--accent)')} />
+        <FileText size={14} color={isPartOfCycle ? 'var(--cycle)' : (isBottleneck ? 'var(--bottleneck)' : 'var(--accent)')} style={{ flexShrink: 0 }} />
       )}
-      <span style={{ fontWeight: 500 }}>{data.label}</span>
+      <span
+        style={{
+          fontWeight: 500,
+          textOverflow: 'ellipsis',
+          overflow: 'hidden',
+          whiteSpace: 'nowrap',
+          minWidth: 0,
+          flex: 1
+        }}
+      >
+        {data.label}
+      </span>
       {isPartOfCycle && (
-        <RefreshCw size={12} color="var(--cycle)" style={{ animation: 'spin 4s linear infinite', marginLeft: '4px' }} />
+        <RefreshCw size={12} color="var(--cycle)" style={{ animation: 'spin 4s linear infinite', marginLeft: '4px', flexShrink: 0 }} />
       )}
       <Handle
         type="source"
@@ -76,10 +91,10 @@ export const FileNode: React.FC<any> = ({ data, sourcePosition, targetPosition }
           borderRadius: '50%',
           width: '8px',
           height: '8px',
-          border: '1.5px solid var(--bg)'
+          border: '1.5px solid var(--bg)',
+          flexShrink: 0
         }}
       />
     </div>
   )
 }
-

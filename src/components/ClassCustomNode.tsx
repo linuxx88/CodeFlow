@@ -51,37 +51,47 @@ export const ClassCustomNode: React.FC<any> = ({ data, sourcePosition, targetPos
         )}
       </div>
 
-      {/* Properties section */}
-      <div style={{ padding: '8px 14px', borderBottom: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        {data.properties && data.properties.length > 0 ? (
-          data.properties.map((prop: string, idx: number) => (
-            <div key={idx} style={{ fontFamily: 'monospace', color: 'var(--text)', opacity: 0.9, fontSize: '11px' }}>
-              <span style={{ color: 'var(--accent)', marginRight: '6px' }}>+</span>
-              {prop}
+      {/* Scrollable Container Wrapper */}
+      <div
+        style={{
+          maxHeight: '200px',
+          overflowY: 'auto',
+          overflowX: 'hidden'
+        }}
+      >
+        {/* Properties section */}
+        <div style={{ padding: '8px 14px', borderBottom: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          {data.properties && data.properties.length > 0 ? (
+            data.properties.map((prop: string, idx: number) => (
+              <div key={idx} style={{ fontFamily: 'monospace', color: 'var(--text)', opacity: 0.9, fontSize: '11px', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                <span style={{ color: 'var(--accent)', marginRight: '6px' }}>+</span>
+                {prop}
+              </div>
+            ))
+          ) : (
+            <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '10px' }}>
+              Aucun attribut
             </div>
-          ))
-        ) : (
-          <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '10px' }}>
-            Aucun attribut
-          </div>
-        )}
+          )}
+        </div>
+
+        {/* Methods section */}
+        <div style={{ padding: '8px 14px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          {data.methods && data.methods.length > 0 ? (
+            data.methods.map((method: string, idx: number) => (
+              <div key={idx} style={{ fontFamily: 'monospace', color: '#10b981', fontSize: '11px', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                <span style={{ color: '#10b981', marginRight: '6px' }}>+</span>
+                {method}()
+              </div>
+            ))
+          ) : (
+            <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '10px' }}>
+              Aucune méthode
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Methods section */}
-      <div style={{ padding: '8px 14px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        {data.methods && data.methods.length > 0 ? (
-          data.methods.map((method: string, idx: number) => (
-            <div key={idx} style={{ fontFamily: 'monospace', color: '#10b981', fontSize: '11px' }}>
-              <span style={{ color: '#10b981', marginRight: '6px' }}>+</span>
-              {method}()
-            </div>
-          ))
-        ) : (
-          <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '10px' }}>
-            Aucune méthode
-          </div>
-        )}
-      </div>
       <Handle
         type="source"
         position={sourcePosition || Position.Bottom}
@@ -96,4 +106,3 @@ export const ClassCustomNode: React.FC<any> = ({ data, sourcePosition, targetPos
     </div>
   )
 }
-

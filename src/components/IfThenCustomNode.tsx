@@ -19,18 +19,11 @@ export const IfThenCustomNode: React.FC<any> = ({ data, sourcePosition, targetPo
   return (
     <div
       style={{
-        padding: '12px 20px',
-        borderRadius: '10px',
-        border: `1.5px solid ${color}`,
-        backgroundColor: 'var(--panel-bg)',
-        backdropFilter: 'blur(16px)',
-        color: 'var(--text)',
-        fontSize: '13px',
-        minWidth: '180px',
-        boxShadow: `0 8px 32px 0 var(--shadow), 0 0 12px ${glowColor}`,
-        textAlign: 'center',
         position: 'relative',
-        transition: 'all 0.3s ease'
+        filter: isCondition ? `drop-shadow(0 8px 16px var(--shadow)) drop-shadow(0 0 8px ${glowColor})` : 'none',
+        display: 'inline-block',
+        minWidth: '180px',
+        aspectRatio: isCondition ? '1 / 1' : 'auto'
       }}
     >
       <Handle
@@ -41,22 +34,70 @@ export const IfThenCustomNode: React.FC<any> = ({ data, sourcePosition, targetPo
           width: '8px',
           height: '8px',
           border: '1.5px solid var(--bg)',
-          borderRadius: '50%'
+          borderRadius: '50%',
+          zIndex: 10
         }}
       />
       <div
         style={{
-          fontSize: '9px',
-          fontWeight: 'bold',
-          textTransform: 'uppercase',
-          marginBottom: '6px',
-          color: color,
-          letterSpacing: '1px'
+          padding: isCondition ? '30px' : '12px 20px',
+          borderRadius: isCondition ? '0px' : '10px',
+          border: isCondition ? 'none' : `1.5px solid ${color}`,
+          backgroundColor: 'var(--panel-bg)',
+          backdropFilter: 'blur(16px)',
+          clipPath: isCondition ? 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)' : 'none',
+          color: 'var(--text)',
+          fontSize: '13px',
+          width: '100%',
+          height: '100%',
+          textAlign: 'center',
+          position: 'relative',
+          transition: 'all 0.3s ease',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          boxSizing: 'border-box'
         }}
       >
-        {isStart ? 'Début' : isCondition ? 'SI (Condition)' : 'ALORS / SINON'}
+        <div
+          style={{
+            fontSize: '9px',
+            fontWeight: 'bold',
+            textTransform: 'uppercase',
+            marginBottom: '6px',
+            color: color,
+            letterSpacing: '1px',
+            flexShrink: 0
+          }}
+        >
+          {isStart ? 'Début' : isCondition ? 'SI (Condition)' : 'ALORS / SINON'}
+        </div>
+        <div style={{ fontWeight: 600, wordBreak: 'break-word', maxWidth: '100%' }}>{data.label}</div>
       </div>
-      <div style={{ fontWeight: 600 }}>{data.label}</div>
+      {isCondition && (
+        <svg
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+            transform: 'translate3d(0, 0, 0)',
+            zIndex: 2
+          }}
+        >
+          <polygon
+            points="50,0.75 99.25,50 50,99.25 0.75,50"
+            fill="none"
+            stroke={color}
+            strokeWidth="1.5"
+          />
+        </svg>
+      )}
       <Handle
         type="source"
         position={sourcePosition || Position.Bottom}
@@ -65,10 +106,10 @@ export const IfThenCustomNode: React.FC<any> = ({ data, sourcePosition, targetPo
           width: '8px',
           height: '8px',
           border: '1.5px solid var(--bg)',
-          borderRadius: '50%'
+          borderRadius: '50%',
+          zIndex: 10
         }}
       />
     </div>
   )
 }
-

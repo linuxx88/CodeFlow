@@ -35,20 +35,23 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = ({
     <div
       style={{
         display: 'flex',
+        flexWrap: 'wrap',
         justifyContent: 'space-between',
         alignItems: 'center',
+        gap: '12px',
         padding: '8px 16px',
         borderBottom: '1px solid var(--border)',
         backgroundColor: 'var(--panel-bg)',
         backdropFilter: 'blur(12px)',
         transition: 'background-color 0.3s, border-color 0.3s',
         position: 'relative',
-        zIndex: 10
+        zIndex: 10,
+        minWidth: 0
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'var(--input-bg)', padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--border)' }}>
-          <Search size={13} color="var(--text-muted)" />
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', minWidth: 0, flexShrink: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'var(--input-bg)', padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--border)', flexShrink: 0, minWidth: '160px' }}>
+          <Search size={13} color="var(--text-muted)" style={{ flexShrink: 0 }} />
           <input
             type="text"
             placeholder="Filtrer..."
@@ -65,35 +68,35 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = ({
           />
         </div>
 
-        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '12px', color: 'var(--text-muted)' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '12px', color: 'var(--text-muted)', flexShrink: 0, minWidth: 'max-content' }}>
           <input
             type="checkbox"
             checked={showExternal}
             onChange={(e) => setShowExternal(e.target.checked)}
-            style={{ cursor: 'pointer' }}
+            style={{ cursor: 'pointer', flexShrink: 0 }}
           />
           <span>Packages externes</span>
         </label>
 
-        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '12px', color: 'var(--text-muted)' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '12px', color: 'var(--text-muted)', flexShrink: 0, minWidth: 'max-content' }}>
           <input
             type="checkbox"
             checked={showOnlyCycles}
             onChange={(e) => setShowOnlyCycles(e.target.checked)}
-            style={{ cursor: 'pointer' }}
+            style={{ cursor: 'pointer', flexShrink: 0 }}
           />
           <span style={{ color: showOnlyCycles ? 'var(--cycle)' : 'inherit' }}>Cycles uniquement</span>
         </label>
 
         {cycleNodesCount > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--cycle)', backgroundColor: 'var(--cycle-muted)', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
-            <AlertTriangle size={11} color="var(--cycle)" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--cycle)', backgroundColor: 'var(--cycle-muted)', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(245, 158, 11, 0.3)', flexShrink: 0, minWidth: 'max-content' }}>
+            <AlertTriangle size={11} color="var(--cycle)" style={{ flexShrink: 0 }} />
             <span>{cycleNodesCount} fichiers en cycle</span>
           </div>
         )}
 
         {availableExtensions.length > 0 && (
-          <div style={{ position: 'relative' }} onMouseLeave={() => setIsExtDropdownOpen(false)}>
+          <div style={{ position: 'relative', flexShrink: 0, minWidth: 'max-content' }} onMouseLeave={() => setIsExtDropdownOpen(false)}>
             <button
               onClick={() => setIsExtDropdownOpen(!isExtDropdownOpen)}
               style={{
@@ -113,7 +116,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = ({
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--input-bg)')}
             >
               <span>Extensions ({selectedExtensions.length})</span>
-              <ChevronDown size={12} style={{ transform: isExtDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+              <ChevronDown size={12} style={{ transform: isExtDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }} />
             </button>
 
             {isExtDropdownOpen && (
@@ -172,7 +175,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = ({
                             setSelectedExtensions([...selectedExtensions, ext])
                           }
                         }}
-                        style={{ cursor: 'pointer' }}
+                        style={{ cursor: 'pointer', flexShrink: 0 }}
                       />
                       <span>{ext}</span>
                     </label>
@@ -198,12 +201,14 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = ({
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
-            transition: 'background-color 0.2s, border-color 0.2s'
+            transition: 'background-color 0.2s, border-color 0.2s',
+            flexShrink: 0,
+            minWidth: 'max-content'
           }}
           onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--accent-muted)')}
           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--input-bg)')}
         >
-          <Maximize2 size={12} />
+          <Maximize2 size={12} style={{ flexShrink: 0 }} />
           <span>Plein écran</span>
         </button>
       )}
