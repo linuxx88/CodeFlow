@@ -12,6 +12,7 @@
   --accent-hover: #7c3aed;
   --accent-muted: rgba(139, 92, 246, 0.12);
   --accent-glow: rgba(139, 92, 246, 0.25);
+  --accent-fg: #ffffff;
   
   --bottleneck: #f43f5e;
   --bottleneck-muted: rgba(244, 63, 94, 0.15);
@@ -24,7 +25,7 @@
 
   --flow-grid: #1c1917;
   --input-bg: rgba(255, 255, 255, 0.03);
-  --dropdown-bg: rgba(15, 15, 20, 0.95);
+  --dropdown-bg: #0f0f14;
   --shadow: rgba(0, 0, 0, 0.6);
   
   color-scheme: dark;
@@ -41,6 +42,7 @@
   --accent-hover: #4f46e5;
   --accent-muted: rgba(99, 102, 241, 0.08);
   --accent-glow: rgba(99, 102, 241, 0.15);
+  --accent-fg: #ffffff;
   
   --bottleneck: #e11d48;
   --bottleneck-muted: rgba(225, 29, 72, 0.08);
@@ -53,7 +55,7 @@
 
   --flow-grid: #e2e8f0;
   --input-bg: rgba(0, 0, 0, 0.02);
-  --dropdown-bg: rgba(255, 255, 255, 0.95);
+  --dropdown-bg: #ffffff;
   --shadow: rgba(0, 0, 0, 0.06);
   
   color-scheme: light;
@@ -70,6 +72,7 @@
   --accent-hover: #ff3399;
   --accent-muted: rgba(255, 0, 127, 0.12);
   --accent-glow: rgba(255, 0, 127, 0.3);
+  --accent-fg: #ffffff;
   
   --bottleneck: #f15025;
   --bottleneck-muted: rgba(241, 80, 37, 0.15);
@@ -82,7 +85,7 @@
 
   --flow-grid: #150f24;
   --input-bg: rgba(255, 0, 127, 0.04);
-  --dropdown-bg: rgba(12, 9, 20, 0.96);
+  --dropdown-bg: #0c0914;
   --shadow: rgba(255, 0, 127, 0.2);
   
   color-scheme: dark;
@@ -99,6 +102,7 @@
   --accent-hover: #8fbcbb;
   --accent-muted: rgba(136, 192, 208, 0.15);
   --accent-glow: rgba(136, 192, 208, 0.3);
+  --accent-fg: #2e3440;
   
   --bottleneck: #bf616a;
   --bottleneck-muted: rgba(191, 97, 106, 0.15);
@@ -111,7 +115,7 @@
 
   --flow-grid: #3b4252;
   --input-bg: rgba(255, 255, 255, 0.04);
-  --dropdown-bg: rgba(46, 52, 64, 0.96);
+  --dropdown-bg: #2e3440;
   --shadow: rgba(0, 0, 0, 0.3);
   
   color-scheme: dark;
@@ -128,6 +132,7 @@
   --accent-hover: #00ff00;
   --accent-muted: rgba(0, 255, 102, 0.15);
   --accent-glow: rgba(0, 255, 102, 0.4);
+  --accent-fg: #020202;
   
   --bottleneck: #ff3333;
   --bottleneck-muted: rgba(255, 51, 51, 0.2);
@@ -140,7 +145,7 @@
 
   --flow-grid: #051005;
   --input-bg: rgba(0, 255, 0, 0.02);
-  --dropdown-bg: rgba(2, 8, 2, 0.98);
+  --dropdown-bg: #020202;
   --shadow: rgba(0, 255, 0, 0.15);
   
   color-scheme: dark;

@@ -192,7 +192,7 @@ function App() {
   }, [scanData, gitSortBy])
 
   return (
-    <div className={`theme-${theme}`} style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh', backgroundColor: 'var(--bg)' }}>
+    <div className={`theme-${theme}`} style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh', backgroundColor: 'var(--bg)', overflow: 'visible' }}>
       <Navbar
         projectPath={projectPath}
         setProjectPath={setProjectPath}
@@ -318,7 +318,7 @@ function App() {
                       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--input-bg)')}
                     >
                       <span>Extensions ({selectedExtensions.length})</span>
-                      <ChevronDown size={12} style={{ transform: isExtDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                      <ChevronDown size={12} style={{ display: 'inline-block', transform: isExtDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
                     </button>
 
                     {isExtDropdownOpen && (

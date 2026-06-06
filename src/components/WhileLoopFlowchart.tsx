@@ -1,11 +1,8 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import {
   ReactFlow,
   Background,
   ReactFlowProvider,
-  useReactFlow,
-  useNodes,
-  useEdges,
   BaseEdge,
   EdgeLabelRenderer
 } from '@xyflow/react'
@@ -35,8 +32,8 @@ const LoopReturnEdge: React.FC<EdgeProps> = ({
   sourceY,
   targetX,
   targetY,
-  sourcePosition,
-  targetPosition,
+  sourcePosition: _sourcePosition,
+  targetPosition: _targetPosition,
   style = {},
   markerEnd,
   label,
@@ -235,7 +232,7 @@ const WhileLoopFlowchartContent: React.FC<WhileLoopFlowchartProps> = ({ scanData
                   borderRadius: '6px',
                   border: '1px solid var(--border)',
                   backgroundColor: activeTemplate === key ? 'var(--accent)' : 'var(--input-bg)',
-                  color: activeTemplate === key ? '#fff' : 'var(--text)',
+                  color: activeTemplate === key ? 'var(--accent-fg)' : 'var(--text)',
                   textAlign: 'left',
                   cursor: 'pointer',
                   fontSize: '13px',
@@ -314,7 +311,7 @@ const WhileLoopFlowchartContent: React.FC<WhileLoopFlowchartProps> = ({ scanData
                     padding: '8px',
                     borderRadius: '6px',
                     backgroundColor: 'var(--accent)',
-                    color: '#fff',
+                    color: 'var(--accent-fg)',
                     border: 'none',
                     cursor: 'pointer',
                     fontSize: '12px',

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Handle, Position } from '@xyflow/react'
+import { Handle } from '@xyflow/react'
 
 export const IfThenCustomNode: React.FC<any> = ({ data, sourcePosition, targetPosition }) => {
   const isCondition = data.type === 'condition'
@@ -28,7 +28,7 @@ export const IfThenCustomNode: React.FC<any> = ({ data, sourcePosition, targetPo
     >
       <Handle
         type="target"
-        position={targetPosition || Position.Top}
+        position={targetPosition || 'top'}
         style={{
           background: color,
           width: '8px',
@@ -100,7 +100,7 @@ export const IfThenCustomNode: React.FC<any> = ({ data, sourcePosition, targetPo
       )}
       <Handle
         type="source"
-        position={sourcePosition || Position.Bottom}
+        position={sourcePosition || 'bottom'}
         style={{
           background: color,
           width: '8px',

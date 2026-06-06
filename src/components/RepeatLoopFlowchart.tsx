@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import { ReactFlowProvider, useReactFlow, useNodes, useEdges } from '@xyflow/react'
+import { ReactFlowProvider, useReactFlow, useNodes, useEdges, useUpdateNodeInternals } from '@xyflow/react'
 import { GenericFlowchart } from './GenericFlowchart'
 import { REPEAT_TEMPLATES } from '../templates'
 
@@ -8,7 +8,8 @@ interface RepeatLoopFlowchartProps {
 }
 
 const FlowchartLayoutObserver: React.FC<{ containerRef: React.RefObject<HTMLDivElement | null> }> = ({ containerRef }) => {
-  const { updateNodeInternals, fitView } = useReactFlow()
+  const { fitView } = useReactFlow()
+  const updateNodeInternals = useUpdateNodeInternals()
   const nodes = useNodes()
   const edges = useEdges()
 

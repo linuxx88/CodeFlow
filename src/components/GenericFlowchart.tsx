@@ -3,7 +3,7 @@ import {
   ReactFlow,
   Background,
   ReactFlowProvider,
-  useReactFlow
+  useUpdateNodeInternals
 } from '@xyflow/react'
 import { Plus, Trash2, Check, HelpCircle, Code } from 'lucide-react'
 
@@ -38,7 +38,7 @@ const GenericFlowchartContent: React.FC<GenericFlowchartProps> = ({
   scanData,
   filterType = 'all'
 }) => {
-  const { updateNodeInternals } = useReactFlow()
+  const updateNodeInternals = useUpdateNodeInternals()
 
   const projectTemplates = useMemo(() => {
     if (filterType === 'loop') {
@@ -186,7 +186,7 @@ const GenericFlowchartContent: React.FC<GenericFlowchartProps> = ({
                         borderRadius: '6px',
                         border: '1px solid var(--border)',
                         backgroundColor: activeTemplate === key ? 'var(--accent)' : 'var(--input-bg)',
-                        color: activeTemplate === key ? '#fff' : 'var(--text)',
+                        color: activeTemplate === key ? 'var(--accent-fg)' : 'var(--text)',
                         textAlign: 'left',
                         cursor: 'pointer',
                         fontSize: '13px',
@@ -219,7 +219,7 @@ const GenericFlowchartContent: React.FC<GenericFlowchartProps> = ({
                       borderRadius: '6px',
                       border: '1px solid var(--border)',
                       backgroundColor: activeTemplate === key ? 'var(--accent)' : 'var(--input-bg)',
-                      color: activeTemplate === key ? '#fff' : 'var(--text)',
+                      color: activeTemplate === key ? 'var(--accent-fg)' : 'var(--text)',
                       textAlign: 'left',
                       cursor: 'pointer',
                       fontSize: '13px',
@@ -300,7 +300,7 @@ const GenericFlowchartContent: React.FC<GenericFlowchartProps> = ({
                     padding: '8px',
                     borderRadius: '6px',
                     backgroundColor: 'var(--accent)',
-                    color: '#fff',
+                    color: 'var(--accent-fg)',
                     border: 'none',
                     cursor: 'pointer',
                     fontSize: '12px',

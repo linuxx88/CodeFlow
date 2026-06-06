@@ -1,5 +1,5 @@
 import React from 'react'
-import { Handle, Position } from '@xyflow/react'
+import { Handle } from '@xyflow/react'
 
 export const ClassCustomNode: React.FC<any> = ({ data, sourcePosition, targetPosition }) => {
   return (
@@ -14,20 +14,21 @@ export const ClassCustomNode: React.FC<any> = ({ data, sourcePosition, targetPos
         minWidth: '240px',
         boxShadow: '0 8px 32px 0 var(--shadow), 0 0 14px var(--accent-glow)',
         textAlign: 'left',
-        overflow: 'hidden',
+        overflow: 'visible',
         position: 'relative',
         transition: 'all 0.3s ease'
       }}
     >
       <Handle
         type="target"
-        position={targetPosition || Position.Top}
+        position={targetPosition || 'top'}
         style={{
           background: 'var(--accent)',
           width: '8px',
           height: '8px',
           border: '1.5px solid var(--bg)',
-          borderRadius: '50%'
+          borderRadius: '50%',
+          zIndex: 10
         }}
       />
       {/* Class Name Header */}
@@ -37,6 +38,8 @@ export const ClassCustomNode: React.FC<any> = ({ data, sourcePosition, targetPos
           fontWeight: 'bold',
           backgroundColor: 'var(--input-bg)',
           borderBottom: '1px solid var(--border)',
+          borderTopLeftRadius: '11px',
+          borderTopRightRadius: '11px',
           color: 'var(--accent)',
           display: 'flex',
           justifyContent: 'space-between',
@@ -94,13 +97,14 @@ export const ClassCustomNode: React.FC<any> = ({ data, sourcePosition, targetPos
 
       <Handle
         type="source"
-        position={sourcePosition || Position.Bottom}
+        position={sourcePosition || 'bottom'}
         style={{
           background: 'var(--accent)',
           width: '8px',
           height: '8px',
           border: '1.5px solid var(--bg)',
-          borderRadius: '50%'
+          borderRadius: '50%',
+          zIndex: 10
         }}
       />
     </div>

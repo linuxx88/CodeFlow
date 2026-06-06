@@ -6,17 +6,6 @@ import {
 } from '@xyflow/react'
 import type { Node, Edge } from '@xyflow/react'
 
-interface FlowchartNodeData {
-  label: string
-  type: 'condition' | 'action' | 'start'
-}
-
-function isFlowchartNodeData(data: unknown): data is FlowchartNodeData {
-  if (!data || typeof data !== 'object') return false
-  const d = data as Record<string, unknown>
-  if (typeof d.label !== 'string') return false
-  return d.type === 'condition' || d.type === 'action' || d.type === 'start'
-}
 
 export const useFlowchartEditor = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])

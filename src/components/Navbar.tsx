@@ -47,7 +47,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         backdropFilter: 'blur(12px)',
         zIndex: 10,
         boxShadow: '0 4px 20px var(--shadow)',
-        transition: 'background-color 0.3s, border-color 0.3s, box-shadow 0.3s'
+        transition: 'background-color 0.3s, border-color 0.3s, box-shadow 0.3s',
+        overflow: 'visible'
       }}
     >
       <div 
@@ -75,6 +76,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             fontSize: '13px',
             width: '240px',
             outline: 'none',
+            textOverflow: 'ellipsis',
+            overflow: 'hidden',
             transition: 'border-color 0.2s, background-color 0.2s'
           }}
         />
@@ -102,7 +105,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <Palette size={14} color="var(--accent)" />
             <span style={{ textTransform: 'capitalize' }}>{theme}</span>
-            <ChevronDown size={12} style={{ transform: isThemeDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+            <ChevronDown size={12} style={{ display: 'inline-block', transform: isThemeDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
           </button>
 
           {isThemeDropdownOpen && (
@@ -184,7 +187,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             }}
           >
             <span>Type de Flowchart : {getViewLabel(currentView)}</span>
-            <ChevronDown size={14} style={{ transform: isDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+            <ChevronDown size={14} style={{ display: 'inline-block', transform: isDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
           </button>
 
           {isDropdownOpen && (
@@ -193,7 +196,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 position: 'absolute',
                 top: '100%',
                 right: 0,
-                width: '240px',
+                minWidth: '100%',
+                width: 'max-content',
                 backgroundColor: 'var(--dropdown-bg)',
                 border: '1px solid var(--border)',
                 borderRadius: '8px',
@@ -220,7 +224,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       borderRadius: '6px',
                       border: 'none',
                       backgroundColor: isActive ? 'var(--accent)' : 'transparent',
-                      color: isActive ? '#fff' : 'var(--text)',
+                      color: isActive ? 'var(--accent-fg)' : 'var(--text)',
                       fontSize: '13px',
                       textAlign: 'left',
                       cursor: 'pointer',
@@ -243,6 +247,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         <button
+          id="Scanner"
           onClick={onScan}
           disabled={isScanning}
           style={{
@@ -250,14 +255,15 @@ export const Navbar: React.FC<NavbarProps> = ({
             borderRadius: '6px',
             border: 'none',
             backgroundColor: 'var(--accent)',
-            color: '#fff',
+            color: 'var(--accent-fg)',
             fontSize: '13px',
             fontWeight: 500,
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
-            transition: 'background-color 0.2s'
+            transition: 'background-color 0.2s',
+            marginLeft: '12px'
           }}
           onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--accent-hover)')}
           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--accent)')}
