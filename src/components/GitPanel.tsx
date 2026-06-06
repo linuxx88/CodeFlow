@@ -51,11 +51,10 @@ export const GitPanel: React.FC<GitPanelProps> = ({
                 fontSize: '11px',
                 fontWeight: 500,
                 cursor: 'pointer',
-                textTransform: 'capitalize',
                 transition: 'background-color 0.2s, color 0.2s'
               }}
             >
-              {mode}
+              {mode === 'score' ? 'Score' : mode === 'commits' ? 'Modifications' : 'Auteurs'}
             </button>
           ))}
         </div>

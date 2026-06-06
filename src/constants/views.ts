@@ -16,16 +16,16 @@ export interface ViewOption {
 }
 
 export const VIEW_OPTIONS: ViewOption[] = [
-  { value: 'all', label: 'Dependency Flow' },
-  { value: 'web', label: 'Web Development Flowchart' },
-  { value: 'if-then', label: 'If-Then Flowchart' },
-  { value: 'conditional-statement', label: 'Conditional Statement Flowchart' },
-  { value: 'class-diagram', label: 'Class Diagram Flowchart' },
-  { value: 'while-loop', label: 'While Loop Flowchart' },
-  { value: 'repeat-loop', label: 'Repeat Loop Flowchart' },
-  { value: 'algo', label: 'Algorithm Flowchart' },
-  { value: 'process-flowchart', label: 'App Development Process Flowchart' },
-  { value: 'python-flowchart', label: 'Python Flowchart' }
+  { value: 'all', label: 'Flux de Dépendances' },
+  { value: 'web', label: 'Flowchart de Développement Web' },
+  { value: 'if-then', label: 'Flowchart SI-ALORS' },
+  { value: 'conditional-statement', label: "Flowchart d'Instructions Conditionnelles" },
+  { value: 'class-diagram', label: 'Flowchart de Diagramme de Classes' },
+  { value: 'while-loop', label: 'Flowchart de Boucle TANT QUE' },
+  { value: 'repeat-loop', label: 'Flowchart de Boucle RÉPÉTER' },
+  { value: 'algo', label: "Flowchart d'Algorithme" },
+  { value: 'process-flowchart', label: 'Flowchart de Processus de Développement' },
+  { value: 'python-flowchart', label: 'Flowchart Python' }
 ]
 
 export const getViewLabel = (view: FlowchartView | string): string => {

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   ReactFlow,
   Background
@@ -50,7 +50,9 @@ function App() {
     isScanning,
     scanProgress,
     scanData,
-    scanProject
+    scanProject,
+    scanError,
+    setScanError
   } = useProjectScanner({
     onScanStart: () => {
       setForceDisplay(false)
@@ -58,6 +60,15 @@ function App() {
       setSelectedExtensions([])
     }
   })
+
+  useEffect(() => {
+    if (scanError) {
+      const timer = setTimeout(() => {
+        setScanError(null)
+      }, 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [scanError, setScanError])
 
   const [direction, setDirection] = useState<'LR' | 'TB'>('LR')
   const [nodesep, setNodesep] = useState<number>(40)
@@ -164,7 +175,7 @@ function App() {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              zIndex: 10,
+              zIndex: 1000,
               pointerEvents: 'none'
             }}
           >
@@ -444,9 +455,67 @@ function App() {
         </div>
       )}
 
+      {scanError && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            zIndex: 10000,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            backgroundColor: 'rgba(28, 10, 10, 0.85)',
+            backdropFilter: 'blur(16px)',
+            border: '1.5px solid rgba(244, 63, 94, 0.4)',
+            borderRadius: '12px',
+            padding: '14px 20px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 0 10px rgba(244, 63, 94, 0.1)',
+            color: '#fda4af',
+            fontSize: '13px',
+            fontWeight: 500,
+            maxWidth: '380px',
+            animation: 'slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+          }}
+        >
+          <AlertTriangle size={18} color="#f43f5e" style={{ flexShrink: 0 }} />
+          <div style={{ flex: 1 }}>{scanError}</div>
+          <button
+            onClick={() => setScanError(null)}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#fda4af',
+              cursor: 'pointer',
+              fontSize: '16px',
+              padding: '0 4px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: 0.7,
+              transition: 'opacity 0.2s'
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+            onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.7')}
+          >
+            &times;
+          </button>
+        </div>
+      )}
+
       <style>{`
         @keyframes spin {
           to { transform: rotate(360deg); }
+        }
+        @keyframes slideIn {
+          from {
+            transform: translateY(-20px) scale(0.95);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+          }
         }
       `}</style>
     </div>

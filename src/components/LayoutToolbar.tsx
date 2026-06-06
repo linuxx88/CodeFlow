@@ -105,7 +105,7 @@ export const LayoutToolbar: React.FC<LayoutToolbarProps> = ({
                 }}
               >
                 <ArrowRight size={12} />
-                <span>L-R</span>
+                <span>Gauche à Droite</span>
               </button>
               <button
                 onClick={() => setDirection('TB')}
@@ -127,7 +127,7 @@ export const LayoutToolbar: React.FC<LayoutToolbarProps> = ({
                 }}
               >
                 <ArrowDown size={12} />
-                <span>T-B</span>
+                <span>Du haut vers le bas</span>
               </button>
             </div>
           </div>

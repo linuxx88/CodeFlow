@@ -57,7 +57,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       >
         <GitBranch size={20} color="var(--accent)" />
         <h1 style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--text)', margin: 0, letterSpacing: 'normal' }}>
-          Interactive Dependency Flow
+          Flux de Dépendance Interactif
         </h1>
       </div>
       

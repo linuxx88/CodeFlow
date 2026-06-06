@@ -20,8 +20,9 @@ export const IfThenCustomNode: React.FC<any> = ({ data, sourcePosition, targetPo
         position: 'relative',
         filter: isCondition ? `drop-shadow(0 8px 16px var(--shadow)) drop-shadow(0 0 8px ${glowColor})` : 'none',
         display: 'inline-block',
-        minWidth: '180px',
-        aspectRatio: isCondition ? '1 / 1' : 'auto'
+        width: isCondition && data.width ? `${data.width}px` : 'auto',
+        height: isCondition && data.height ? `${data.height}px` : 'auto',
+        minWidth: isCondition ? 'auto' : '180px',
       }}
     >
       <Handle
@@ -38,7 +39,7 @@ export const IfThenCustomNode: React.FC<any> = ({ data, sourcePosition, targetPo
       />
       <div
         style={{
-          padding: isCondition ? '30px' : '12px 20px',
+          padding: isCondition ? '10px 24px' : '12px 20px',
           borderRadius: isCondition ? '0px' : '10px',
           border: isCondition ? 'none' : `1.5px solid ${color}`,
           backgroundColor: 'var(--panel-bg)',

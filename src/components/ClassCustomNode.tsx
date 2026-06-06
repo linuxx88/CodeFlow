@@ -49,7 +49,7 @@ export const ClassCustomNode: React.FC<any> = ({ data, sourcePosition, targetPos
         <span style={{ fontSize: '13px', letterSpacing: '0.5px' }}>{data.name}</span>
         {data.inherits && (
           <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-            extends {data.inherits}
+            hérite de {data.inherits}
           </span>
         )}
       </div>

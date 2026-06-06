@@ -13,10 +13,12 @@ export function useProjectScanner(options?: UseProjectScannerOptions) {
   const [isScanning, setIsScanning] = useState(false)
   const [scanProgress, setScanProgress] = useState<{ stage: string; current?: number; total?: number; message: string } | null>(null)
   const [scanData, setScanData] = useState<any>(null)
+  const [scanError, setScanError] = useState<string | null>(null)
 
   const scanProject = async () => {
     if (!projectPath) return
     setIsScanning(true)
+    setScanError(null)
     setScanProgress({ stage: 'reading', message: 'Démarrage du scan...' })
     
     // Déclenche l'événement d'initialisation (ex: réinitialisation des filtres de l'interface)
@@ -24,9 +26,16 @@ export function useProjectScanner(options?: UseProjectScannerOptions) {
       options.onScanStart()
     }
     
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => {
+      controller.abort()
+    }, 10000)
+
     try {
       // Connexion SSE au point de terminaison de scan de l'API
-      const response = await fetch(`/api/scan?path=${encodeURIComponent(projectPath)}`)
+      const response = await fetch(`/api/scan?path=${encodeURIComponent(projectPath)}`, {
+        signal: controller.signal
+      })
       if (!response.ok) {
         throw new Error('Erreur de connexion au scanner')
       }
@@ -79,8 +88,13 @@ export function useProjectScanner(options?: UseProjectScannerOptions) {
         }
       }
     } catch (e: any) {
-      alert(`Erreur de scan: ${e.message}`)
+      if (e.name === 'AbortError') {
+        setScanError('Le scan a expiré après 10 secondes (Timeout).')
+      } else {
+        setScanError(`Erreur de scan: ${e.message}`)
+      }
     } finally {
+      clearTimeout(timeoutId)
       setIsScanning(false)
       setScanProgress(null)
     }
@@ -93,6 +107,8 @@ export function useProjectScanner(options?: UseProjectScannerOptions) {
     scanProgress,
     scanData,
     setScanData,
-    scanProject
+    scanProject,
+    scanError,
+    setScanError
   }
 }

@@ -32,7 +32,7 @@ export const Explorer: React.FC<ExplorerProps> = ({
       <div
         style={{
           flex: 1,
-          overflowX: 'auto',
+          overflowX: 'hidden',
           overflowY: 'auto',
           display: 'flex',
           flexDirection: 'column',
@@ -48,6 +48,7 @@ export const Explorer: React.FC<ExplorerProps> = ({
               <div
                 key={idx}
                 onClick={() => file.isDir && onToggleDirectory(file.path)}
+                title={file.path}
                 style={{
                   display: 'flex',
                   alignItems: 'center',

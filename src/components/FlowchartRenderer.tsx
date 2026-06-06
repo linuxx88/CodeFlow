@@ -1,5 +1,55 @@
 import React, { useMemo } from 'react'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, FolderOpen } from 'lucide-react'
+
+const EmptyState: React.FC = () => {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 'calc(100% - 40px)',
+        height: 'calc(100% - 40px)',
+        minHeight: '400px',
+        backgroundColor: 'var(--panel-bg)',
+        backdropFilter: 'blur(16px)',
+        border: '1.5px dashed var(--border)',
+        boxShadow: '0 8px 32px 0 var(--shadow)',
+        borderRadius: '12px',
+        padding: '40px',
+        textAlign: 'center',
+        gap: '16px',
+        margin: '20px',
+        boxSizing: 'border-box',
+        color: 'var(--text-muted)'
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '64px',
+          height: '64px',
+          borderRadius: '50%',
+          backgroundColor: 'var(--accent-muted)',
+          border: '1.5px solid var(--accent)',
+          boxShadow: '0 0 16px var(--accent-glow)',
+          marginBottom: '8px'
+        }}
+      >
+        <FolderOpen size={30} color="var(--accent)" />
+      </div>
+      <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--text)', margin: 0 }}>
+        Aucun projet ou fichier chargé
+      </h3>
+      <p style={{ fontSize: '13px', margin: 0, maxWidth: '380px', lineHeight: '1.5', opacity: 0.8 }}>
+        Sélectionnez un fichier dans l'explorateur pour afficher son diagramme.
+      </p>
+    </div>
+  )
+}
 import { IfThenFlowchart } from './IfThenFlowchart'
 import { ConditionalStatementFlowchart } from './ConditionalStatementFlowchart'
 import { ClassDiagramFlowchart } from './ClassDiagramFlowchart'
@@ -273,6 +323,10 @@ const validateNodesForView = (
 }
 
 export const FlowchartRenderer: React.FC<FlowchartRendererProps> = ({ currentView, scanData }) => {
+  if (!scanData) {
+    return <EmptyState />
+  }
+
   const validation = validateNodesForView(currentView, scanData)
 
   const renderKey = useMemo(() => {

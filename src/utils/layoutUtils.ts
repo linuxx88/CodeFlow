@@ -35,8 +35,8 @@ export const getLayoutedElements = (
       const methodsCount = Array.isArray(node.data?.methods) ? node.data.methods.length : 0
       height = 60 + Math.max(1, propertiesCount) * 16 + Math.max(1, methodsCount) * 16 + 20
     } else if (isCondition) {
-      width = 180
-      height = 180
+      width = Math.max(180, label.length * 6 + 60)
+      height = Math.max(90, Math.min(130, width * 0.55))
     }
     dagreGraph.setNode(node.id, { width, height })
   })
@@ -62,17 +62,22 @@ export const getLayoutedElements = (
       const methodsCount = Array.isArray(node.data?.methods) ? node.data.methods.length : 0
       height = 60 + Math.max(1, propertiesCount) * 16 + Math.max(1, methodsCount) * 16 + 20
     } else if (isCondition) {
-      width = 180
-      height = 180
+      width = Math.max(180, label.length * 6 + 60)
+      height = Math.max(90, Math.min(130, width * 0.55))
     }
     
     return {
       ...node,
       targetPosition: isHorizontal ? Position.Left : Position.Top,
       sourcePosition: isHorizontal ? Position.Right : Position.Bottom,
+      data: {
+        ...node.data,
+        width,
+        height
+      },
       position: {
         x: nodeWithPosition.x - width / 2,
-        y: nodeWithPosition.y - height / 2,
+        y: nodeWithPosition.y - height / 2 + 80,
       },
     }
   })
