@@ -63,8 +63,14 @@ function extractImports(content: string, ext: string): string[] {
 
 export async function handleScan(
   projectPath: string,
-  onProgress?: (progress: ScanProgress) => void
+  onProgress?: (progress: ScanProgress) => void,
+  signal?: AbortSignal
 ) {
+  if (signal?.aborted) {
+    const err = new Error('The operation was aborted.')
+    err.name = 'AbortError'
+    throw err
+  }
   const resolvedPath = path.resolve(projectPath)
   
   // 1. Check folder existence
@@ -89,8 +95,8 @@ export async function handleScan(
   if (onProgress) {
     onProgress({ stage: 'reading', message: 'Lecture de la structure des dossiers...' })
   }
-  const structure = await scanDir(resolvedPath, resolvedPath)
-  const files = await getAllFiles(resolvedPath, resolvedPath)
+  const structure = await scanDir(resolvedPath, resolvedPath, signal)
+  const files = await getAllFiles(resolvedPath, resolvedPath, [], signal)
   const filesSet = new Set(files)
 
   // 4. Parse files with Cache Validation
@@ -108,6 +114,11 @@ export async function handleScan(
   const newProjectCacheFiles: Record<string, FileCacheData> = {}
 
   for (const file of files) {
+    if (signal?.aborted) {
+      const err = new Error('The operation was aborted.')
+      err.name = 'AbortError'
+      throw err
+    }
     parsedCount++
     const ext = path.extname(file)
     const isSupported = ext === '.py' || ext === '.js' || ext === '.ts' || ext === '.jsx' || ext === '.tsx'
@@ -222,18 +233,20 @@ export async function handleScan(
         const resolved = resolvePythonImport(file, imp, nodesMap)
         if (resolved) {
           targets.add(resolved)
-        } else {
+        } else if (!imp.startsWith('.')) {
           targets.add(imp.split('.')[0])
         }
       } else {
         const resolved = resolveJsImport(file, imp, nodesMap)
         if (resolved) {
           targets.add(resolved)
-        } else {
+        } else if (!imp.startsWith('.') && !imp.startsWith('@/')) {
           let pkgName = imp
           if (imp.startsWith('@')) {
             const parts = imp.split('/')
-            pkgName = parts.slice(0, 2).join('/')
+            if (parts.length >= 2) {
+              pkgName = parts.slice(0, 2).join('/')
+            }
           } else {
             pkgName = imp.split('/')[0]
           }
@@ -252,8 +265,21 @@ export async function handleScan(
     }
   }
 
+  const nodesArray = Array.from(nodesMap.values())
+  for (const node of nodesArray) {
+    if (!node || typeof node !== 'object') {
+      throw new TypeError('Structural verification failed: Node is not a valid object')
+    }
+    if (typeof node.id !== 'string' || !node.id.trim()) {
+      throw new TypeError('Structural verification failed: Node ID must be a non-empty string')
+    }
+    if (node.type !== 'file' && node.type !== 'package') {
+      throw new TypeError(`Structural verification failed: Invalid node type "${node.type}" for node "${node.id}"`)
+    }
+  }
+
   const dependencies = {
-    nodes: Array.from(nodesMap.values()),
+    nodes: nodesArray,
     links
   }
 

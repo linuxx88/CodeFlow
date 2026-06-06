@@ -1,5 +1,22 @@
 import path from 'path'
 
+const IDENTIFIER_REGEX = /^[a-zA-Z_$][\w_$]*$/
+
+function isValidIdentifier(name: string): boolean {
+  if (!name || typeof name !== 'string') return false
+  const trimmed = name.trim()
+  if (!IDENTIFIER_REGEX.test(trimmed)) return false
+  
+  const keywords = new Set([
+    'break', 'case', 'catch', 'class', 'const', 'continue', 'debugger', 'default', 'delete',
+    'do', 'else', 'export', 'extends', 'finally', 'for', 'function', 'if', 'import', 'in',
+    'instanceof', 'new', 'return', 'super', 'switch', 'this', 'throw', 'try', 'typeof',
+    'var', 'void', 'while', 'with', 'yield', 'let', 'static', 'public', 'private', 'protected',
+    'constructor', 'async', 'await', 'def', 'elif', 'lambda', 'None', 'True', 'False', 'and', 'or', 'not'
+  ])
+  return !keywords.has(trimmed)
+}
+
 export function parseClassesFromFile(file: string, content: string): any[] {
   const result: any[] = []
   const lines = content.split('\n')
@@ -112,5 +129,37 @@ export function parseClassesFromFile(file: string, content: string): any[] {
   if (currentClass) {
     result.push(currentClass)
   }
-  return result
+
+  const validatedResult: any[] = []
+  for (const item of result) {
+    if (!item || typeof item !== 'object') continue
+    if (!isValidIdentifier(item.name)) continue
+    if (typeof item.line !== 'number' || isNaN(item.line) || item.line <= 0) continue
+
+    if (item.inherits !== null) {
+      if (typeof item.inherits !== 'string' || !isValidIdentifier(item.inherits)) {
+        continue
+      }
+    }
+
+    if (!Array.isArray(item.properties) || !Array.isArray(item.methods)) continue
+
+    const validProperties = item.properties
+      .map((p: any) => typeof p === 'string' ? p.trim() : '')
+      .filter((p: string) => isValidIdentifier(p))
+
+    const validMethods = item.methods
+      .map((m: any) => typeof m === 'string' ? m.trim() : '')
+      .filter((m: string) => isValidIdentifier(m))
+
+    validatedResult.push({
+      name: item.name.trim(),
+      inherits: item.inherits ? item.inherits.trim() : null,
+      properties: validProperties,
+      methods: validMethods,
+      line: item.line
+    })
+  }
+
+  return validatedResult
 }

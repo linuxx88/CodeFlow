@@ -35,9 +35,18 @@ import py_dep2
   await fs.writeFile(path.join(MOCK_DIR, 'cycle_a.js'), "import './cycle_b.js'")
   await fs.writeFile(path.join(MOCK_DIR, 'cycle_b.js'), "import './cycle_c.js'")
   await fs.writeFile(path.join(MOCK_DIR, 'cycle_c.js'), "import './cycle_a.js'")
+
+  // Unreadable directory/file
+  const unreadableDir = path.join(MOCK_DIR, 'unreadable_dir')
+  await fs.mkdir(unreadableDir, { recursive: true })
+  await fs.writeFile(path.join(unreadableDir, 'secret.js'), '// secret')
+  await fs.chmod(unreadableDir, 0o000)
 }
 
 async function cleanupMockProject() {
+  try {
+    await fs.chmod(path.join(MOCK_DIR, 'unreadable_dir'), 0o755)
+  } catch (e) {}
   await fs.rm(MOCK_DIR, { recursive: true, force: true })
 }
 
@@ -80,7 +89,14 @@ async function runTests() {
     const hasCycle = cycleInfo.cycleNodes.has('cycle_a.js') && cycleInfo.cycleNodes.has('cycle_b.js') && cycleInfo.cycleNodes.has('cycle_c.js')
     console.log(`Vérification détection de cycle (cycle_a,b,c): ${hasCycle ? 'SUCCESS' : 'FAILED'}`)
 
-    if (!hasJsDep1 || !hasJsDep2 || !hasPyDep1 || !hasPyDep2 || !hasCycle) {
+    // Verification of unreadable directory error propagation
+    const unreadableNode = result.structure?.children?.find((c: any) => c.name === 'unreadable_dir')
+    const hasUnreadableDirNode = !!unreadableNode
+    const hasUnreadableError = unreadableNode?.error !== undefined && (unreadableNode?.error?.code === 'EACCES' || unreadableNode?.error?.code === 'EPERM')
+    console.log(`Vérification présence dossier illisible: ${hasUnreadableDirNode ? 'SUCCESS' : 'FAILED'}`)
+    console.log(`Vérification erreur propagée sur dossier illisible: ${hasUnreadableError ? 'SUCCESS' : 'FAILED'} (code: ${unreadableNode?.error?.code}, message: ${unreadableNode?.error?.message})`)
+
+    if (!hasJsDep1 || !hasJsDep2 || !hasPyDep1 || !hasPyDep2 || !hasCycle || !hasUnreadableDirNode || !hasUnreadableError) {
       console.error('\nFAIL: Certains tests ont échoué.')
       process.exitCode = 1
     } else {

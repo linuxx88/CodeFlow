@@ -72,5 +72,43 @@ export function parseAlgorithmsFromFile(file: string, content: string): any[] {
     }
   }
 
-  return result
+  const validatedResult: any[] = []
+  for (const item of result) {
+    if (!item || typeof item !== 'object') continue
+    if (typeof item.name !== 'string' || item.name.trim().length === 0) continue
+    if (typeof item.args !== 'string') continue
+    if (typeof item.line !== 'number' || isNaN(item.line) || item.line <= 0) continue
+    if (!Array.isArray(item.steps)) continue
+
+    const cleanSteps = item.steps.filter((step: any) => {
+      if (typeof step !== 'string') return false
+      const s = step.trim()
+      if (s.length <= 2) return false
+      if (s.startsWith('#') || s.startsWith('//') || s.startsWith('*') || s.startsWith('/*')) return false
+      if (/^[{}()\[\]\s;,]+$/.test(s)) return false
+
+      const lower = s.toLowerCase()
+      if (
+        lower === 'else' || lower === 'else:' ||
+        lower === 'try' || lower === 'try:' ||
+        lower === 'finally' || lower === 'finally:' ||
+        lower === 'except' || lower === 'except:' ||
+        lower === 'do' || lower === 'do {'
+      ) {
+        return false
+      }
+      return true
+    })
+
+    if (cleanSteps.length > 0) {
+      validatedResult.push({
+        name: item.name,
+        args: item.args,
+        steps: cleanSteps,
+        line: item.line
+      })
+    }
+  }
+
+  return validatedResult
 }

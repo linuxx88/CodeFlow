@@ -1,9 +1,7 @@
 import { useState, useMemo } from 'react'
 import {
   ReactFlow,
-  Background,
-  Controls,
-  MiniMap
+  Background
 } from '@xyflow/react'
 import {
   Search,
@@ -23,6 +21,8 @@ import { flattenTree, checkIsWebProject } from './utils/projectUtils'
 import { useDependencyGraph } from './hooks/useDependencyGraph'
 import { useTheme } from './hooks/useTheme'
 import type { FlowchartView } from './constants/views'
+import { MiniMapPanel } from './components/MiniMapPanel'
+import { ControlsOverlay } from './components/ControlsOverlay'
 
 const nodeTypes = {
   custom: FileNode
@@ -443,8 +443,8 @@ function App() {
                 fitView
               >
                 <Background color="#2e303a" gap={16} />
-                <Controls />
-                <MiniMap style={{ backgroundColor: 'var(--panel-bg)' }} nodeColor={(n) => n.data?.isPartOfCycle ? 'var(--cycle)' : (n.data?.isBottleneck ? 'var(--bottleneck)' : 'var(--accent)')} />
+                <ControlsOverlay />
+                <MiniMapPanel style={{ backgroundColor: 'var(--panel-bg)' }} nodeColor={(n) => n.data?.isPartOfCycle ? 'var(--cycle)' : (n.data?.isBottleneck ? 'var(--bottleneck)' : 'var(--accent)')} />
               </ReactFlow>
             </div>
           )}

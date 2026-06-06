@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import { IfThenFlowchart } from './IfThenFlowchart'
 import { ConditionalStatementFlowchart } from './ConditionalStatementFlowchart'
@@ -134,56 +134,67 @@ const validateNodesForView = (
         break
       case 'process-flowchart': {
         templates = { ...PROCESS_TEMPLATES }
-        if (scanData) {
-          const fileCount = scanData.dependencies?.nodes?.filter((n: any) => n.type === 'file').length || 0
-          const pkgCount = scanData.dependencies?.nodes?.filter((n: any) => n.type === 'package').length || 0
-          const linkCount = scanData.dependencies?.links?.length || 0
-          const classCount = scanData.classes?.reduce((acc: number, f: any) => acc + f.items.length, 0) || 0
-          const functionCount = scanData.algorithms?.reduce((acc: number, f: any) => acc + f.items.length, 0) || 0
-          const hotspot = scanData.git?.hotspots?.[0]?.file || 'Aucun'
-          const commits = scanData.git?.hotspots?.[0]?.commits || 0
+        const data = scanData || {}
+        const dependencies = data.dependencies || { nodes: [], links: [] }
+        const nodesList = dependencies.nodes || []
+        const linksList = dependencies.links || []
+        const classesList = data.classes || []
+        const algorithmsList = data.algorithms || []
+        const gitData = data.git || { hotspots: [] }
+        const hotspots = gitData.hotspots || []
 
-          templates['project-lifecycle'] = {
-            name: 'Processus Live de mon Projet',
-            description: 'Cycle et métriques en temps réel issues du scan.',
-            nodes: [
-              { id: 'live-plan', type: 'customNode', position: { x: 250, y: 20 }, data: { label: `1. Initialisation : Projet scanné avec ${fileCount} fichiers`, type: 'start' } },
-              { id: 'live-arch', type: 'customNode', position: { x: 250, y: 120 }, data: { label: `2. Architecture : ${pkgCount} packages, ${linkCount} liaisons`, type: 'condition' } },
-              { id: 'live-code', type: 'customNode', position: { x: 250, y: 220 }, data: { label: `3. Code : ${functionCount} fonctions, ${classCount} classes`, type: 'action' } },
-              { id: 'live-quality', type: 'customNode', position: { x: 250, y: 320 }, data: { label: `4. Git : Hotspot principal: ${hotspot} (${commits} commits)`, type: 'action' } },
-              { id: 'live-status', type: 'customNode', position: { x: 250, y: 420 }, data: { label: '5. Statut : Prêt pour la production (build OK)', type: 'action' } }
-            ]
-          }
+        const fileCount = nodesList.filter((n: any) => n?.type === 'file').length || 0
+        const pkgCount = nodesList.filter((n: any) => n?.type === 'package').length || 0
+        const linkCount = linksList.length || 0
+        const classCount = classesList.reduce((acc: number, f: any) => acc + (f?.items?.length || 0), 0) || 0
+        const functionCount = algorithmsList.reduce((acc: number, f: any) => acc + (f?.items?.length || 0), 0) || 0
+        const hotspot = hotspots[0]?.file || 'Aucun'
+        const commits = hotspots[0]?.commits || 0
+
+        templates['project-lifecycle'] = {
+          name: 'Processus Live de mon Projet',
+          description: 'Cycle et métriques en temps réel issues du scan.',
+          nodes: [
+            { id: 'live-plan', type: 'customNode', position: { x: 250, y: 20 }, data: { label: `1. Initialisation : Projet scanné avec ${fileCount} fichiers`, type: 'start' } },
+            { id: 'live-arch', type: 'customNode', position: { x: 250, y: 120 }, data: { label: `2. Architecture : ${pkgCount} packages, ${linkCount} liaisons`, type: 'condition' } },
+            { id: 'live-code', type: 'customNode', position: { x: 250, y: 220 }, data: { label: `3. Code : ${functionCount} fonctions, ${classCount} classes`, type: 'action' } },
+            { id: 'live-quality', type: 'customNode', position: { x: 250, y: 320 }, data: { label: `4. Git : Hotspot principal: ${hotspot} (${commits} commits)`, type: 'action' } },
+            { id: 'live-status', type: 'customNode', position: { x: 250, y: 420 }, data: { label: '5. Statut : Prêt pour la production (build OK)', type: 'action' } }
+          ]
         }
         break
       }
       case 'class-diagram': {
         templates = { ...CLASS_TEMPLATES }
-        if (scanData?.classes) {
-          for (const classFile of scanData.classes) {
-            const file = classFile.file
-            const items = classFile.items
-            if (items.length === 0) continue
+        const classesList = scanData?.classes || []
+        for (const classFile of classesList) {
+          const file = classFile.file || 'Fichier inconnu'
+          const items = classFile.items || []
+          if (items.length === 0) continue
 
-            const nodes: any[] = []
-            items.forEach((item: any, idx: number) => {
-              nodes.push({
-                id: `class-${item.name.toLowerCase()}`,
-                type: 'classNode',
-                position: { x: 50 + (idx % 3) * 260, y: 50 + Math.floor(idx / 3) * 280 },
-                data: {
-                  name: item.name,
-                  inherits: item.inherits,
-                  properties: item.properties,
-                  methods: item.methods
-                }
-              })
+          const nodes: any[] = []
+          items.forEach((item: any, idx: number) => {
+            const className = item.name || 'Classe sans nom'
+            const inherits = item.inherits || []
+            const properties = item.properties || []
+            const methods = item.methods || []
+
+            nodes.push({
+              id: `class-${className.toLowerCase()}`,
+              type: 'classNode',
+              position: { x: 50 + (idx % 3) * 260, y: 50 + Math.floor(idx / 3) * 280 },
+              data: {
+                name: className,
+                inherits,
+                properties,
+                methods
+              }
             })
-            templates[`project-${file}`] = {
-              name: `Projet: ${file}`,
-              description: `Diagramme de classes - ${items.length} classes détectées.`,
-              nodes
-            }
+          })
+          templates[`project-${file}`] = {
+            name: `Projet: ${file}`,
+            description: `Diagramme de classes - ${items.length} classes détectées.`,
+            nodes
           }
         }
         break
@@ -219,8 +230,9 @@ const validateNodesForView = (
             details: `Modèle: ${template.name || key}\nNœud ID: ${node.id}`
           }
         }
-        const data = node.data
-        if (!data || typeof data !== 'object' || typeof data.name !== 'string') {
+        const data = node.data || {}
+        const className = data.name
+        if (typeof className !== 'string') {
           return {
             isValid: false,
             message: "Le nœud de classe n'a pas de nom valide ou des attributs requis manquants.",
@@ -235,34 +247,22 @@ const validateNodesForView = (
             details: `Modèle: ${template.name || key}\nNœud ID: ${node.id}`
           }
         }
-        const data = node.data
-        if (!data || typeof data !== 'object') {
-          return {
-            isValid: false,
-            message: `Le nœud "${node.id}" n'a pas de données (data) définies.`,
-            details: `Modèle: ${template.name || key}`
-          }
-        }
-        if (typeof data.label !== 'string') {
+        const data = node.data || {}
+        const label = data.label || 'Élément'
+        const nodeType = data.type || 'action'
+
+        if (typeof label !== 'string') {
           return {
             isValid: false,
             message: `Le nœud "${node.id}" n'a pas de libellé (label) de type chaîne de caractères.`,
             details: `Modèle: ${template.name || key}\nDonnées: ${JSON.stringify(data)}`
           }
         }
-        const nodeType = data.type
-        if (!nodeType) {
-          return {
-            isValid: false,
-            message: `Type de nœud non défini pour le nœud "${node.id}" (l'action par défaut est interdite).`,
-            details: `Modèle: ${template.name || key}`
-          }
-        }
         if (nodeType !== 'start' && nodeType !== 'condition' && nodeType !== 'action') {
           return {
             isValid: false,
             message: `Type de nœud non reconnu ou corrompu "${nodeType}" (attendu 'start', 'condition' ou 'action').`,
-            details: `Modèle: ${template.name || key}\nNœud ID: ${node.id}\nLibellé: "${data.label}"`
+            details: `Modèle: ${template.name || key}\nNœud ID: ${node.id}\nLibellé: "${label}"`
           }
         }
       }
@@ -275,27 +275,35 @@ const validateNodesForView = (
 export const FlowchartRenderer: React.FC<FlowchartRendererProps> = ({ currentView, scanData }) => {
   const validation = validateNodesForView(currentView, scanData)
 
+  const renderKey = useMemo(() => {
+    try {
+      return `${currentView}-${JSON.stringify(scanData || {})}`
+    } catch {
+      return `${currentView}-${Date.now()}`
+    }
+  }, [currentView, scanData])
+
   if (!validation.isValid) {
     return <ValidationErrorUI message={validation.message || ''} details={validation.details} />
   }
 
   switch (currentView) {
     case 'if-then':
-      return <IfThenFlowchart scanData={scanData} />
+      return <IfThenFlowchart key={renderKey} scanData={scanData} />
     case 'conditional-statement':
-      return <ConditionalStatementFlowchart scanData={scanData} />
+      return <ConditionalStatementFlowchart key={renderKey} scanData={scanData} />
     case 'class-diagram':
-      return <ClassDiagramFlowchart scanData={scanData} />
+      return <ClassDiagramFlowchart key={renderKey} scanData={scanData} />
     case 'while-loop':
-      return <WhileLoopFlowchart scanData={scanData} />
+      return <WhileLoopFlowchart key={renderKey} scanData={scanData} />
     case 'repeat-loop':
-      return <RepeatLoopFlowchart scanData={scanData} />
+      return <RepeatLoopFlowchart key={renderKey} scanData={scanData} />
     case 'algo':
-      return <AlgorithmFlowchart scanData={scanData} />
+      return <AlgorithmFlowchart key={renderKey} scanData={scanData} />
     case 'process-flowchart':
-      return <AppDevelopmentProcessFlowchart scanData={scanData} />
+      return <AppDevelopmentProcessFlowchart key={renderKey} scanData={scanData} />
     case 'python-flowchart':
-      return <PythonFlowchart scanData={scanData} />
+      return <PythonFlowchart key={renderKey} scanData={scanData} />
     default:
       return null
   }

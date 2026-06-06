@@ -24,13 +24,25 @@ export default function scanApi(): Plugin {
             'X-Accel-Buffering': 'no'
           })
           
+          const abortController = new AbortController()
+          req.on('close', () => {
+            abortController.abort()
+          })
+          
           try {
             const data = await handleScan(projectPath, (progress) => {
+              if (abortController.signal.aborted) return
               res.write(`data: ${JSON.stringify({ type: 'progress', ...progress })}\n\n`)
-            })
-            res.write(`data: ${JSON.stringify({ type: 'result', result: data })}\n\n`)
-            res.end()
+            }, abortController.signal)
+            
+            if (!abortController.signal.aborted) {
+              res.write(`data: ${JSON.stringify({ type: 'result', result: data })}\n\n`)
+              res.end()
+            }
           } catch (e: any) {
+            if (e.name === 'AbortError' || abortController.signal.aborted) {
+              return
+            }
             res.write(`data: ${JSON.stringify({ type: 'error', error: e.message })}\n\n`)
             res.end()
           }

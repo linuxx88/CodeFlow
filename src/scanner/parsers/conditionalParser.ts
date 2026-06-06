@@ -12,7 +12,7 @@ export function parseConditionalsFromFile(file: string, content: string): any[] 
       const pyIfMatch = line.match(/^\s*if\s+(.+):/)
       if (pyIfMatch) {
         const condition = pyIfMatch[1].trim()
-        let thenBlock = 'Exécuter instructions'
+        let thenBlock = ''
         let elseBlock = ''
         
         let j = i + 1
@@ -55,7 +55,7 @@ export function parseConditionalsFromFile(file: string, content: string): any[] 
       const ifMatch = line.match(/\bif\s*\((.+)\)/)
       if (ifMatch) {
         const condition = ifMatch[1].trim()
-        let thenBlock = 'Exécuter instructions'
+        let thenBlock = ''
         let elseBlock = ''
 
         let hasBrace = line.includes('{')
@@ -171,5 +171,49 @@ export function parseConditionalsFromFile(file: string, content: string): any[] 
     }
   }
 
-  return result
+  const validatedResult: any[] = []
+  for (const item of result) {
+    if (!item || typeof item !== 'object') continue
+    if (typeof item.line !== 'number' || isNaN(item.line) || item.line <= 0) continue
+
+    if (item.type === 'ifelse') {
+      if (
+        typeof item.condition === 'string' &&
+        item.condition.trim().length > 0 &&
+        typeof item.then === 'string' &&
+        item.then.trim().length > 0 &&
+        (item.else === null || (typeof item.else === 'string' && item.else.trim().length > 0))
+      ) {
+        validatedResult.push({
+          type: 'ifelse',
+          line: item.line,
+          condition: item.condition.trim(),
+          then: item.then.trim(),
+          else: item.else ? item.else.trim() : null
+        })
+      }
+    } else if (item.type === 'switch') {
+      if (
+        typeof item.expression === 'string' &&
+        item.expression.trim().length > 0 &&
+        Array.isArray(item.cases) &&
+        item.cases.length > 0
+      ) {
+        const cleanCases = item.cases
+          .map((c: any) => typeof c === 'string' ? c.trim() : '')
+          .filter((c: string) => c.length > 0)
+        
+        if (cleanCases.length > 0) {
+          validatedResult.push({
+            type: 'switch',
+            line: item.line,
+            expression: item.expression.trim(),
+            cases: cleanCases
+          })
+        }
+      }
+    }
+  }
+
+  return validatedResult
 }

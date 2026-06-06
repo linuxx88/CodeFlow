@@ -21,7 +21,7 @@ export function parsePythonStructuresFromFile(file: string, content: string): an
         j++
       }
       
-      let exceptCond = 'Exception'
+      let exceptCond = ''
       while (j < lines.length && !lines[j].match(/^\s*except/)) {
         j++
       }
@@ -32,12 +32,14 @@ export function parsePythonStructuresFromFile(file: string, content: string): an
         }
       }
 
-      result.push({
-        type: 'tryexcept',
-        line: i + 1,
-        try: tryBlock || 'Exécuter du code',
-        except: exceptCond
-      })
+      if (tryBlock.trim() !== '' && exceptCond.trim() !== '') {
+        result.push({
+          type: 'tryexcept',
+          line: i + 1,
+          try: tryBlock.trim(),
+          except: exceptCond.trim()
+        })
+      }
     }
 
     const decMatch = line.match(/^\s*@([\w_.]+)/)
@@ -58,5 +60,30 @@ export function parsePythonStructuresFromFile(file: string, content: string): an
     }
   }
 
-  return result
+  const validatedResult: any[] = []
+  for (const item of result) {
+    if (!item || typeof item !== 'object') continue
+    if (typeof item.line !== 'number' || isNaN(item.line) || item.line <= 0) continue
+
+    if (item.type === 'tryexcept') {
+      if (
+        typeof item.try === 'string' &&
+        item.try.trim().length > 0 &&
+        typeof item.except === 'string' &&
+        item.except.trim().length > 0
+      ) {
+        validatedResult.push(item)
+      }
+    } else if (item.type === 'decorator') {
+      if (typeof item.name === 'string' && item.name.trim().length > 0) {
+        validatedResult.push(item)
+      }
+    } else if (item.type === 'main') {
+      if (typeof item.label === 'string' && item.label.trim().length > 0) {
+        validatedResult.push(item)
+      }
+    }
+  }
+
+  return validatedResult
 }

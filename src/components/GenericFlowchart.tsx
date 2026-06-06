@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react'
 import {
   ReactFlow,
   Background,
-  Controls
+  ReactFlowProvider,
+  useReactFlow
 } from '@xyflow/react'
 import { Plus, Trash2, Check, HelpCircle, Code } from 'lucide-react'
 
@@ -18,6 +19,7 @@ import {
 } from '../utils/templateBuilders'
 import { getLayoutedElements } from '../utils/layoutUtils'
 import { LayoutToolbar } from './LayoutToolbar'
+import { ControlsOverlay } from './ControlsOverlay'
 
 interface GenericFlowchartProps {
   templates: Record<string, Template>
@@ -30,12 +32,14 @@ const nodeTypes = {
   customNode: IfThenCustomNode
 }
 
-export const GenericFlowchart: React.FC<GenericFlowchartProps> = ({
+const GenericFlowchartContent: React.FC<GenericFlowchartProps> = ({
   templates,
   title,
   scanData,
   filterType = 'all'
 }) => {
+  const { updateNodeInternals } = useReactFlow()
+
   const projectTemplates = useMemo(() => {
     if (filterType === 'loop') {
       return buildLoopTemplates(scanData, templates)
@@ -373,7 +377,14 @@ export const GenericFlowchart: React.FC<GenericFlowchartProps> = ({
       </div>
 
       {/* React Flow Canvas */}
-      <div style={{ flex: 1, position: 'relative' }}>
+      <div
+        style={{
+          flex: 1,
+          position: 'relative',
+          transform: 'translate3d(0, 0, 0)',
+          willChange: 'transform'
+        }}
+      >
         <LayoutToolbar
           direction={direction}
           setDirection={setDirection}
@@ -389,12 +400,30 @@ export const GenericFlowchart: React.FC<GenericFlowchartProps> = ({
           onEdgesChange={onEdgesChange}
           nodeTypes={nodeTypes}
           onNodeClick={handleNodeClick}
+          onMoveEnd={() => {
+            nodes.forEach(node => {
+              updateNodeInternals(node.id)
+            })
+          }}
+          minZoom={0.05}
           fitView
+          style={{
+            transform: 'translate3d(0, 0, 0)',
+            willChange: 'transform'
+          }}
         >
           <Background color="var(--border)" gap={16} />
-          <Controls />
+          <ControlsOverlay />
         </ReactFlow>
       </div>
     </div>
+  )
+}
+
+export const GenericFlowchart: React.FC<GenericFlowchartProps> = (props) => {
+  return (
+    <ReactFlowProvider>
+      <GenericFlowchartContent {...props} />
+    </ReactFlowProvider>
   )
 }
