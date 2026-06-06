@@ -64,10 +64,29 @@ export const useFlowchartEditor = () => {
 
   const handleAddNode = (type: 'condition' | 'action') => {
     const id = `node-${crypto.randomUUID()}`
+    
+    let newX = 250
+    let newY = 250
+    let parentId: string | null = null
+
+    if (nodes.length > 0) {
+      const selectedNode = nodes.find(n => n.id === selectedNodeId)
+      if (selectedNode) {
+        newX = selectedNode.position.x
+        newY = selectedNode.position.y + 100
+        parentId = selectedNode.id
+      } else {
+        const bottomNode = nodes.reduce((acc, curr) => curr.position.y > acc.position.y ? curr : acc, nodes[0])
+        newX = bottomNode.position.x
+        newY = bottomNode.position.y + 100
+        parentId = bottomNode.id
+      }
+    }
+
     const newNode: Node = {
       id,
       type: 'customNode',
-      position: { x: 150 + Math.random() * 100, y: 150 + Math.random() * 100 },
+      position: { x: newX + (Math.random() - 0.5) * 10, y: newY },
       data: {
         label: type === 'condition' ? 'Nouvelle Condition ?' : 'Nouvelle Action',
         type
@@ -75,7 +94,20 @@ export const useFlowchartEditor = () => {
       sourcePosition: Position.Bottom,
       targetPosition: Position.Top
     }
+
     setNodes((nds) => [...nds, newNode])
+    
+    if (parentId) {
+      const newEdge: Edge = {
+        id: `edge-${parentId}-${id}`,
+        source: parentId,
+        target: id,
+        type: 'smoothstep',
+        style: { stroke: 'var(--accent)' }
+      }
+      setEdges((eds) => [...eds, newEdge])
+    }
+
     setSelectedNodeId(id)
     setNodeLabel(newNode.data.label as string)
     setNodeType(type)
