@@ -32,14 +32,13 @@ export const useFlowchartEditor = () => {
       return
     }
 
-    if (!isFlowchartNodeData(node.data)) {
-      console.error('Invalid node data properties', node.data)
-      return
-    }
+    const data = node.data as any
+    const label = data?.label || ''
+    const type = data?.type || 'action'
 
     setSelectedNodeId(node.id)
-    setNodeLabel(node.data.label)
-    setNodeType(node.data.type)
+    setNodeLabel(label)
+    setNodeType(type)
   }
 
   const handleUpdateNode = () => {
@@ -47,12 +46,14 @@ export const useFlowchartEditor = () => {
     setNodes((nds) =>
       nds.map((node) => {
         if (node.id === selectedNodeId) {
+          const originalType = (node.data as any)?.type
+          const finalType = originalType === 'start' ? 'start' : (nodeType || originalType || 'action')
           return {
             ...node,
             data: {
               ...node.data,
               label: nodeLabel,
-              type: nodeType
+              type: finalType
             }
           }
         }
@@ -85,6 +86,8 @@ export const useFlowchartEditor = () => {
     setNodes((nds) => nds.filter((n) => n.id !== selectedNodeId))
     setEdges((eds) => eds.filter((e) => e.source !== selectedNodeId && e.target !== selectedNodeId))
     setSelectedNodeId(null)
+    setNodeLabel('')
+    setNodeType('action')
   }
 
   return {
