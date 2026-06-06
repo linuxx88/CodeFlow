@@ -111,7 +111,7 @@ export const GenericFlowchart: React.FC<GenericFlowchartProps> = ({
 
   const [lastLayoutKey, setLastLayoutKey] = useState('')
   useEffect(() => {
-    const key = `${nodes.length}-${edges.length}-${direction}-${nodesep}-${ranksep}`
+    const key = `${nodes.length}-${edges.length}-${direction}-${nodesep}-${ranksep}-${nodes.map(n => `${n.id}:${n.data?.label || ''}:${n.data?.type || ''}`).join(',')}`
     if (key !== lastLayoutKey && nodes.length > 0) {
       const timer = setTimeout(() => {
         setLastLayoutKey(key)

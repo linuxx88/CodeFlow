@@ -2,7 +2,7 @@ import React from 'react'
 import { FileText, RefreshCw } from 'lucide-react'
 import { Handle, Position } from '@xyflow/react'
 
-export const FileNode: React.FC<any> = ({ data }) => {
+export const FileNode: React.FC<any> = ({ data, sourcePosition, targetPosition }) => {
   const isBottleneck = data.isBottleneck
   const isPackage = data.isPackage
   const isPartOfCycle = data.isPartOfCycle
@@ -50,7 +50,7 @@ export const FileNode: React.FC<any> = ({ data }) => {
     >
       <Handle
         type="target"
-        position={Position.Left}
+        position={targetPosition || Position.Left}
         style={{
           background: borderColor,
           borderRadius: '50%',
@@ -70,7 +70,7 @@ export const FileNode: React.FC<any> = ({ data }) => {
       )}
       <Handle
         type="source"
-        position={Position.Right}
+        position={sourcePosition || Position.Right}
         style={{
           background: borderColor,
           borderRadius: '50%',

@@ -140,22 +140,25 @@ function App() {
           const trimmed = line.trim()
           if (!trimmed || !trimmed.startsWith('data: ')) continue
           
+          let parsed: any = null
           try {
-            const parsed = JSON.parse(trimmed.substring(6))
-            if (parsed.type === 'progress') {
-              setScanProgress({
-                stage: parsed.stage,
-                current: parsed.current,
-                total: parsed.total,
-                message: parsed.message
-              })
-            } else if (parsed.type === 'result') {
-              setScanData(parsed.result)
-            } else if (parsed.type === 'error') {
-              throw new Error(parsed.error)
-            }
+            parsed = JSON.parse(trimmed.substring(6))
           } catch (e: any) {
             console.error('Erreur parsing SSE:', e)
+            continue
+          }
+          
+          if (parsed.type === 'progress') {
+            setScanProgress({
+              stage: parsed.stage,
+              current: parsed.current,
+              total: parsed.total,
+              message: parsed.message
+            })
+          } else if (parsed.type === 'result') {
+            setScanData(parsed.result)
+          } else if (parsed.type === 'error') {
+            throw new Error(parsed.error)
           }
         }
       }

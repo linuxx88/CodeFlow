@@ -1,7 +1,7 @@
 import React from 'react'
 import { Handle, Position } from '@xyflow/react'
 
-export const ClassCustomNode: React.FC<any> = ({ data }) => {
+export const ClassCustomNode: React.FC<any> = ({ data, sourcePosition, targetPosition }) => {
   return (
     <div
       style={{
@@ -21,7 +21,7 @@ export const ClassCustomNode: React.FC<any> = ({ data }) => {
     >
       <Handle
         type="target"
-        position={Position.Top}
+        position={targetPosition || Position.Top}
         style={{
           background: 'var(--accent)',
           width: '8px',
@@ -84,7 +84,7 @@ export const ClassCustomNode: React.FC<any> = ({ data }) => {
       </div>
       <Handle
         type="source"
-        position={Position.Bottom}
+        position={sourcePosition || Position.Bottom}
         style={{
           background: 'var(--accent)',
           width: '8px',

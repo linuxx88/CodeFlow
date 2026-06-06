@@ -1,7 +1,7 @@
 import React from 'react'
 import { Handle, Position } from '@xyflow/react'
 
-export const IfThenCustomNode: React.FC<any> = ({ data }) => {
+export const IfThenCustomNode: React.FC<any> = ({ data, sourcePosition, targetPosition }) => {
   const isCondition = data.type === 'condition'
   const isStart = data.type === 'start'
   const color = isStart
@@ -35,7 +35,7 @@ export const IfThenCustomNode: React.FC<any> = ({ data }) => {
     >
       <Handle
         type="target"
-        position={Position.Top}
+        position={targetPosition || Position.Top}
         style={{
           background: color,
           width: '8px',
@@ -59,7 +59,7 @@ export const IfThenCustomNode: React.FC<any> = ({ data }) => {
       <div style={{ fontWeight: 600 }}>{data.label}</div>
       <Handle
         type="source"
-        position={Position.Bottom}
+        position={sourcePosition || Position.Bottom}
         style={{
           background: color,
           width: '8px',

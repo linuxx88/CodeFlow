@@ -24,25 +24,37 @@ export interface ScanProgress {
 function extractImports(content: string, ext: string): string[] {
   const targets = new Set<string>()
   if (ext === '.py') {
-    const pyImportRegex = /^\s*(?:import\s+([\w.,\s]+)|from\s+([\w.]+)\s+import\s+([\w.,\s*()]+))/mg
     let match
+
+    // 1. import a, b, c (single line)
+    const pyImportRegex = /^\s*import\s+([\w., ]+)/mg
     while ((match = pyImportRegex.exec(content)) !== null) {
-      if (match[1]) {
-        const imports = match[1].split(',')
-        for (let imp of imports) {
-          imp = imp.trim()
-          if (imp) targets.add(imp)
-        }
-      } else if (match[2]) {
-        const fromMod = match[2].trim()
-        if (fromMod) targets.add(fromMod)
+      const imports = match[1].split(',')
+      for (let imp of imports) {
+        imp = imp.trim()
+        if (imp) targets.add(imp)
       }
     }
+
+    // Reset regex index before running next searches just in case, but they are fresh local variables
+    // 2. from a import b, c (single line)
+    const pyFromImportRegex = /^\s*from\s+([\w.]+)\s+import\s+([\w., *]+)/mg
+    while ((match = pyFromImportRegex.exec(content)) !== null) {
+      const fromMod = match[1].trim()
+      if (fromMod) targets.add(fromMod)
+    }
+
+    // 3. from a import (b, c) (multiline)
+    const pyFromParenthesesImportRegex = /^\s*from\s+([\w.]+)\s+import\s*\(([^)]+)\)/mg
+    while ((match = pyFromParenthesesImportRegex.exec(content)) !== null) {
+      const fromMod = match[1].trim()
+      if (fromMod) targets.add(fromMod)
+    }
   } else {
-    const jsImportRegex = /^\s*(?:import\s+(?:.*?\s+from\s+)?['"]([^'"]+)['"]|require\(['"]([^'"]+)['"]\))/mg
+    const jsImportRegex = /(?:import\s+(?:[\w*\s{},]*\s+from\s+)?['"]([^'"]+)['"]|import\(['"]([^'"]+)['"]\)|require\(['"]([^'"]+)['"]\))/g
     let match
     while ((match = jsImportRegex.exec(content)) !== null) {
-      const moduleName = match[1] || match[2]
+      const moduleName = match[1] || match[2] || match[3]
       if (moduleName) targets.add(moduleName)
     }
   }
