@@ -11,6 +11,8 @@ import { Code, HelpCircle } from 'lucide-react'
 
 import { ClassCustomNode } from './ClassCustomNode'
 import { CLASS_TEMPLATES } from '../templates'
+import { getLayoutedElements } from '../utils/layoutUtils'
+import { LayoutToolbar } from './LayoutToolbar'
 
 interface ClassDiagramFlowchartProps {
   scanData?: any
@@ -83,6 +85,10 @@ export const ClassDiagramFlowchart: React.FC<ClassDiagramFlowchartProps> = ({ sc
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
 
+  const [direction, setDirection] = useState<'LR' | 'TB'>('LR')
+  const [nodesep, setNodesep] = useState<number>(50)
+  const [ranksep, setRanksep] = useState<number>(60)
+
   // Auto-switch to live project diagram if scan completes
   useEffect(() => {
     const projectKeys = Object.keys(projectTemplates).filter(k => k.startsWith('project-'))
@@ -102,12 +108,39 @@ export const ClassDiagramFlowchart: React.FC<ClassDiagramFlowchartProps> = ({ sc
     const template = projectTemplates[activeTemplate]
     if (template) {
       const timer = setTimeout(() => {
-        setNodes(template.nodes)
-        setEdges(template.edges)
+        const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
+          template.nodes,
+          template.edges,
+          direction,
+          nodesep,
+          ranksep
+        )
+        setNodes(layoutedNodes)
+        setEdges(layoutedEdges)
       }, 0)
       return () => clearTimeout(timer)
     }
-  }, [activeTemplate, projectTemplates, setNodes, setEdges])
+  }, [activeTemplate, projectTemplates, direction, nodesep, ranksep, setNodes, setEdges])
+
+  const [lastLayoutKey, setLastLayoutKey] = useState('')
+  useEffect(() => {
+    const key = `${nodes.length}-${edges.length}-${direction}-${nodesep}-${ranksep}`
+    if (key !== lastLayoutKey && nodes.length > 0) {
+      const timer = setTimeout(() => {
+        setLastLayoutKey(key)
+        const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
+          nodes,
+          edges,
+          direction,
+          nodesep,
+          ranksep
+        )
+        setNodes(layoutedNodes)
+        setEdges(layoutedEdges)
+      }, 0)
+      return () => clearTimeout(timer)
+    }
+  }, [nodes.length, edges.length, direction, nodesep, ranksep, lastLayoutKey, nodes, edges, setNodes, setEdges])
 
   const projectItems = Object.entries(projectTemplates).filter(([k]) => k.startsWith('project-'))
   const staticItems = Object.entries(projectTemplates).filter(([k]) => !k.startsWith('project-'))
@@ -218,6 +251,14 @@ export const ClassDiagramFlowchart: React.FC<ClassDiagramFlowchartProps> = ({ sc
 
       {/* React Flow Canvas */}
       <div style={{ flex: 1, position: 'relative' }}>
+        <LayoutToolbar
+          direction={direction}
+          setDirection={setDirection}
+          nodesep={nodesep}
+          setNodesep={setNodesep}
+          ranksep={ranksep}
+          setRanksep={setRanksep}
+        />
         <ReactFlow
           nodes={nodes}
           edges={edges}

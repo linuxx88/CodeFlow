@@ -18,6 +18,7 @@ import { GraphPanel } from './components/GraphPanel'
 import { GitPanel } from './components/GitPanel'
 import { FileNode } from './components/FileNode'
 import { FlowchartRenderer } from './components/FlowchartRenderer'
+import { LayoutToolbar } from './components/LayoutToolbar'
 import { flattenTree, checkIsWebProject } from './utils/projectUtils'
 import { useDependencyGraph } from './hooks/useDependencyGraph'
 import { useTheme } from './hooks/useTheme'
@@ -47,6 +48,10 @@ function App() {
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null)
   const [currentView, setCurrentView] = useState<FlowchartView>('all')
 
+  const [direction, setDirection] = useState<'LR' | 'TB'>('LR')
+  const [nodesep, setNodesep] = useState<number>(40)
+  const [ranksep, setRanksep] = useState<number>(80)
+
   const {
     nodes,
     edges,
@@ -61,7 +66,10 @@ function App() {
     showOnlyCycles,
     selectedExtensions,
     hoveredNodeId,
-    currentView
+    currentView,
+    direction,
+    nodesep,
+    ranksep
   })
 
   const availableExtensions = useMemo(() => {
@@ -316,7 +324,6 @@ function App() {
                           position: 'absolute',
                           top: '100%',
                           left: 0,
-                          marginTop: '6px',
                           width: '160px',
                           maxHeight: '200px',
                           overflowY: 'auto',
@@ -412,20 +419,31 @@ function App() {
               </button>
             </div>
           ) : (
-            <ReactFlow
-              nodes={nodes}
-              edges={edges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              nodeTypes={nodeTypes}
-              onNodeMouseEnter={(_, node) => setHoveredNodeId(node.id)}
-              onNodeMouseLeave={() => setHoveredNodeId(null)}
-              fitView
-            >
-              <Background color="#2e303a" gap={16} />
-              <Controls />
-              <MiniMap style={{ backgroundColor: 'var(--panel-bg)' }} nodeColor={(n) => n.data?.isPartOfCycle ? 'var(--cycle)' : (n.data?.isBottleneck ? 'var(--bottleneck)' : 'var(--accent)')} />
-            </ReactFlow>
+            <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+              <LayoutToolbar
+                direction={direction}
+                setDirection={setDirection}
+                nodesep={nodesep}
+                setNodesep={setNodesep}
+                ranksep={ranksep}
+                setRanksep={setRanksep}
+                style={{ top: '70px', right: '16px' }}
+              />
+              <ReactFlow
+                nodes={nodes}
+                edges={edges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                nodeTypes={nodeTypes}
+                onNodeMouseEnter={(_, node) => setHoveredNodeId(node.id)}
+                onNodeMouseLeave={() => setHoveredNodeId(null)}
+                fitView
+              >
+                <Background color="#2e303a" gap={16} />
+                <Controls />
+                <MiniMap style={{ backgroundColor: 'var(--panel-bg)' }} nodeColor={(n) => n.data?.isPartOfCycle ? 'var(--cycle)' : (n.data?.isBottleneck ? 'var(--bottleneck)' : 'var(--accent)')} />
+              </ReactFlow>
+            </div>
           )}
         </div>
       ) : (
@@ -459,6 +477,12 @@ function App() {
             isWebWarning={isWebWarning}
             isScanning={isScanning}
             scanProgress={scanProgress}
+            direction={direction}
+            setDirection={setDirection}
+            nodesep={nodesep}
+            setNodesep={setNodesep}
+            ranksep={ranksep}
+            setRanksep={setRanksep}
           />
           <GitPanel
             isGitRepo={scanData?.git?.is_git_repo ?? false}

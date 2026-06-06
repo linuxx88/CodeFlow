@@ -13,6 +13,9 @@ interface UseDependencyGraphProps {
   selectedExtensions: string[]
   hoveredNodeId: string | null
   currentView: FlowchartView
+  direction?: 'LR' | 'TB'
+  nodesep?: number
+  ranksep?: number
 }
 
 export const useDependencyGraph = ({
@@ -22,7 +25,10 @@ export const useDependencyGraph = ({
   showOnlyCycles,
   selectedExtensions,
   hoveredNodeId,
-  currentView
+  currentView,
+  direction = 'LR',
+  nodesep = 40,
+  ranksep = 80
 }: UseDependencyGraphProps) => {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
@@ -190,10 +196,31 @@ export const useDependencyGraph = ({
       }
     }) : []
 
-    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(calculatedNodes, calculatedEdges, 'LR')
+    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
+      calculatedNodes,
+      calculatedEdges,
+      direction,
+      nodesep,
+      ranksep
+    )
     setNodes(layoutedNodes)
     setEdges(layoutedEdges)
-  }, [scanData, showExternal, filterQuery, nodeInDegrees, hoveredNodeId, currentView, showOnlyCycles, cycles, selectedExtensions, setNodes, setEdges])
+  }, [
+    scanData,
+    showExternal,
+    filterQuery,
+    nodeInDegrees,
+    hoveredNodeId,
+    currentView,
+    showOnlyCycles,
+    cycles,
+    selectedExtensions,
+    setNodes,
+    setEdges,
+    direction,
+    nodesep,
+    ranksep
+  ])
 
   return {
     nodes,

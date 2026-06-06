@@ -41,7 +41,9 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = ({
         borderBottom: '1px solid var(--border)',
         backgroundColor: 'var(--panel-bg)',
         backdropFilter: 'blur(12px)',
-        transition: 'background-color 0.3s, border-color 0.3s'
+        transition: 'background-color 0.3s, border-color 0.3s',
+        position: 'relative',
+        zIndex: 10
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
@@ -120,7 +122,6 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = ({
                   position: 'absolute',
                   top: '100%',
                   left: 0,
-                  marginTop: '6px',
                   width: '160px',
                   maxHeight: '200px',
                   overflowY: 'auto',

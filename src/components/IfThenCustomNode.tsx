@@ -10,36 +10,64 @@ export const IfThenCustomNode: React.FC<any> = ({ data }) => {
     ? '#eab308'
     : '#10b981'
 
+  const glowColor = isStart
+    ? 'var(--accent-glow)'
+    : isCondition
+    ? 'rgba(234, 179, 8, 0.3)'
+    : 'rgba(16, 185, 129, 0.3)'
+
   return (
     <div
       style={{
-        padding: '12px 18px',
-        borderRadius: '8px',
-        border: `1px solid ${color}`,
+        padding: '12px 20px',
+        borderRadius: '10px',
+        border: `1.5px solid ${color}`,
         backgroundColor: 'var(--panel-bg)',
-        backdropFilter: 'blur(12px)',
+        backdropFilter: 'blur(16px)',
         color: 'var(--text)',
         fontSize: '13px',
         minWidth: '180px',
-        boxShadow: '0 4px 20px var(--shadow)',
+        boxShadow: `0 8px 32px 0 var(--shadow), 0 0 12px ${glowColor}`,
         textAlign: 'center',
-        position: 'relative'
+        position: 'relative',
+        transition: 'all 0.3s ease'
       }}
     >
-      <Handle type="target" position={Position.Top} style={{ background: color, width: '8px', height: '8px' }} />
+      <Handle
+        type="target"
+        position={Position.Top}
+        style={{
+          background: color,
+          width: '8px',
+          height: '8px',
+          border: '1.5px solid var(--bg)',
+          borderRadius: '50%'
+        }}
+      />
       <div
         style={{
-          fontSize: '10px',
+          fontSize: '9px',
           fontWeight: 'bold',
           textTransform: 'uppercase',
-          marginBottom: '4px',
-          color: color
+          marginBottom: '6px',
+          color: color,
+          letterSpacing: '1px'
         }}
       >
         {isStart ? 'Début' : isCondition ? 'SI (Condition)' : 'ALORS / SINON'}
       </div>
-      <div style={{ fontWeight: 500 }}>{data.label}</div>
-      <Handle type="source" position={Position.Bottom} style={{ background: color, width: '8px', height: '8px' }} />
+      <div style={{ fontWeight: 600 }}>{data.label}</div>
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        style={{
+          background: color,
+          width: '8px',
+          height: '8px',
+          border: '1.5px solid var(--bg)',
+          borderRadius: '50%'
+        }}
+      />
     </div>
   )
 }

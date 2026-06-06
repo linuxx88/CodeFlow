@@ -16,6 +16,8 @@ import {
   buildPythonTemplates,
   buildConditionalTemplates
 } from '../utils/templateBuilders'
+import { getLayoutedElements } from '../utils/layoutUtils'
+import { LayoutToolbar } from './LayoutToolbar'
 
 interface GenericFlowchartProps {
   templates: Record<string, Template>
@@ -51,6 +53,10 @@ export const GenericFlowchart: React.FC<GenericFlowchartProps> = ({
   const defaultTemplateKey = Object.keys(projectTemplates)[0] || ''
   const [activeTemplate, setActiveTemplate] = useState<string>(defaultTemplateKey)
   
+  const [direction, setDirection] = useState<'LR' | 'TB'>('TB')
+  const [nodesep, setNodesep] = useState<number>(50)
+  const [ranksep, setRanksep] = useState<number>(60)
+
   const {
     nodes,
     edges,
@@ -83,17 +89,45 @@ export const GenericFlowchart: React.FC<GenericFlowchartProps> = ({
     return () => clearTimeout(timer)
   }, [projectTemplates])
 
+  // Load template nodes & edges and apply layout
   useEffect(() => {
     const template = projectTemplates[activeTemplate]
     if (template) {
       const timer = setTimeout(() => {
-        setNodes(template.nodes)
-        setEdges(template.edges)
+        const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
+          template.nodes,
+          template.edges,
+          direction,
+          nodesep,
+          ranksep
+        )
+        setNodes(layoutedNodes)
+        setEdges(layoutedEdges)
         setSelectedNodeId(null)
       }, 0)
       return () => clearTimeout(timer)
     }
-  }, [activeTemplate, projectTemplates, setNodes, setEdges, setSelectedNodeId])
+  }, [activeTemplate, projectTemplates, direction, nodesep, ranksep, setNodes, setEdges, setSelectedNodeId])
+
+  const [lastLayoutKey, setLastLayoutKey] = useState('')
+  useEffect(() => {
+    const key = `${nodes.length}-${edges.length}-${direction}-${nodesep}-${ranksep}`
+    if (key !== lastLayoutKey && nodes.length > 0) {
+      const timer = setTimeout(() => {
+        setLastLayoutKey(key)
+        const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
+          nodes,
+          edges,
+          direction,
+          nodesep,
+          ranksep
+        )
+        setNodes(layoutedNodes)
+        setEdges(layoutedEdges)
+      }, 0)
+      return () => clearTimeout(timer)
+    }
+  }, [nodes.length, edges.length, direction, nodesep, ranksep, lastLayoutKey, nodes, edges, setNodes, setEdges])
 
   const projectItems = Object.entries(projectTemplates).filter(([k]) => k.startsWith('project-'))
   const staticItems = Object.entries(projectTemplates).filter(([k]) => !k.startsWith('project-'))
@@ -280,6 +314,7 @@ export const GenericFlowchart: React.FC<GenericFlowchartProps> = ({
                   </button>
                 )}
               </div>
+
             </div>
           ) : (
             <div style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -339,6 +374,14 @@ export const GenericFlowchart: React.FC<GenericFlowchartProps> = ({
 
       {/* React Flow Canvas */}
       <div style={{ flex: 1, position: 'relative' }}>
+        <LayoutToolbar
+          direction={direction}
+          setDirection={setDirection}
+          nodesep={nodesep}
+          setNodesep={setNodesep}
+          ranksep={ranksep}
+          setRanksep={setRanksep}
+        />
         <ReactFlow
           nodes={nodes}
           edges={edges}

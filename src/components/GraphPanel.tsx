@@ -9,6 +9,7 @@ import type { Node, Edge } from '@xyflow/react'
 import { FileNode } from './FileNode'
 import { GraphToolbar } from './GraphToolbar'
 import { AlertTriangle, GitBranch } from 'lucide-react'
+import { LayoutToolbar } from './LayoutToolbar'
 
 
 interface GraphPanelProps {
@@ -36,6 +37,12 @@ interface GraphPanelProps {
   isWebWarning?: boolean
   isScanning: boolean
   scanProgress: { stage: string; current?: number; total?: number; message: string } | null
+  direction: 'LR' | 'TB'
+  setDirection: (dir: 'LR' | 'TB') => void
+  nodesep: number
+  setNodesep: (sep: number) => void
+  ranksep: number
+  setRanksep: (sep: number) => void
 }
 
 const nodeTypes = {
@@ -66,7 +73,13 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
   onNodeMouseLeave,
   isWebWarning,
   isScanning,
-  scanProgress
+  scanProgress,
+  direction,
+  setDirection,
+  nodesep,
+  setNodesep,
+  ranksep,
+  setRanksep
 }) => {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -142,23 +155,34 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
               </button>
             </div>
           ) : (
-            <ReactFlow
-              nodes={nodes}
-              edges={edges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              nodeTypes={nodeTypes}
-              onNodeMouseEnter={onNodeMouseEnter}
-              onNodeMouseLeave={onNodeMouseLeave}
-              fitView
-            >
-              <Background color="#2e303a" gap={16} />
-              <Controls />
-              <MiniMap
-                style={{ backgroundColor: 'var(--panel-bg)' }}
-                nodeColor={(n) => n.data?.isBottleneck ? 'var(--bottleneck)' : 'var(--accent)'}
+            <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+              <LayoutToolbar
+                direction={direction}
+                setDirection={setDirection}
+                nodesep={nodesep}
+                setNodesep={setNodesep}
+                ranksep={ranksep}
+                setRanksep={setRanksep}
+                style={{ top: '16px', right: '16px' }}
               />
-            </ReactFlow>
+              <ReactFlow
+                nodes={nodes}
+                edges={edges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                nodeTypes={nodeTypes}
+                onNodeMouseEnter={onNodeMouseEnter}
+                onNodeMouseLeave={onNodeMouseLeave}
+                fitView
+              >
+                <Background color="#2e303a" gap={16} />
+                <Controls />
+                <MiniMap
+                  style={{ backgroundColor: 'var(--panel-bg)' }}
+                  nodeColor={(n) => n.data?.isBottleneck ? 'var(--bottleneck)' : 'var(--accent)'}
+                />
+              </ReactFlow>
+            </div>
           )
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '8px', color: 'var(--text-muted)' }}>
