@@ -1,0 +1,374 @@
+import { useState, useMemo } from 'react'
+import {
+  ReactFlow,
+  Background,
+  Controls,
+  MiniMap
+} from '@xyflow/react'
+import {
+  Search,
+  AlertTriangle,
+  ArrowLeft
+} from 'lucide-react'
+
+import { Navbar } from './components/Navbar'
+import { Explorer } from './components/Explorer'
+import { GraphPanel } from './components/GraphPanel'
+import { GitPanel } from './components/GitPanel'
+import { FileNode } from './components/FileNode'
+import { FlowchartRenderer } from './components/FlowchartRenderer'
+import { flattenTree, checkIsWebProject } from './utils/projectUtils'
+import { useDependencyGraph } from './hooks/useDependencyGraph'
+import type { FlowchartView } from './constants/views'
+
+const nodeTypes = {
+  custom: FileNode
+}
+
+function App() {
+  const [projectPath, setProjectPath] = useState('')
+  const [isScanning, setIsScanning] = useState(false)
+  const [scanData, setScanData] = useState<any>(null)
+  
+  const [collapsedDirs, setCollapsedDirs] = useState<Record<string, boolean>>({})
+
+  const [filterQuery, setFilterQuery] = useState('')
+  const [showExternal, setShowExternal] = useState(false)
+  const [showOnlyCycles, setShowOnlyCycles] = useState(false)
+  const [selectedExtensions, setSelectedExtensions] = useState<string[]>([])
+  const [forceDisplay, setForceDisplay] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [gitSortBy, setGitSortBy] = useState<'score' | 'commits' | 'authors'>('score')
+  const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null)
+  const [currentView, setCurrentView] = useState<FlowchartView>('all')
+
+  const {
+    nodes,
+    edges,
+    onNodesChange,
+    onEdgesChange,
+    totalVisibleNodesCount,
+    cycles
+  } = useDependencyGraph({
+    scanData,
+    showExternal,
+    filterQuery,
+    showOnlyCycles,
+    selectedExtensions,
+    hoveredNodeId,
+    currentView
+  })
+
+  const availableExtensions = useMemo(() => {
+    if (!scanData?.dependencies?.nodes) return []
+    const exts = new Set<string>()
+    scanData.dependencies.nodes.forEach((n: any) => {
+      if (n.type === 'file') {
+        const ext = n.id.substring(n.id.lastIndexOf('.')).toLowerCase()
+        if (ext && ext.startsWith('.')) {
+          exts.add(ext)
+        }
+      }
+    })
+    return Array.from(exts).sort()
+  }, [scanData])
+
+  const isWebProject = useMemo(() => {
+    return checkIsWebProject(scanData)
+  }, [scanData])
+
+  const isWebWarning = currentView === 'web' && !isWebProject && !!scanData
+  
+  const flatFiles = useMemo(() => {
+    if (scanData?.structure) {
+      return flattenTree(scanData.structure, collapsedDirs)
+    }
+    return []
+  }, [scanData, collapsedDirs])
+
+  const toggleDirectory = (path: string) => {
+    setCollapsedDirs(prev => ({
+      ...prev,
+      [path]: !prev[path]
+    }))
+  }
+
+  const handleScanProject = async () => {
+    if (!projectPath) return
+    setIsScanning(true)
+    setForceDisplay(false)
+    setFilterQuery('')
+    setSelectedExtensions([])
+    try {
+      const res = await fetch(`/api/scan?path=${encodeURIComponent(projectPath)}`)
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Failed to scan')
+      }
+      const data = await res.json()
+      setScanData(data)
+    } catch (e: any) {
+      alert(`Erreur de scan: ${e.message}`)
+    } finally {
+      setIsScanning(false)
+    }
+  }
+
+  const showWarning = totalVisibleNodesCount > 100 && !forceDisplay
+
+  const sortedGitHotspots = useMemo(() => {
+    if (!scanData?.git?.hotspots) return []
+    const hotspots = [...scanData.git.hotspots]
+    const maxScore = Math.max(...hotspots.map(h => h.score), 1)
+    
+    const formatted = hotspots.map(h => ({
+      ...h,
+      percentage: Math.round((h.score / maxScore) * 100)
+    }))
+
+    if (gitSortBy === 'commits') {
+      return formatted.sort((a, b) => b.commits - a.commits || b.score - a.score)
+    } else if (gitSortBy === 'authors') {
+      return formatted.sort((a, b) => b.authors - a.authors || b.score - a.score)
+    } else {
+      return formatted.sort((a, b) => b.score - a.score || b.commits - a.commits)
+    }
+  }, [scanData, gitSortBy])
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh', backgroundColor: 'var(--bg)' }}>
+      <Navbar
+        projectPath={projectPath}
+        setProjectPath={setProjectPath}
+        isScanning={isScanning}
+        onScan={handleScanProject}
+        currentView={currentView}
+        onViewChange={setCurrentView}
+      />
+
+      {currentView !== 'all' && currentView !== 'web' ? (
+        <FlowchartRenderer currentView={currentView} scanData={scanData} />
+      ) : isFullscreen ? (
+        <div style={{ width: '100vw', height: 'calc(100vh - 58px)', position: 'relative' }}>
+          <div
+            style={{
+              position: 'absolute',
+              top: '16px',
+              left: '16px',
+              right: '16px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              zIndex: 10,
+              pointerEvents: 'none'
+            }}
+          >
+            <button
+              onClick={() => setIsFullscreen(false)}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '6px',
+                border: '1px solid var(--border)',
+                backgroundColor: 'rgba(15,15,20,0.85)',
+                backdropFilter: 'blur(8px)',
+                color: '#fff',
+                fontSize: '13px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                pointerEvents: 'auto'
+              }}
+            >
+              <ArrowLeft size={14} />
+              <span>Retour</span>
+            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', backgroundColor: 'rgba(15,15,20,0.85)', padding: '6px 16px', borderRadius: '8px', border: '1px solid var(--border)', backdropFilter: 'blur(8px)', pointerEvents: 'auto', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Search size={14} color="var(--text-muted)" />
+                <input
+                  type="text"
+                  placeholder="Filtrer les fichiers..."
+                  value={filterQuery}
+                  onChange={(e) => setFilterQuery(e.target.value)}
+                  style={{
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    color: '#fff',
+                    fontSize: '13px',
+                    outline: 'none',
+                    width: '180px'
+                  }}
+                />
+              </div>
+
+              <div style={{ height: '16px', width: '1px', backgroundColor: 'var(--border)' }}></div>
+
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: 'var(--text-muted)' }}>
+                <input
+                  type="checkbox"
+                  checked={showExternal}
+                  onChange={(e) => setShowExternal(e.target.checked)}
+                  style={{ cursor: 'pointer' }}
+                />
+                <span>Packages externes</span>
+              </label>
+
+              <div style={{ height: '16px', width: '1px', backgroundColor: 'var(--border)' }}></div>
+
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: 'var(--text-muted)' }}>
+                <input
+                  type="checkbox"
+                  checked={showOnlyCycles}
+                  onChange={(e) => setShowOnlyCycles(e.target.checked)}
+                  style={{ cursor: 'pointer' }}
+                />
+                <span style={{ color: showOnlyCycles ? 'var(--cycle)' : 'inherit' }}>Cycles uniquement</span>
+              </label>
+
+              {cycles.cycleNodes.size > 0 && (
+                <>
+                  <div style={{ height: '16px', width: '1px', backgroundColor: 'var(--border)' }}></div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: 'var(--cycle)', backgroundColor: 'var(--cycle-muted)', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+                    <AlertTriangle size={12} color="var(--cycle)" />
+                    <span>{cycles.cycleNodes.size} fichiers en cycle</span>
+                  </div>
+                </>
+              )}
+
+              {availableExtensions.length > 0 && (
+                <>
+                  <div style={{ height: '16px', width: '1px', backgroundColor: 'var(--border)' }}></div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Exts :</span>
+                    {availableExtensions.map(ext => {
+                      const isSelected = selectedExtensions.includes(ext)
+                      return (
+                        <button
+                          key={ext}
+                          onClick={() => {
+                            if (isSelected) {
+                              setSelectedExtensions(selectedExtensions.filter(e => e !== ext))
+                            } else {
+                              setSelectedExtensions([...selectedExtensions, ext])
+                            }
+                          }}
+                          style={{
+                            padding: '2px 8px',
+                            borderRadius: '4px',
+                            border: isSelected ? '1px solid var(--accent)' : '1px solid var(--border)',
+                            backgroundColor: isSelected ? 'var(--accent-muted)' : 'rgba(255,255,255,0.02)',
+                            color: isSelected ? 'var(--text)' : 'var(--text-muted)',
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s'
+                          }}
+                        >
+                          {ext}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {isWebWarning ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', backgroundColor: 'var(--bg)', gap: '12px', padding: '24px', textAlign: 'center' }}>
+              <AlertTriangle size={48} color="var(--bottleneck)" />
+              <h2 style={{ fontSize: '20px', color: '#fff', margin: 0, fontWeight: 'bold' }}>projet n'est pas developpement web !</h2>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', maxWidth: '360px' }}>
+                Ce projet ne contient aucun fichier HTML, CSS, JavaScript, TypeScript ou configuration web standard.
+              </p>
+            </div>
+          ) : showWarning ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', backgroundColor: 'var(--bg)', gap: '12px' }}>
+              <AlertTriangle size={36} color="var(--bottleneck)" />
+              <h2 style={{ fontSize: '18px', color: '#fff', margin: 0 }}>Graphe trop dense ({totalVisibleNodesCount} nœuds)</h2>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Veuillez utiliser les filtres ci-dessus pour un affichage lisible.</p>
+              <button
+                onClick={() => setForceDisplay(true)}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  backgroundColor: 'var(--bottleneck)',
+                  color: '#fff',
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  fontWeight: 500,
+                  marginTop: '8px'
+                }}
+              >
+                Forcer l'affichage entier
+              </button>
+            </div>
+          ) : (
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              nodeTypes={nodeTypes}
+              onNodeMouseEnter={(_, node) => setHoveredNodeId(node.id)}
+              onNodeMouseLeave={() => setHoveredNodeId(null)}
+              fitView
+            >
+              <Background color="#2e303a" gap={16} />
+              <Controls />
+              <MiniMap style={{ backgroundColor: 'var(--panel-bg)' }} nodeColor={(n) => n.data?.isPartOfCycle ? 'var(--cycle)' : (n.data?.isBottleneck ? 'var(--bottleneck)' : 'var(--accent)')} />
+            </ReactFlow>
+          )}
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flex: 1, width: '100vw', height: 'calc(100vh - 58px)', overflow: 'hidden' }}>
+          <Explorer
+            flatFiles={flatFiles}
+            onToggleDirectory={toggleDirectory}
+          />
+          <GraphPanel
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            filterQuery={filterQuery}
+            setFilterQuery={setFilterQuery}
+            showExternal={showExternal}
+            setShowExternal={setShowExternal}
+            showOnlyCycles={showOnlyCycles}
+            setShowOnlyCycles={setShowOnlyCycles}
+            cycleNodesCount={cycles.cycleNodes.size}
+            availableExtensions={availableExtensions}
+            selectedExtensions={selectedExtensions}
+            setSelectedExtensions={setSelectedExtensions}
+            hasData={!!scanData?.dependencies}
+            showWarning={showWarning}
+            totalVisibleNodesCount={totalVisibleNodesCount}
+            setForceDisplay={setForceDisplay}
+            setIsFullscreen={setIsFullscreen}
+            onNodeMouseEnter={(_, node) => setHoveredNodeId(node.id)}
+            onNodeMouseLeave={() => setHoveredNodeId(null)}
+            isWebWarning={isWebWarning}
+          />
+          <GitPanel
+            isGitRepo={scanData?.git?.is_git_repo ?? false}
+            hasGitData={!!scanData?.git}
+            gitSortBy={gitSortBy}
+            setGitSortBy={setGitSortBy}
+            sortedGitHotspots={sortedGitHotspots}
+          />
+        </div>
+      )}
+
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+    </div>
+  )
+}
+
+export default App

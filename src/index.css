@@ -1,0 +1,94 @@
+@import "@xyflow/react/dist/style.css";
+
+:root {
+  --bg: #09090b;
+  --panel-bg: rgba(15, 15, 20, 0.6);
+  --border: rgba(255, 255, 255, 0.08);
+  --text: #e4e4e7;
+  --text-muted: #a1a1aa;
+  
+  --accent: #6366f1;
+  --accent-hover: #4f46e5;
+  --accent-muted: rgba(99, 102, 241, 0.15);
+  
+  --bottleneck: #f43f5e;
+  --bottleneck-muted: rgba(244, 63, 94, 0.15);
+  
+  --cycle: #f59e0b;
+  --cycle-muted: rgba(245, 158, 11, 0.15);
+  
+  --package: #94a3b8;
+  --package-muted: rgba(148, 163, 184, 0.1);
+
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  color-scheme: dark;
+  background-color: var(--bg);
+  color: var(--text);
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg);
+  overflow: hidden;
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  border: none;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+/* React Flow customizations */
+.react-flow__background {
+  background-color: var(--bg);
+}
+.react-flow__edge-path {
+  stroke-width: 1.5px;
+  transition: stroke 0.2s, stroke-width 0.2s;
+}
+.react-flow__controls {
+  background: var(--panel-bg) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+}
+.react-flow__controls-button {
+  background: transparent !important;
+  border-bottom: 1px solid var(--border) !important;
+  color: var(--text) !important;
+  fill: currentColor !important;
+}
+.react-flow__controls-button:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+.react-flow__controls-button:last-child {
+  border-bottom: none !important;
+}
+.react-flow__attribution {
+  display: none !important;
+}
