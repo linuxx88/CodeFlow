@@ -24,8 +24,20 @@ export const getLayoutedElements = (
   nodes.forEach((node) => {
     const label = String(node.data?.label || node.data?.name || '')
     const isClassNode = node.type === 'classNode'
-    const width = isClassNode ? 240 : Math.max(180, label.length * 8 + 40)
-    const height = isClassNode ? 180 : 44
+    const isCondition = node.data?.type === 'condition'
+    
+    let width = Math.max(180, label.length * 8 + 40)
+    let height = 44
+    
+    if (isClassNode) {
+      width = 240
+      const propertiesCount = Array.isArray(node.data?.properties) ? node.data.properties.length : 0
+      const methodsCount = Array.isArray(node.data?.methods) ? node.data.methods.length : 0
+      height = 60 + Math.max(1, propertiesCount) * 16 + Math.max(1, methodsCount) * 16 + 20
+    } else if (isCondition) {
+      width = 180
+      height = 180
+    }
     dagreGraph.setNode(node.id, { width, height })
   })
 
@@ -39,8 +51,20 @@ export const getLayoutedElements = (
     const nodeWithPosition = dagreGraph.node(node.id) || { x: 0, y: 0 }
     const label = String(node.data?.label || node.data?.name || '')
     const isClassNode = node.type === 'classNode'
-    const width = isClassNode ? 240 : Math.max(180, label.length * 8 + 40)
-    const height = isClassNode ? 180 : 44
+    const isCondition = node.data?.type === 'condition'
+    
+    let width = Math.max(180, label.length * 8 + 40)
+    let height = 44
+    
+    if (isClassNode) {
+      width = 240
+      const propertiesCount = Array.isArray(node.data?.properties) ? node.data.properties.length : 0
+      const methodsCount = Array.isArray(node.data?.methods) ? node.data.methods.length : 0
+      height = 60 + Math.max(1, propertiesCount) * 16 + Math.max(1, methodsCount) * 16 + 20
+    } else if (isCondition) {
+      width = 180
+      height = 180
+    }
     
     return {
       ...node,

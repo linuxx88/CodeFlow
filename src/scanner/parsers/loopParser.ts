@@ -35,12 +35,21 @@ export function parseLoopsFromFile(file: string, content: string): any[] {
           const condition = pyWhileMatch[1].trim()
           let bodyBlock = 'Répéter les instructions'
           
+          const baseIndent = (line.match(/^(\s*)/)?.[1] || '').length
           let j = i + 1
           const bodyLines: string[] = []
-          while (j < lines.length && (lines[j].trim() === '' || lines[j].match(/^\s+/))) {
-            if (lines[j].trim() !== '') {
-              bodyLines.push(lines[j].trim())
+          while (j < lines.length) {
+            const nextLine = lines[j]
+            const trimmed = nextLine.trim()
+            if (trimmed === '') {
+              j++
+              continue
             }
+            const nextIndent = (nextLine.match(/^(\s*)/)?.[1] || '').length
+            if (nextIndent <= baseIndent) {
+              break
+            }
+            bodyLines.push(trimmed)
             j++
           }
           if (bodyLines.length > 0) {

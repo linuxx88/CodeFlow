@@ -23,6 +23,9 @@
   --package: #94a3b8;
   --package-muted: rgba(148, 163, 184, 0.1);
 
+  --success: #10b981;
+  --warning: #eab308;
+
   --flow-grid: #1c1917;
   --input-bg: rgba(255, 255, 255, 0.03);
   --dropdown-bg: #0f0f14;
@@ -52,6 +55,9 @@
   
   --package: #64748b;
   --package-muted: rgba(100, 116, 139, 0.08);
+
+  --success: #059669;
+  --warning: #ca8a04;
 
   --flow-grid: #e2e8f0;
   --input-bg: rgba(0, 0, 0, 0.02);
@@ -83,6 +89,9 @@
   --package: #00f0ff;
   --package-muted: rgba(0, 240, 255, 0.12);
 
+  --success: #00ffcc;
+  --warning: #ffe600;
+
   --flow-grid: #150f24;
   --input-bg: rgba(255, 0, 127, 0.04);
   --dropdown-bg: #0c0914;
@@ -113,6 +122,9 @@
   --package: #b48ead;
   --package-muted: rgba(180, 142, 173, 0.15);
 
+  --success: #a3be8c;
+  --warning: #ebcb8b;
+
   --flow-grid: #3b4252;
   --input-bg: rgba(255, 255, 255, 0.04);
   --dropdown-bg: #2e3440;
@@ -142,6 +154,9 @@
   
   --package: #33aa33;
   --package-muted: rgba(51, 170, 51, 0.15);
+
+  --success: #00ff00;
+  --warning: #88ff88;
 
   --flow-grid: #051005;
   --input-bg: rgba(0, 255, 0, 0.02);
@@ -274,6 +289,17 @@ body {
   stroke-dasharray: 6, 4;
   animation: edgeFlowSlow 1.8s linear infinite !important;
   stroke-width: 1.6px !important;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 

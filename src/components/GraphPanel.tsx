@@ -186,7 +186,7 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
           isWebWarning ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', gap: '12px', padding: '24px', textAlign: 'center' }}>
               <AlertTriangle size={48} color="var(--bottleneck)" />
-              <h2 style={{ fontSize: '18px', color: '#fff', margin: 0, fontWeight: 'bold' }}>projet n'est pas developpement web !</h2>
+              <h2 style={{ fontSize: '18px', color: '#fff', margin: 0, fontWeight: 'bold' }}>Le projet n'est pas un projet de développement web !</h2>
               <p style={{ fontSize: '12px', color: 'var(--text-muted)', maxWidth: '320px' }}>
                 Ce projet ne contient aucun fichier HTML, CSS, JavaScript, TypeScript ou configuration web standard.
               </p>
@@ -247,7 +247,7 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
                     style={{ backgroundColor: 'var(--panel-bg)' }}
                     nodeColor={(n) => {
                       if (!isValidNode(n)) return '#ff0000'
-                      return n.data?.isBottleneck ? 'var(--bottleneck)' : 'var(--accent)'
+                      return n.data?.isPartOfCycle ? 'var(--cycle)' : (n.data?.isBottleneck ? 'var(--bottleneck)' : 'var(--accent)')
                     }}
                   />
                 </ReactFlow>

@@ -23,6 +23,7 @@ import { useTheme } from './hooks/useTheme'
 import type { FlowchartView } from './constants/views'
 import { MiniMapPanel } from './components/MiniMapPanel'
 import { ControlsOverlay } from './components/ControlsOverlay'
+import { useProjectScanner } from './hooks/useProjectScanner'
 
 const nodeTypes = {
   custom: FileNode
@@ -30,11 +31,6 @@ const nodeTypes = {
 
 function App() {
   const { theme, setTheme } = useTheme()
-  const [projectPath, setProjectPath] = useState('')
-  const [isScanning, setIsScanning] = useState(false)
-  const [scanProgress, setScanProgress] = useState<{ stage: string; current?: number; total?: number; message: string } | null>(null)
-  const [scanData, setScanData] = useState<any>(null)
-  
   const [collapsedDirs, setCollapsedDirs] = useState<Record<string, boolean>>({})
 
   const [filterQuery, setFilterQuery] = useState('')
@@ -47,6 +43,21 @@ function App() {
   const [gitSortBy, setGitSortBy] = useState<'score' | 'commits' | 'authors'>('score')
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null)
   const [currentView, setCurrentView] = useState<FlowchartView>('all')
+
+  const {
+    projectPath,
+    setProjectPath,
+    isScanning,
+    scanProgress,
+    scanData,
+    scanProject
+  } = useProjectScanner({
+    onScanStart: () => {
+      setForceDisplay(false)
+      setFilterQuery('')
+      setSelectedExtensions([])
+    }
+  })
 
   const [direction, setDirection] = useState<'LR' | 'TB'>('LR')
   const [nodesep, setNodesep] = useState<number>(40)
@@ -106,70 +117,6 @@ function App() {
     }))
   }
 
-  const handleScanProject = async () => {
-    if (!projectPath) return
-    setIsScanning(true)
-    setForceDisplay(false)
-    setFilterQuery('')
-    setSelectedExtensions([])
-    setScanProgress({ stage: 'reading', message: 'Démarrage du scan...' })
-    
-    try {
-      const response = await fetch(`/api/scan?path=${encodeURIComponent(projectPath)}`)
-      if (!response.ok) {
-        throw new Error('Erreur de connexion au scanner')
-      }
-      
-      const reader = response.body?.getReader()
-      if (!reader) {
-        throw new Error('Le flux de réponse n\'est pas lisible')
-      }
-      
-      const decoder = new TextDecoder()
-      let buffer = ''
-      
-      while (true) {
-        const { value, done } = await reader.read()
-        if (done) break
-        
-        buffer += decoder.decode(value, { stream: true })
-        const lines = buffer.split('\n')
-        buffer = lines.pop() || ''
-        
-        for (const line of lines) {
-          const trimmed = line.trim()
-          if (!trimmed || !trimmed.startsWith('data: ')) continue
-          
-          let parsed: any = null
-          try {
-            parsed = JSON.parse(trimmed.substring(6))
-          } catch (e: any) {
-            console.error('Erreur parsing SSE:', e)
-            continue
-          }
-          
-          if (parsed.type === 'progress') {
-            setScanProgress({
-              stage: parsed.stage,
-              current: parsed.current,
-              total: parsed.total,
-              message: parsed.message
-            })
-          } else if (parsed.type === 'result') {
-            setScanData(parsed.result)
-          } else if (parsed.type === 'error') {
-            throw new Error(parsed.error)
-          }
-        }
-      }
-    } catch (e: any) {
-      alert(`Erreur de scan: ${e.message}`)
-    } finally {
-      setIsScanning(false)
-      setScanProgress(null)
-    }
-  }
-
   const showWarning = totalVisibleNodesCount > 100 && !forceDisplay
 
   const sortedGitHotspots = useMemo(() => {
@@ -197,7 +144,7 @@ function App() {
         projectPath={projectPath}
         setProjectPath={setProjectPath}
         isScanning={isScanning}
-        onScan={handleScanProject}
+        onScan={scanProject}
         currentView={currentView}
         onViewChange={setCurrentView}
         theme={theme}
@@ -394,7 +341,7 @@ function App() {
           {isWebWarning ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', backgroundColor: 'var(--bg)', gap: '12px', padding: '24px', textAlign: 'center' }}>
               <AlertTriangle size={48} color="var(--bottleneck)" />
-              <h2 style={{ fontSize: '20px', color: '#fff', margin: 0, fontWeight: 'bold' }}>projet n'est pas developpement web !</h2>
+              <h2 style={{ fontSize: '20px', color: '#fff', margin: 0, fontWeight: 'bold' }}>Le projet n'est pas un projet de développement web !</h2>
               <p style={{ fontSize: '13px', color: 'var(--text-muted)', maxWidth: '360px' }}>
                 Ce projet ne contient aucun fichier HTML, CSS, JavaScript, TypeScript ou configuration web standard.
               </p>

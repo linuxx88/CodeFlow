@@ -82,8 +82,8 @@ export const ClassCustomNode: React.FC<any> = ({ data, sourcePosition, targetPos
         <div style={{ padding: '8px 14px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {data.methods && data.methods.length > 0 ? (
             data.methods.map((method: string, idx: number) => (
-              <div key={idx} style={{ fontFamily: 'monospace', color: '#10b981', fontSize: '11px', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
-                <span style={{ color: '#10b981', marginRight: '6px' }}>+</span>
+              <div key={idx} style={{ fontFamily: 'monospace', color: 'var(--success)', fontSize: '11px', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                <span style={{ color: 'var(--success)', marginRight: '6px' }}>+</span>
                 {method}()
               </div>
             ))

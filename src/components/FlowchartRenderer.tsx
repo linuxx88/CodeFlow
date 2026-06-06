@@ -279,7 +279,7 @@ export const FlowchartRenderer: React.FC<FlowchartRendererProps> = ({ currentVie
     try {
       return `${currentView}-${JSON.stringify(scanData || {})}`
     } catch {
-      return `${currentView}-${Date.now()}`
+      return `${currentView}-error`
     }
   }, [currentView, scanData])
 

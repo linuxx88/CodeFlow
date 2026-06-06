@@ -15,12 +15,21 @@ export function parseConditionalsFromFile(file: string, content: string): any[] 
         let thenBlock = ''
         let elseBlock = ''
         
+        const baseIndent = (line.match(/^(\s*)/)?.[1] || '').length
         let j = i + 1
         const thenLines: string[] = []
-        while (j < lines.length && (lines[j].trim() === '' || lines[j].match(/^\s+/))) {
-          if (lines[j].trim() !== '') {
-            thenLines.push(lines[j].trim())
+        while (j < lines.length) {
+          const nextLine = lines[j]
+          const trimmed = nextLine.trim()
+          if (trimmed === '') {
+            j++
+            continue
           }
+          const nextIndent = (nextLine.match(/^(\s*)/)?.[1] || '').length
+          if (nextIndent <= baseIndent) {
+            break
+          }
+          thenLines.push(trimmed)
           j++
         }
         if (thenLines.length > 0) {
@@ -29,12 +38,21 @@ export function parseConditionalsFromFile(file: string, content: string): any[] 
         }
 
         if (j < lines.length && lines[j].match(/^\s*else\s*:/)) {
+          const elseBaseIndent = (lines[j].match(/^(\s*)/)?.[1] || '').length
           let k = j + 1
           const elseLines: string[] = []
-          while (k < lines.length && (lines[k].trim() === '' || lines[k].match(/^\s+/))) {
-            if (lines[k].trim() !== '') {
-              elseLines.push(lines[k].trim())
+          while (k < lines.length) {
+            const nextLine = lines[k]
+            const trimmed = nextLine.trim()
+            if (trimmed === '') {
+              k++
+              continue
             }
+            const nextIndent = (nextLine.match(/^(\s*)/)?.[1] || '').length
+            if (nextIndent <= elseBaseIndent) {
+              break
+            }
+            elseLines.push(trimmed)
             k++
           }
           if (elseLines.length > 0) {

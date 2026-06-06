@@ -11,24 +11,31 @@ export function parsePythonStructuresFromFile(file: string, content: string): an
     const line = lines[i]
 
     if (line.match(/^\s*try\s*:/)) {
+      const baseIndent = (line.match(/^(\s*)/)?.[1] || '').length
       let j = i + 1
       let tryBlock = ''
-      while (j < lines.length && (lines[j].trim() === '' || lines[j].match(/^\s+/))) {
-        if (lines[j].trim() !== '') {
-          tryBlock = lines[j].trim()
+      while (j < lines.length) {
+        const nextLine = lines[j]
+        const trimmed = nextLine.trim()
+        if (trimmed === '') {
+          j++
+          continue
+        }
+        const nextIndent = (nextLine.match(/^(\s*)/)?.[1] || '').length
+        if (nextIndent <= baseIndent) {
           break
+        }
+        if (tryBlock === '' && !trimmed.startsWith('#')) {
+          tryBlock = trimmed
         }
         j++
       }
       
       let exceptCond = ''
-      while (j < lines.length && !lines[j].match(/^\s*except/)) {
-        j++
-      }
-      if (j < lines.length) {
+      if (j < lines.length && lines[j].match(/^\s*except/)) {
         const exceptMatch = lines[j].match(/^\s*except\s*([^:]*):/)
-        if (exceptMatch && exceptMatch[1].trim()) {
-          exceptCond = exceptMatch[1].trim()
+        if (exceptMatch) {
+          exceptCond = exceptMatch[1].trim() || 'Exception'
         }
       }
 

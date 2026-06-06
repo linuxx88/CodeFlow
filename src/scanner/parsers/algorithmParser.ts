@@ -15,10 +15,20 @@ export function parseAlgorithmsFromFile(file: string, content: string): any[] {
         const args = pyFuncMatch[2].trim()
         const steps: string[] = []
         
+        const baseIndent = (line.match(/^(\s*)/)?.[1] || '').length
         let j = i + 1
-        while (j < lines.length && (lines[j].trim() === '' || lines[j].match(/^\s+/))) {
-          const trimmed = lines[j].trim()
-          if (trimmed !== '' && !trimmed.startsWith('#')) {
+        while (j < lines.length) {
+          const nextLine = lines[j]
+          const trimmed = nextLine.trim()
+          if (trimmed === '') {
+            j++
+            continue
+          }
+          const nextIndent = (nextLine.match(/^(\s*)/)?.[1] || '').length
+          if (nextIndent <= baseIndent) {
+            break
+          }
+          if (!trimmed.startsWith('#')) {
             steps.push(trimmed)
           }
           j++
@@ -85,7 +95,7 @@ export function parseAlgorithmsFromFile(file: string, content: string): any[] {
       const s = step.trim()
       if (s.length <= 2) return false
       if (s.startsWith('#') || s.startsWith('//') || s.startsWith('*') || s.startsWith('/*')) return false
-      if (/^[{}()\[\]\s;,]+$/.test(s)) return false
+      if (/^[{}()[\]\s;,]+$/.test(s)) return false
 
       const lower = s.toLowerCase()
       if (

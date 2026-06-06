@@ -7,14 +7,12 @@ export const IfThenCustomNode: React.FC<any> = ({ data, sourcePosition, targetPo
   const color = isStart
     ? 'var(--accent)'
     : isCondition
-    ? '#eab308'
-    : '#10b981'
+    ? 'var(--warning)'
+    : 'var(--success)'
 
   const glowColor = isStart
     ? 'var(--accent-glow)'
-    : isCondition
-    ? 'rgba(234, 179, 8, 0.3)'
-    : 'rgba(16, 185, 129, 0.3)'
+    : `color-mix(in srgb, ${color} 30%, transparent)`
 
   return (
     <div
