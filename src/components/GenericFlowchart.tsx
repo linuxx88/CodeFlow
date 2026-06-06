@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import {
   ReactFlow,
   Background,
@@ -79,6 +79,18 @@ const GenericFlowchartContent: React.FC<GenericFlowchartProps> = ({
     handleAddNode,
     handleDeleteNode
   } = useFlowchartEditor()
+
+  const layoutStateRef = useRef<string>('')
+  useEffect(() => {
+    const currentState = `${nodes.length}-${edges.length}-${nodes.map(n => `${n.id}:${n.position.x}:${n.position.y}`).join(',')}`
+    if (currentState !== layoutStateRef.current && nodes.length > 0) {
+      layoutStateRef.current = currentState
+      nodes.forEach((node) => {
+        updateNodeInternals(node.id)
+      })
+      window.dispatchEvent(new Event('resize'))
+    }
+  }, [nodes, edges, updateNodeInternals])
 
   useEffect(() => {
     const projectKeys = Object.keys(projectTemplates).filter(k => k.startsWith('project-'))
