@@ -57,3 +57,13 @@ The local scanner is configured as a Vite plugin/middleware (`vite/plugins/scan-
 
 ### 2. Layout Engine
 The application integrates the `Dagre` graph engine to compute spatial coordinates for each node on the React Flow canvas. The sizes of "condition" nodes and UML class diagrams are dynamically calculated based on the number of properties and methods to prevent visual overlaps when switching layouts.
+
+## Acknowledgements
+
+Special thanks to:
+- **[React Flow](https://reactflow.dev/)** for the interactive graph visualization.
+- **[Dagre](https://github.com/dagrejs/dagre)** for the automatic graph layout.
+- **[Lucide React](https://lucide.dev/)** for the premium iconography.
+- **[Vite](https://vitejs.dev/)** for the ultra-fast development environment and middleware support.
+- **[Antigravity from Google DeepMind](https://github.com/google-deepmind)** for assisting in the development and translation of this project.
+

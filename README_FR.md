@@ -57,3 +57,13 @@ Le scanner local est configuré sous forme de plugin/middleware Vite (`vite/plug
 
 ### 2. Moteur de Disposition (Layout)
 L'application intègre le moteur de graphes `Dagre` pour calculer les coordonnées spatiales de chaque nœud sur le canevas React Flow. Les dimensions des nœuds de type "condition" et des diagrammes de classes UML sont calculées dynamiquement selon le nombre de propriétés et de méthodes pour éviter toute superposition visuelle lors du basculement d'orientation.
+
+## Remerciements
+
+Un merci tout particulier à :
+- **[React Flow](https://reactflow.dev/)** pour la visualisation interactive du graphe.
+- **[Dagre](https://github.com/dagrejs/dagre)** pour la disposition automatique du graphe.
+- **[Lucide React](https://lucide.dev/)** pour les icônes premium.
+- **[Vite](https://vitejs.dev/)** pour l'environnement de développement ultra-rapide et le middleware.
+- **[Antigravity de Google DeepMind](https://github.com/google-deepmind)** pour l'assistance au développement et à la traduction de ce projet.
+
