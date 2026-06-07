@@ -45,7 +45,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = ({
         backdropFilter: 'blur(12px)',
         transition: 'background-color 0.3s, border-color 0.3s',
         position: 'relative',
-        zIndex: 10,
+        zIndex: 150,
         minWidth: 0
       }}
     >

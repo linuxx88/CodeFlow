@@ -45,7 +45,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         borderBottom: '1px solid var(--border)',
         backgroundColor: 'var(--panel-bg)',
         backdropFilter: 'blur(12px)',
-        zIndex: 10,
+        zIndex: 200,
         boxShadow: '0 4px 20px var(--shadow)',
         transition: 'background-color 0.3s, border-color 0.3s, box-shadow 0.3s',
         overflow: 'visible'
