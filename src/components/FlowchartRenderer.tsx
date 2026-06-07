@@ -323,12 +323,6 @@ const validateNodesForView = (
 }
 
 export const FlowchartRenderer: React.FC<FlowchartRendererProps> = ({ currentView, scanData }) => {
-  if (!scanData) {
-    return <EmptyState />
-  }
-
-  const validation = validateNodesForView(currentView, scanData)
-
   const renderKey = useMemo(() => {
     try {
       return `${currentView}-${JSON.stringify(scanData || {})}`
@@ -336,6 +330,12 @@ export const FlowchartRenderer: React.FC<FlowchartRendererProps> = ({ currentVie
       return `${currentView}-error`
     }
   }, [currentView, scanData])
+
+  if (!scanData) {
+    return <EmptyState />
+  }
+
+  const validation = validateNodesForView(currentView, scanData)
 
   if (!validation.isValid) {
     return <ValidationErrorUI message={validation.message || ''} details={validation.details} />
