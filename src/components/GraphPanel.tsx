@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react'
 import {
   ReactFlow,
-  Background
+  Background,
+  MiniMap,
+  Controls
 } from '@xyflow/react'
 import type { Node, Edge } from '@xyflow/react'
 import { FileNode } from './FileNode'
 import { GraphToolbar } from './GraphToolbar'
 import { AlertTriangle, GitBranch } from 'lucide-react'
 import { LayoutToolbar } from './LayoutToolbar'
-import { MiniMapPanel } from './MiniMapPanel'
-import { ControlsOverlay } from './ControlsOverlay'
 
 interface GraphPanelProps {
   nodes: Node[]
@@ -242,8 +242,8 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
                   fitView
                 >
                   <Background color="#2e303a" gap={16} />
-                  <ControlsOverlay />
-                  <MiniMapPanel
+                  <Controls />
+                  <MiniMap
                     style={{ backgroundColor: 'var(--panel-bg)' }}
                     nodeColor={(n) => {
                       if (!isValidNode(n)) return '#ff0000'

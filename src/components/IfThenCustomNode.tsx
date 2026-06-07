@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Handle } from '@xyflow/react'
 
 export const IfThenCustomNode: React.FC<any> = ({ data, sourcePosition, targetPosition }) => {
@@ -13,6 +13,8 @@ export const IfThenCustomNode: React.FC<any> = ({ data, sourcePosition, targetPo
   const glowColor = isStart
     ? 'var(--accent-glow)'
     : `color-mix(in srgb, ${color} 30%, transparent)`
+
+  const [isExpanded, setIsExpanded] = useState(true)
 
   return (
     <div
@@ -67,12 +69,41 @@ export const IfThenCustomNode: React.FC<any> = ({ data, sourcePosition, targetPo
             marginBottom: '6px',
             color: color,
             letterSpacing: '1px',
-            flexShrink: 0
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
           }}
         >
-          {isStart ? 'Début' : isCondition ? 'SI (Condition)' : 'ALORS / SINON'}
+          <span>{isStart ? 'Début' : isCondition ? 'SI (Condition)' : 'ALORS / SINON'}</span>
+          {!isStart && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setIsExpanded(!isExpanded)
+              }}
+              style={{
+                background: 'rgba(255,255,255,0.08)',
+                border: 'none',
+                color: color,
+                cursor: 'pointer',
+                borderRadius: '4px',
+                padding: '2px 6px',
+                fontSize: '8px',
+                fontWeight: 'bold',
+                outline: 'none',
+                pointerEvents: 'all'
+              }}
+            >
+              {isExpanded ? 'Collapse' : 'Expand'}
+            </button>
+          )}
         </div>
-        <div style={{ fontWeight: 600, wordBreak: 'break-word', maxWidth: '100%' }}>{data.label}</div>
+        {!isStart && !isExpanded ? (
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic' }}>Détails masqués</div>
+        ) : (
+          <div style={{ fontWeight: 600, wordBreak: 'break-word', maxWidth: '100%' }}>{data.label}</div>
+        )}
       </div>
       {isCondition && (
         <svg

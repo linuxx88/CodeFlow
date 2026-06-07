@@ -1,15 +1,27 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   useNodesState,
   useEdgesState,
-  Position
+  Position,
+  useReactFlow
 } from '@xyflow/react'
 import type { Node, Edge } from '@xyflow/react'
 
 
-export const useFlowchartEditor = () => {
+export const useFlowchartEditor = (options?: { direction?: 'LR' | 'TB' }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
+  
+  const { fitView } = useReactFlow()
+
+  useEffect(() => {
+    if (options?.direction && nodes.length > 0) {
+      const timer = setTimeout(() => {
+        fitView({ duration: 300 })
+      }, 50)
+      return () => clearTimeout(timer)
+    }
+  }, [options?.direction, fitView])
   
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const [nodeLabel, setNodeLabel] = useState<string>('')

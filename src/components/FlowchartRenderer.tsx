@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react'
 import { AlertTriangle, FolderOpen } from 'lucide-react'
+import { MarkerType } from '@xyflow/react'
 
 const EmptyState: React.FC = () => {
   return (
@@ -210,6 +211,12 @@ const validateNodesForView = (
             { id: 'live-code', type: 'customNode', position: { x: 250, y: 220 }, data: { label: `3. Code : ${functionCount} fonctions, ${classCount} classes`, type: 'action' } },
             { id: 'live-quality', type: 'customNode', position: { x: 250, y: 320 }, data: { label: `4. Git : Hotspot principal: ${hotspot} (${commits} commits)`, type: 'action' } },
             { id: 'live-status', type: 'customNode', position: { x: 250, y: 420 }, data: { label: '5. Statut : Prêt pour la production (build OK)', type: 'action' } }
+          ],
+          edges: [
+            { id: 'el-1', source: 'live-plan', target: 'live-arch', type: 'smoothstep', style: { stroke: 'var(--accent)' }, markerEnd: { type: MarkerType.ArrowClosed } },
+            { id: 'el-2', source: 'live-arch', target: 'live-code', type: 'smoothstep', style: { stroke: 'var(--accent)' }, markerEnd: { type: MarkerType.ArrowClosed } },
+            { id: 'el-3', source: 'live-code', target: 'live-quality', type: 'smoothstep', style: { stroke: 'var(--accent)' }, markerEnd: { type: MarkerType.ArrowClosed } },
+            { id: 'el-4', source: 'live-quality', target: 'live-status', type: 'smoothstep', style: { stroke: 'var(--accent)' }, markerEnd: { type: MarkerType.ArrowClosed } }
           ]
         }
         break
@@ -241,10 +248,30 @@ const validateNodesForView = (
               }
             })
           })
+          const edges: any[] = []
+          items.forEach((item: any) => {
+            if (item.inherits) {
+              const parentId = `class-${item.inherits.toLowerCase()}`
+              const childId = `class-${item.name.toLowerCase()}`
+              if (nodes.some(n => n.id === parentId)) {
+                edges.push({
+                  id: `edge-inherits-${childId}-${parentId}`,
+                  source: childId,
+                  target: parentId,
+                  type: 'smoothstep',
+                  label: 'HÉRITE',
+                  style: { stroke: 'var(--accent)', strokeWidth: 2 },
+                  labelStyle: { fill: 'var(--accent)', fontWeight: 'bold' },
+                  markerEnd: { type: MarkerType.ArrowClosed }
+                })
+              }
+            }
+          })
           templates[`project-${file}`] = {
             name: `Projet: ${file}`,
             description: `Diagramme de classes - ${items.length} classes détectées.`,
-            nodes
+            nodes,
+            edges
           }
         }
         break

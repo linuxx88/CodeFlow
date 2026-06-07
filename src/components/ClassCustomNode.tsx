@@ -1,7 +1,9 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Handle } from '@xyflow/react'
 
 export const ClassCustomNode: React.FC<any> = ({ data, sourcePosition, targetPosition }) => {
+  const [isExpanded, setIsExpanded] = useState(true)
+
   return (
     <div
       style={{
@@ -33,67 +35,79 @@ export const ClassCustomNode: React.FC<any> = ({ data, sourcePosition, targetPos
       />
       {/* Class Name Header */}
       <div
+        onClick={() => setIsExpanded(!isExpanded)}
         style={{
           padding: '10px 14px',
           fontWeight: 'bold',
           backgroundColor: 'var(--input-bg)',
-          borderBottom: '1px solid var(--border)',
+          borderBottom: isExpanded ? '1px solid var(--border)' : 'none',
           borderTopLeftRadius: '11px',
           borderTopRightRadius: '11px',
+          borderBottomLeftRadius: isExpanded ? '0px' : '11px',
+          borderBottomRightRadius: isExpanded ? '0px' : '11px',
           color: 'var(--accent)',
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'center'
+          alignItems: 'center',
+          cursor: 'pointer',
+          userSelect: 'none'
         }}
       >
         <span style={{ fontSize: '13px', letterSpacing: '0.5px' }}>{data.name}</span>
-        {data.inherits && (
-          <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-            hérite de {data.inherits}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {data.inherits && (
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+              hérite de {data.inherits}
+            </span>
+          )}
+          <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+            {isExpanded ? '▼' : '▲'}
           </span>
-        )}
+        </div>
       </div>
 
       {/* Scrollable Container Wrapper */}
-      <div
-        style={{
-          maxHeight: '200px',
-          overflowY: 'auto',
-          overflowX: 'hidden'
-        }}
-      >
-        {/* Properties section */}
-        <div style={{ padding: '8px 14px', borderBottom: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          {data.properties && data.properties.length > 0 ? (
-            data.properties.map((prop: string, idx: number) => (
-              <div key={idx} style={{ fontFamily: 'monospace', color: 'var(--text)', opacity: 0.9, fontSize: '11px', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
-                <span style={{ color: 'var(--accent)', marginRight: '6px' }}>+</span>
-                {prop}
+      {isExpanded && (
+        <div
+          style={{
+            maxHeight: '200px',
+            overflowY: 'auto',
+            overflowX: 'hidden'
+          }}
+        >
+          {/* Properties section */}
+          <div style={{ padding: '8px 14px', borderBottom: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            {data.properties && data.properties.length > 0 ? (
+              data.properties.map((prop: string, idx: number) => (
+                <div key={idx} style={{ fontFamily: 'monospace', color: 'var(--text)', opacity: 0.9, fontSize: '11px', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                  <span style={{ color: 'var(--accent)', marginRight: '6px' }}>+</span>
+                  {prop}
+                </div>
+              ))
+            ) : (
+              <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '10px' }}>
+                Aucun attribut
               </div>
-            ))
-          ) : (
-            <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '10px' }}>
-              Aucun attribut
-            </div>
-          )}
-        </div>
+            )}
+          </div>
 
-        {/* Methods section */}
-        <div style={{ padding: '8px 14px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          {data.methods && data.methods.length > 0 ? (
-            data.methods.map((method: string, idx: number) => (
-              <div key={idx} style={{ fontFamily: 'monospace', color: 'var(--success)', fontSize: '11px', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
-                <span style={{ color: 'var(--success)', marginRight: '6px' }}>+</span>
-                {method}()
+          {/* Methods section */}
+          <div style={{ padding: '8px 14px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            {data.methods && data.methods.length > 0 ? (
+              data.methods.map((method: string, idx: number) => (
+                <div key={idx} style={{ fontFamily: 'monospace', color: 'var(--success)', fontSize: '11px', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                  <span style={{ color: 'var(--success)', marginRight: '6px' }}>+</span>
+                  {method}()
+                </div>
+              ))
+            ) : (
+              <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '10px' }}>
+                Aucune méthode
               </div>
-            ))
-          ) : (
-            <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '10px' }}>
-              Aucune méthode
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       <Handle
         type="source"

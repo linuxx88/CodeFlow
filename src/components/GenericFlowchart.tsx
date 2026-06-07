@@ -78,7 +78,7 @@ const GenericFlowchartContent: React.FC<GenericFlowchartProps> = ({
     handleUpdateNode,
     handleAddNode,
     handleDeleteNode
-  } = useFlowchartEditor()
+  } = useFlowchartEditor({ direction })
 
   const layoutStateRef = useRef<string>('')
   useEffect(() => {

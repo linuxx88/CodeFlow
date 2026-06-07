@@ -141,7 +141,7 @@ const WhileLoopFlowchartContent: React.FC<WhileLoopFlowchartProps> = ({ scanData
     handleUpdateNode,
     handleAddNode,
     handleDeleteNode
-  } = useFlowchartEditor()
+  } = useFlowchartEditor({ direction })
 
   // Keep separation above minimum node separation threshold (80px)
   const safeNodesep = Math.max(80, nodesep)

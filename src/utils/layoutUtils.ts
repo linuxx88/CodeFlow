@@ -1,5 +1,5 @@
 import dagre from '@dagrejs/dagre'
-import { Position } from '@xyflow/react'
+import { Position, MarkerType } from '@xyflow/react'
 import type { Node, Edge } from '@xyflow/react'
 
 export const getLayoutedElements = (
@@ -82,5 +82,15 @@ export const getLayoutedElements = (
     }
   })
 
-  return { nodes: layoutedNodes, edges }
+  const layoutedEdges = edges.map((edge) => {
+    if (!edge.markerEnd) {
+      return {
+        ...edge,
+        markerEnd: { type: MarkerType.ArrowClosed }
+      }
+    }
+    return edge
+  })
+
+  return { nodes: layoutedNodes, edges: layoutedEdges }
 }
