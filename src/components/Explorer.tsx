@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from 'react'
-import { FolderTree, Folder, FolderOpen, FileText, Search, X } from 'lucide-react'
+import { FolderTree, Folder, FolderOpen, FileText, Search, X, FolderMinus } from 'lucide-react'
 import { fuzzyMatch, flattenFullTree } from '../utils/projectUtils'
 
 interface ExplorerProps {
   structure?: any
   flatFiles: any[]
   onToggleDirectory: (path: string) => void
+  onCollapseAll?: () => void
   gitStatuses?: Record<string, 'modified' | 'untracked' | 'added' | 'deleted' | 'renamed' | 'unmerged'>
 }
 
@@ -64,10 +65,84 @@ const getGitStatusStyles = (status?: string) => {
   }
 }
 
+const FileIcon = ({ name, color, size = 14 }: { name: string; color: string; size?: number }) => {
+  const ext = name.substring(name.lastIndexOf('.')).toLowerCase()
+  
+  switch (ext) {
+    case '.ts':
+      return (
+        <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+          <rect width="16" height="16" rx="3" fill="#3178C6" />
+          <text x="8" y="11.5" fill="white" fontSize="9" fontWeight="bold" fontFamily="'Outfit', sans-serif" textAnchor="middle">TS</text>
+        </svg>
+      )
+    case '.tsx':
+      return (
+        <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+          <rect width="16" height="16" rx="3" fill="#007ACC" />
+          <text x="8" y="11" fill="white" fontSize="8" fontWeight="bold" fontFamily="'Outfit', sans-serif" textAnchor="middle">TSX</text>
+        </svg>
+      )
+    case '.js':
+      return (
+        <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+          <rect width="16" height="16" rx="3" fill="#F7DF1E" />
+          <text x="8" y="11.5" fill="#000000" fontSize="9" fontWeight="bold" fontFamily="'Outfit', sans-serif" textAnchor="middle">JS</text>
+        </svg>
+      )
+    case '.jsx':
+      return (
+        <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+          <rect width="16" height="16" rx="3" fill="#F7DF1E" />
+          <text x="8" y="11" fill="#000000" fontSize="8" fontWeight="bold" fontFamily="'Outfit', sans-serif" textAnchor="middle">JSX</text>
+        </svg>
+      )
+    case '.py':
+      return (
+        <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+          <rect width="16" height="16" rx="3" fill="#3776AB" />
+          <text x="8" y="11.5" fill="#FFD43B" fontSize="9" fontWeight="bold" fontFamily="'Outfit', sans-serif" textAnchor="middle">PY</text>
+        </svg>
+      )
+    case '.json':
+      return (
+        <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+          <rect width="16" height="16" rx="3" fill="#A246C5" />
+          <text x="8" y="11.5" fill="white" fontSize="9" fontWeight="bold" fontFamily="'Outfit', sans-serif" textAnchor="middle">{}</text>
+        </svg>
+      )
+    case '.html':
+      return (
+        <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+          <rect width="16" height="16" rx="3" fill="#E34F26" />
+          <text x="8" y="11.5" fill="white" fontSize="8" fontWeight="bold" fontFamily="'Outfit', sans-serif" textAnchor="middle">&lt;&gt;</text>
+        </svg>
+      )
+    case '.css':
+    case '.scss':
+      return (
+        <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+          <rect width="16" height="16" rx="3" fill="#1572B6" />
+          <text x="8" y="11.5" fill="white" fontSize="8" fontWeight="bold" fontFamily="'Outfit', sans-serif" textAnchor="middle">#</text>
+        </svg>
+      )
+    case '.md':
+      return (
+        <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+          <rect width="16" height="16" rx="3" fill="#000000" style={{ stroke: 'var(--border)', strokeWidth: 1 }} />
+          <text x="8" y="11.5" fill="#FFFFFF" fontSize="8" fontWeight="bold" fontFamily="'Outfit', sans-serif" textAnchor="middle">MD</text>
+        </svg>
+      )
+    default:
+      return <FileText size={size} color={color} style={{ flexShrink: 0, transition: 'color 0.2s' }} />
+  }
+}
+
 export const Explorer: React.FC<ExplorerProps> = ({
   structure,
   flatFiles,
   onToggleDirectory,
+  onCollapseAll,
   gitStatuses = {}
 }) => {
   const [searchQuery, setSearchQuery] = useState('')
@@ -110,11 +185,41 @@ export const Explorer: React.FC<ExplorerProps> = ({
         transition: 'background-color 0.3s, border-color 0.3s'
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '14px 16px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-        <FolderTree size={16} color="var(--accent)" />
-        <h2 style={{ fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', margin: 0 }}>
-          Explorateur
-        </h2>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FolderTree size={16} color="var(--accent)" />
+          <h2 style={{ fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', margin: 0 }}>
+            Explorateur
+          </h2>
+        </div>
+        {flatFiles.length > 0 && onCollapseAll && (
+          <button
+            onClick={onCollapseAll}
+            title="Tout replier"
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--text-muted)',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '4px',
+              borderRadius: '4px',
+              transition: 'background-color 0.2s, color 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--accent-muted)'
+              e.currentTarget.style.color = 'var(--text)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent'
+              e.currentTarget.style.color = 'var(--text-muted)'
+            }}
+          >
+            <FolderMinus size={14} />
+          </button>
+        )}
       </div>
 
       <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '8px', position: 'relative', flexShrink: 0 }}>
@@ -221,7 +326,7 @@ export const Explorer: React.FC<ExplorerProps> = ({
                     <FolderOpen size={15} color={iconColor} style={{ flexShrink: 0 }} />
                   )
                 ) : (
-                  <FileText size={14} color={iconColor} style={{ flexShrink: 0, transition: 'color 0.2s' }} />
+                  <FileIcon name={file.name} color={iconColor} size={15} />
                 )}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1, minWidth: 0 }}>
                   <span

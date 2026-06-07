@@ -128,6 +128,24 @@ function App() {
     }))
   }
 
+  const collapseAll = () => {
+    if (!scanData?.structure) return
+    const newCollapsed: Record<string, boolean> = {}
+    const recurse = (node: any) => {
+      if (node.type === 'directory') {
+        const path = node.relative_path || ''
+        if (path) {
+          newCollapsed[path] = true
+        }
+        if (node.children) {
+          node.children.forEach(recurse)
+        }
+      }
+    }
+    recurse(scanData.structure)
+    setCollapsedDirs(newCollapsed)
+  }
+
   const showWarning = totalVisibleNodesCount > 100 && !forceDisplay
 
   const sortedGitHotspots = useMemo(() => {
@@ -413,6 +431,7 @@ function App() {
             structure={scanData?.structure}
             flatFiles={flatFiles}
             onToggleDirectory={toggleDirectory}
+            onCollapseAll={collapseAll}
             gitStatuses={scanData?.git?.statuses}
           />
           <GraphPanel
