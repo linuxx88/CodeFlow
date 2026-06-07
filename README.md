@@ -1,59 +1,59 @@
-# Code Flow — Visualiseur de Dépendances et Générateur de Flowcharts
+# Code Flow — Dependency Visualizer and Flowchart Generator
 
-Code Flow est une application web interactive moderne permettant d'analyser, de scanner et de visualiser l'architecture de votre projet (JavaScript, TypeScript, Python) sous forme de graphes interactifs et de diagrammes UML/Flowcharts.
+Code Flow is a modern, interactive web application to analyze, scan, and visualize your project's architecture (JavaScript, TypeScript, Python) as interactive graphs and UML diagrams/flowcharts.
 
-## 🚀 Fonctionnalités Clés
+## 🚀 Key Features
 
-- **🔍 Analyse Globale de Projet** : Scan asynchrone des fichiers en local, résolvant automatiquement les imports et dépendances pour les langages supportés.
-- **📡 Flux en Temps Réel (SSE)** : Le processus de scan communique sa progression en direct au client via un protocole Server-Sent Events (SSE) optimisé.
-- **🕸️ Graphe de Dépendances Interactif (React Flow)** :
-  - Visualisation des liaisons entre fichiers locaux et packages externes.
-  - Détection automatique et mise en évidence des **goulots d'étranglement** (fichiers fortement importés).
-  - Identification mathématique des **dépendances circulaires (cycles)** via l'algorithme de Tarjan (composants fortement connexes).
-  - Contrôle total du positionnement (dispositions horizontale/verticale via Dagre, espacements paramétrables).
-- **📂 Explorateur de Structure** : Navigation hiérarchique dans l'arborescence des dossiers avec tailles de fichiers et possibilité de plier/déplier les répertoires.
-- **📊 Diagramme de Classes UML** : Extraction automatique et affichage des classes, de l'héritage, des propriétés et des méthodes avec calcul de dimensions dynamiques.
-- **🔄 Flowcharts d'Algorithmes & Structures** : Représentation visuelle des structures de contrôle (`if-then`, `while-loop`, `repeat-loop`, `try-except` Python) détectées dans le code source.
-- **🔥 Friction Git & Hotspots** : Analyse de l'historique Git du projet pour identifier les fichiers subissant le plus de modifications ou écrits par le plus d'auteurs différents.
-- **🎨 Design System Premium** : Support complet de 5 thèmes visuels (Sombre, Clair, Cyberpunk, Nord, Matrix) basés sur des variables CSS modernes et l'opacité dynamique `color-mix()`.
+- **🔍 Global Project Analysis**: Asynchronous scanning of local files, automatically resolving imports and dependencies for supported languages.
+- **📡 Real-Time Streaming (SSE)**: The scanning process communicates its live progress to the client via an optimized Server-Sent Events (SSE) protocol.
+- **🕸️ Interactive Dependency Graph (React Flow)**:
+  - Visualization of links between local files and external packages.
+  - Automatic detection and highlighting of **bottlenecks** (highly imported files).
+  - Mathematical identification of **circular dependencies (cycles)** using Tarjan's algorithm (strongly connected components).
+  - Full control over positioning (horizontal/vertical layouts via Dagre, adjustable spacing).
+- **📂 Structure Explorer**: Hierarchical directory tree navigation with file sizes and folder expanding/collapsing.
+- **📊 UML Class Diagram**: Automatic extraction and rendering of classes, inheritance, properties, and methods with dynamic dimension calculation.
+- **🔄 Algorithm & Structure Flowcharts**: Visual representation of control structures (`if-then`, `while-loop`, `repeat-loop`, `try-except` in Python) detected in the source code.
+- **🔥 Git Friction & Hotspots**: Analysis of the project's Git history to identify files with the most modifications or written by the most unique authors.
+- **🎨 Premium Design System**: Full support for 5 visual themes (Dark, Light, Cyberpunk, Nord, Matrix) powered by modern CSS variables and `color-mix()` dynamic opacity.
 
-## 🛠️ Stack Technique
+## 🛠️ Tech Stack
 
-- **Core** : React 19, TypeScript, Vite
-- **Visualisation** : [@xyflow/react](https://reactflow.dev/) (React Flow), [@dagrejs/dagre](https://github.com/dagrejs/dagre) (moteur de layout automatique)
-- **Icônes** : Lucide React
-- **Styles** : CSS natif haut de gamme (thèmes personnalisables, animations néon, glassmorphism)
-- **Backend de Scan** : Middleware serveur de développement Vite avec streaming et mise en cache disque.
+- **Core**: React 19, TypeScript, Vite
+- **Visualization**: [@xyflow/react](https://reactflow.dev/) (React Flow), [@dagrejs/dagre](https://github.com/dagrejs/dagre) (automatic layout engine)
+- **Icons**: Lucide React
+- **Styles**: Premium native CSS (customizable themes, neon animations, glassmorphism)
+- **Scanning Backend**: Vite development server middleware with streaming and disk caching.
 
-## 📦 Installation et Lancement
+## 📦 Installation and Setup
 
-### Prérequis
-- [Node.js](https://nodejs.org/) (version 18 ou supérieure recommandée)
+### Prerequisites
+- [Node.js](https://nodejs.org/) (version 18 or higher recommended)
 
-### Étapes d'installation
-1. Clonez ce dépôt.
-2. Installez les dépendances du projet :
+### Installation Steps
+1. Clone this repository.
+2. Install project dependencies:
    ```bash
    npm install
    ```
 
-### Lancement en développement
-Démarrez le serveur de développement local :
+### Running in Development
+Start the local development server:
 ```bash
 npm run dev
 ```
-Ouvrez votre navigateur à l'adresse indiquée (généralement `http://localhost:5173`). Saisissez ensuite le chemin absolu du projet local que vous souhaitez analyser dans la barre supérieure.
+Open your browser at the address shown (usually `http://localhost:5173`). Then, enter the absolute path of the local project you want to analyze in the top bar.
 
-### Build pour la production
-Pour générer les fichiers de production optimisés dans le dossier `dist` :
+### Production Build
+To generate optimized production files in the `dist` folder:
 ```bash
 npm run build
 ```
 
-## 📐 Architecture & Fonctionnement
+## 📐 Architecture & Inner Workings
 
-### 1. Analyseur et Résolution de Portée
-Le scanner local est configuré sous forme de plugin/middleware Vite (`vite/plugins/scan-api.ts`). Durant la phase de scan, il extrait les structures de contrôle et les imports. Pour le langage Python, un système d'analyse d'indentation stricte (`baseIndent`) est implémenté afin d'associer correctement les blocs enfants sans chevauchement.
+### 1. Analyzer and Scope Resolution
+The local scanner is configured as a Vite plugin/middleware (`vite/plugins/scan-api.ts`). During the scanning phase, it extracts control structures and imports. For Python, a strict indentation parsing system (`baseIndent`) is implemented to correctly map child blocks without overlaps.
 
-### 2. Moteur de Disposition (Layout)
-L'application intègre le moteur de graphes `Dagre` pour calculer les coordonnées spatiales de chaque nœud sur le canevas React Flow. Les dimensions des nœuds de type "condition" et des diagrammes de classes UML sont calculées dynamiquement selon le nombre de propriétés et de méthodes pour éviter toute superposition visuelle lors du basculement d'orientation.
+### 2. Layout Engine
+The application integrates the `Dagre` graph engine to compute spatial coordinates for each node on the React Flow canvas. The sizes of "condition" nodes and UML class diagrams are dynamically calculated based on the number of properties and methods to prevent visual overlaps when switching layouts.
