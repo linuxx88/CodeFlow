@@ -1,7 +1,6 @@
 export type FlowchartView =
   | 'all'
   | 'web'
-  | 'if-then'
   | 'conditional-statement'
   | 'class-diagram'
   | 'while-loop'
@@ -18,7 +17,6 @@ export interface ViewOption {
 export const VIEW_OPTIONS: ViewOption[] = [
   { value: 'all', label: 'Flux de Dépendances' },
   { value: 'web', label: 'Flowchart de Développement Web' },
-  { value: 'if-then', label: 'Flowchart SI-ALORS' },
   { value: 'conditional-statement', label: "Flowchart d'Instructions Conditionnelles" },
   { value: 'class-diagram', label: 'Flowchart de Diagramme de Classes' },
   { value: 'while-loop', label: 'Flowchart de Boucle TANT QUE' },

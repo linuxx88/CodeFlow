@@ -1,4 +1,4 @@
-import type { Node, Edge } from '@xyflow/react'
+import { FlowElementBuilder } from './FlowElementBuilder'
 import { Position } from '@xyflow/react'
 import type { Template } from '../templateBuilders'
 
@@ -10,16 +10,16 @@ export const buildLoopTemplates = (scanData: any, templates: Record<string, Temp
       const items = loopFile.items
       if (items.length === 0) continue
 
-      const nodes: Node[] = [
-        {
-          id: 'start',
-          type: 'customNode',
-          position: { x: 250, y: 20 },
-          data: { label: `Entrée: ${file}`, type: 'start' },
-          sourcePosition: Position.Bottom
-        }
-      ]
-      const edges: Edge[] = []
+      const builder = new FlowElementBuilder(
+        `Projet: ${file}`,
+        `Boucles live - ${items.length} boucles détectées.`
+      )
+        .addNode('start')
+        .withNodeType('start')
+        .withPosition(250, 20)
+        .withLabel(`Entrée: ${file}`)
+        .commit()
+
       let prevNodeId = 'start'
 
       items.forEach((item: any, idx: number) => {
@@ -28,81 +28,58 @@ export const buildLoopTemplates = (scanData: any, templates: Record<string, Temp
         const exitNodeId = `exit-${idx}`
         const yBase = 120 + idx * 240
 
-        nodes.push({
-          id: condNodeId,
-          type: 'customNode',
-          position: { x: 250, y: yBase },
-          data: { label: `Ligne ${item.line}: while (${item.condition})`, type: 'condition' },
-          sourcePosition: Position.Bottom,
-          targetPosition: Position.Top
-        })
+        builder
+          .addNode(condNodeId)
+          .withNodeType('condition')
+          .withPosition(250, yBase)
+          .withLabel(`Ligne ${item.line}: while (${item.condition})`)
+          .commit()
 
-        nodes.push({
-          id: bodyNodeId,
-          type: 'customNode',
-          position: { x: 80, y: yBase + 100 },
-          data: { label: item.body, type: 'action' },
-          sourcePosition: Position.Top,
-          targetPosition: Position.Top
-        })
+          .addNode(bodyNodeId)
+          .withNodeType('action')
+          .withPosition(80, yBase + 100)
+          .withLabel(item.body)
+          .withSourcePosition(Position.Top)
+          .withTargetPosition(Position.Top)
+          .commit()
 
-        nodes.push({
-          id: exitNodeId,
-          type: 'customNode',
-          position: { x: 420, y: yBase + 100 },
-          data: { label: 'Sortie de boucle', type: 'action' },
-          sourcePosition: Position.Bottom,
-          targetPosition: Position.Top
-        })
+          .addNode(exitNodeId)
+          .withNodeType('action')
+          .withPosition(420, yBase + 100)
+          .withLabel('Sortie de boucle')
+          .commit()
 
-        edges.push({
-          id: `edge-to-cond-${idx}`,
-          source: prevNodeId,
-          target: condNodeId,
-          type: 'smoothstep',
-          style: { stroke: 'var(--accent)' }
-        })
+          .addEdge(`edge-to-cond-${idx}`)
+          .from(prevNodeId)
+          .to(condNodeId)
+          .withDefaultTheme()
+          .commit()
 
-        edges.push({
-          id: `edge-cond-body-${idx}`,
-          source: condNodeId,
-          target: bodyNodeId,
-          label: 'VRAI',
-          type: 'smoothstep',
-          style: { stroke: '#10b981', strokeWidth: 2 },
-          labelStyle: { fill: '#10b981', fontWeight: 'bold' }
-        })
+          .addEdge(`edge-cond-body-${idx}`)
+          .from(condNodeId)
+          .to(bodyNodeId)
+          .withLabel('VRAI')
+          .withTrueTheme()
+          .commit()
 
-        edges.push({
-          id: `edge-cond-exit-${idx}`,
-          source: condNodeId,
-          target: exitNodeId,
-          label: 'FAUX',
-          type: 'smoothstep',
-          style: { stroke: '#f43f5e', strokeWidth: 2 },
-          labelStyle: { fill: '#f43f5e', fontWeight: 'bold' }
-        })
+          .addEdge(`edge-cond-exit-${idx}`)
+          .from(condNodeId)
+          .to(exitNodeId)
+          .withLabel('FAUX')
+          .withFalseTheme()
+          .commit()
 
-        edges.push({
-          id: `edge-body-cond-${idx}`,
-          source: bodyNodeId,
-          target: condNodeId,
-          label: 'BOUCLER',
-          type: 'smoothstep',
-          animated: true,
-          style: { stroke: '#eab308', strokeWidth: 2, strokeDasharray: '4 4' },
-          labelStyle: { fill: '#eab308', fontWeight: 'bold' }
-        })
+          .addEdge(`edge-body-cond-${idx}`)
+          .from(bodyNodeId)
+          .to(condNodeId)
+          .withLabel('BOUCLER')
+          .withLoopTheme()
+          .commit()
 
         prevNodeId = exitNodeId
       })
 
-      temps[`project-${file}`] = {
-        name: `Projet: ${file}`,
-        description: `Boucles live - ${items.length} boucles détectées.`,
-        nodes,
-        edges
-      }
+      temps[`project-${file}`] = builder.build()
     }
   }
   return temps

@@ -51,7 +51,6 @@ const EmptyState: React.FC = () => {
     </div>
   )
 }
-import { IfThenFlowchart } from './IfThenFlowchart'
 import { ConditionalStatementFlowchart } from './ConditionalStatementFlowchart'
 import { ClassDiagramFlowchart } from './ClassDiagramFlowchart'
 import { WhileLoopFlowchart } from './WhileLoopFlowchart'
@@ -61,7 +60,6 @@ import { AppDevelopmentProcessFlowchart } from './AppDevelopmentProcessFlowchart
 import { PythonFlowchart } from './PythonFlowchart'
 import type { FlowchartView } from '../constants/views'
 import {
-  TEMPLATES,
   CONDITIONAL_TEMPLATES,
   LOOP_TEMPLATES,
   REPEAT_TEMPLATES,
@@ -165,9 +163,6 @@ const validateNodesForView = (
 
   try {
     switch (currentView) {
-      case 'if-then':
-        templates = buildConditionalTemplates(scanData, TEMPLATES, 'ifelse')
-        break
       case 'conditional-statement':
         templates = buildConditionalTemplates(scanData, CONDITIONAL_TEMPLATES, 'all')
         break
@@ -369,8 +364,6 @@ export const FlowchartRenderer: React.FC<FlowchartRendererProps> = ({ currentVie
   }
 
   switch (currentView) {
-    case 'if-then':
-      return <IfThenFlowchart key={renderKey} scanData={scanData} />
     case 'conditional-statement':
       return <ConditionalStatementFlowchart key={renderKey} scanData={scanData} />
     case 'class-diagram':

@@ -1,5 +1,4 @@
-import type { Node, Edge } from '@xyflow/react'
-import { Position } from '@xyflow/react'
+import { FlowElementBuilder } from './FlowElementBuilder'
 import type { Template } from '../templateBuilders'
 
 export const buildPythonTemplates = (scanData: any, templates: Record<string, Template>): Record<string, Template> => {
@@ -10,16 +9,16 @@ export const buildPythonTemplates = (scanData: any, templates: Record<string, Te
       const items = pyFile.items
       if (items.length === 0) continue
 
-      const nodes: Node[] = [
-        {
-          id: 'start',
-          type: 'customNode',
-          position: { x: 250, y: 20 },
-          data: { label: `Script Python: ${file}`, type: 'start' },
-          sourcePosition: Position.Bottom
-        }
-      ]
-      const edges: Edge[] = []
+      const builder = new FlowElementBuilder(
+        `Python: ${file}`,
+        `Structure Python - ${items.length} éléments détectés.`
+      )
+        .addNode('start')
+        .withNodeType('start')
+        .withPosition(250, 20)
+        .withLabel(`Script Python: ${file}`)
+        .commit()
+
       let prevNodeId = 'start'
 
       items.forEach((item: any, idx: number) => {
@@ -30,109 +29,80 @@ export const buildPythonTemplates = (scanData: any, templates: Record<string, Te
           const successNodeId = `success-${idx}`
           const exceptNodeId = `except-${idx}`
 
-          nodes.push({
-            id: tryNodeId,
-            type: 'customNode',
-            position: { x: 250, y: yBase },
-            data: { label: `Try: ${item.try}`, type: 'condition' },
-            sourcePosition: Position.Bottom,
-            targetPosition: Position.Top
-          })
+          builder
+            .addNode(tryNodeId)
+            .withNodeType('condition')
+            .withPosition(250, yBase)
+            .withLabel(`Try: ${item.try}`)
+            .commit()
 
-          nodes.push({
-            id: successNodeId,
-            type: 'customNode',
-            position: { x: 80, y: yBase + 100 },
-            data: { label: 'Succès: continuer', type: 'action' },
-            sourcePosition: Position.Bottom,
-            targetPosition: Position.Top
-          })
+            .addNode(successNodeId)
+            .withNodeType('action')
+            .withPosition(80, yBase + 100)
+            .withLabel('Succès: continuer')
+            .commit()
 
-          nodes.push({
-            id: exceptNodeId,
-            type: 'customNode',
-            position: { x: 420, y: yBase + 100 },
-            data: { label: `Except ${item.except}`, type: 'action' },
-            sourcePosition: Position.Bottom,
-            targetPosition: Position.Top
-          })
+            .addNode(exceptNodeId)
+            .withNodeType('action')
+            .withPosition(420, yBase + 100)
+            .withLabel(`Except ${item.except}`)
+            .commit()
 
-          edges.push({
-            id: `edge-to-try-${idx}`,
-            source: prevNodeId,
-            target: tryNodeId,
-            type: 'smoothstep',
-            style: { stroke: 'var(--accent)' }
-          })
+            .addEdge(`edge-to-try-${idx}`)
+            .from(prevNodeId)
+            .to(tryNodeId)
+            .withDefaultTheme()
+            .commit()
 
-          edges.push({
-            id: `edge-try-success-${idx}`,
-            source: tryNodeId,
-            target: successNodeId,
-            label: 'TRY',
-            type: 'smoothstep',
-            style: { stroke: '#10b981', strokeWidth: 2 },
-            labelStyle: { fill: '#10b981', fontWeight: 'bold' }
-          })
+            .addEdge(`edge-try-success-${idx}`)
+            .from(tryNodeId)
+            .to(successNodeId)
+            .withLabel('TRY')
+            .withTrueTheme()
+            .commit()
 
-          edges.push({
-            id: `edge-try-except-${idx}`,
-            source: tryNodeId,
-            target: exceptNodeId,
-            label: 'EXCEPT',
-            type: 'smoothstep',
-            style: { stroke: '#f43f5e', strokeWidth: 2 },
-            labelStyle: { fill: '#f43f5e', fontWeight: 'bold' }
-          })
+            .addEdge(`edge-try-except-${idx}`)
+            .from(tryNodeId)
+            .to(exceptNodeId)
+            .withLabel('EXCEPT')
+            .withFalseTheme()
+            .commit()
 
           prevNodeId = successNodeId
         } else if (item.type === 'decorator') {
           const decNodeId = `dec-${idx}`
-          nodes.push({
-            id: decNodeId,
-            type: 'customNode',
-            position: { x: 250, y: yBase },
-            data: { label: `@${item.name}`, type: 'start' },
-            sourcePosition: Position.Bottom,
-            targetPosition: Position.Top
-          })
+          builder
+            .addNode(decNodeId)
+            .withNodeType('start')
+            .withPosition(250, yBase)
+            .withLabel(`@${item.name}`)
+            .commit()
 
-          edges.push({
-            id: `edge-dec-${idx}`,
-            source: prevNodeId,
-            target: decNodeId,
-            type: 'smoothstep',
-            style: { stroke: 'var(--accent)' }
-          })
+            .addEdge(`edge-dec-${idx}`)
+            .from(prevNodeId)
+            .to(decNodeId)
+            .withDefaultTheme()
+            .commit()
           prevNodeId = decNodeId
         } else if (item.type === 'main') {
           const mainNodeId = `main-${idx}`
-          nodes.push({
-            id: mainNodeId,
-            type: 'customNode',
-            position: { x: 250, y: yBase },
-            data: { label: 'if __name__ == "__main__"', type: 'action' },
-            sourcePosition: Position.Bottom,
-            targetPosition: Position.Top
-          })
+          builder
+            .addNode(mainNodeId)
+            .withNodeType('action')
+            .withPosition(250, yBase)
+            .withLabel('if __name__ == "__main__"')
+            .commit()
 
-          edges.push({
-            id: `edge-main-${idx}`,
-            source: prevNodeId,
-            target: mainNodeId,
-            type: 'smoothstep',
-            style: { stroke: 'var(--accent)' }
-          })
+            .addEdge(`edge-main-${idx}`)
+            .from(prevNodeId)
+            .to(mainNodeId)
+            .withDefaultTheme()
+            .commit()
           prevNodeId = mainNodeId
         }
       })
 
-      temps[`project-${file}`] = {
-        name: `Python: ${file}`,
-        description: `Structure Python - ${items.length} éléments détectés.`,
-        nodes,
-        edges
-      }
+      temps[`project-${file}`] = builder.build()
     }
   }
   return temps

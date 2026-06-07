@@ -4,9 +4,6 @@ import { FlowchartRenderer } from './FlowchartRenderer'
 import React from 'react'
 
 // Mock sub-components to prevent deep mounting issues in simple tests
-vi.mock('./IfThenFlowchart', () => ({
-  IfThenFlowchart: () => <div data-testid="ifthen-flowchart">IfThenFlowchart Mock</div>
-}))
 vi.mock('./ConditionalStatementFlowchart', () => ({
   ConditionalStatementFlowchart: () => <div data-testid="conditional-flowchart">ConditionalStatementFlowchart Mock</div>
 }))
@@ -31,7 +28,7 @@ vi.mock('./PythonFlowchart', () => ({
 
 describe('FlowchartRenderer Component', () => {
   it('should render empty state when scanData is missing', () => {
-    render(<FlowchartRenderer currentView="if-then" scanData={null} />)
+    render(<FlowchartRenderer currentView="conditional-statement" scanData={null} />)
     expect(screen.getByText('Aucun projet ou fichier chargé')).toBeInTheDocument()
     expect(screen.getByText("Sélectionnez un fichier dans l'explorateur pour afficher son diagramme.")).toBeInTheDocument()
   })
@@ -61,10 +58,7 @@ describe('FlowchartRenderer Component', () => {
       classes: []
     }
 
-    const { rerender } = render(<FlowchartRenderer currentView="if-then" scanData={validScanData} />)
-    expect(screen.getByTestId('ifthen-flowchart')).toBeInTheDocument()
-
-    rerender(<FlowchartRenderer currentView="conditional-statement" scanData={validScanData} />)
+    const { rerender } = render(<FlowchartRenderer currentView="conditional-statement" scanData={validScanData} />)
     expect(screen.getByTestId('conditional-flowchart')).toBeInTheDocument()
 
     rerender(<FlowchartRenderer currentView="while-loop" scanData={validScanData} />)

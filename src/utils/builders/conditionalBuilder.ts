@@ -1,5 +1,4 @@
-import type { Node, Edge } from '@xyflow/react'
-import { Position } from '@xyflow/react'
+import { FlowElementBuilder } from './FlowElementBuilder'
 import type { Template } from '../templateBuilders'
 
 export const buildConditionalTemplates = (
@@ -17,83 +16,66 @@ export const buildConditionalTemplates = (
         
       if (items.length === 0) continue
 
-      const nodes: Node[] = [
-        {
-          id: 'start',
-          type: 'customNode',
-          position: { x: 250, y: 20 },
-          data: { label: `Début: ${file}`, type: 'start' },
-          sourcePosition: Position.Bottom
-        }
-      ]
-      const edges: Edge[] = []
+      const builder = new FlowElementBuilder(
+        `Projet: ${file}`,
+        `Flowchart live - ${items.length} conditions détectées.`
+      )
+        .addNode('start')
+        .withNodeType('start')
+        .withPosition(250, 20)
+        .withLabel(`Début: ${file}`)
+        .commit()
+
       let prevNodeId = 'start'
       
       items.forEach((item: any, idx: number) => {
         const condNodeId = `cond-${idx}`
         const yBase = 120 + idx * 240
         
-        nodes.push({
-          id: condNodeId,
-          type: 'customNode',
-          position: { x: 250, y: yBase },
-          data: { 
-            label: `Ligne ${item.line}: ${item.condition || item.expression}`, 
-            type: 'condition' 
-          },
-          sourcePosition: Position.Bottom,
-          targetPosition: Position.Top
-        })
-        
-        edges.push({
-          id: `edge-to-cond-${idx}`,
-          source: prevNodeId,
-          target: condNodeId,
-          type: 'smoothstep',
-          style: { stroke: 'var(--accent)' }
-        })
+        builder
+          .addNode(condNodeId)
+          .withNodeType('condition')
+          .withPosition(250, yBase)
+          .withLabel(`Ligne ${item.line}: ${item.condition || item.expression}`)
+          .commit()
+
+          .addEdge(`edge-to-cond-${idx}`)
+          .from(prevNodeId)
+          .to(condNodeId)
+          .withDefaultTheme()
+          .commit()
         
         if (item.type === 'ifelse') {
           const thenNodeId = `then-${idx}`
-          nodes.push({
-            id: thenNodeId,
-            type: 'customNode',
-            position: { x: 80, y: yBase + 100 },
-            data: { label: item.then, type: 'action' },
-            sourcePosition: Position.Bottom,
-            targetPosition: Position.Top
-          })
-          
-          edges.push({
-            id: `edge-then-${idx}`,
-            source: condNodeId,
-            target: thenNodeId,
-            label: 'VRAI',
-            type: 'smoothstep',
-            style: { stroke: '#10b981', strokeWidth: 2 },
-            labelStyle: { fill: '#10b981', fontWeight: 'bold' }
-          })
+          builder
+            .addNode(thenNodeId)
+            .withNodeType('action')
+            .withPosition(80, yBase + 100)
+            .withLabel(item.then)
+            .commit()
+            
+            .addEdge(`edge-then-${idx}`)
+            .from(condNodeId)
+            .to(thenNodeId)
+            .withLabel('VRAI')
+            .withTrueTheme()
+            .commit()
           
           if (item.else) {
             const elseNodeId = `else-${idx}`
-            nodes.push({
-              id: elseNodeId,
-              type: 'customNode',
-              position: { x: 420, y: yBase + 100 },
-              data: { label: item.else, type: 'action' },
-              sourcePosition: Position.Bottom,
-              targetPosition: Position.Top
-            })
-            
-            edges.push({
-              id: `edge-else-${idx}`,
-              source: condNodeId,
-              target: elseNodeId,
-              label: 'FAUX',
-              type: 'smoothstep',
-              style: { stroke: '#f43f5e', strokeWidth: 2 },
-              labelStyle: { fill: '#f43f5e', fontWeight: 'bold' }
-            })
+            builder
+              .addNode(elseNodeId)
+              .withNodeType('action')
+              .withPosition(420, yBase + 100)
+              .withLabel(item.else)
+              .commit()
+              
+              .addEdge(`edge-else-${idx}`)
+              .from(condNodeId)
+              .to(elseNodeId)
+              .withLabel('FAUX')
+              .withFalseTheme()
+              .commit()
           }
           prevNodeId = condNodeId
         } else if (item.type === 'switch') {
@@ -102,35 +84,25 @@ export const buildConditionalTemplates = (
             const caseNodeId = `case-${idx}-${caseIdx}`
             const xPos = cases.length > 1 ? 50 + (caseIdx * (400 / (cases.length - 1))) : 250
             
-            nodes.push({
-              id: caseNodeId,
-              type: 'customNode',
-              position: { x: xPos, y: yBase + 100 },
-              data: { label: `Action: ${c}`, type: 'action' },
-              sourcePosition: Position.Bottom,
-              targetPosition: Position.Top
-            })
-            
-            edges.push({
-              id: `edge-case-${idx}-${caseIdx}`,
-              source: condNodeId,
-              target: caseNodeId,
-              label: c.toUpperCase(),
-              type: 'smoothstep',
-              style: { stroke: '#10b981', strokeWidth: 2 },
-              labelStyle: { fill: '#10b981', fontWeight: 'bold' }
-            })
+            builder
+              .addNode(caseNodeId)
+              .withNodeType('action')
+              .withPosition(xPos, yBase + 100)
+              .withLabel(`Action: ${c}`)
+              .commit()
+              
+              .addEdge(`edge-case-${idx}-${caseIdx}`)
+              .from(condNodeId)
+              .to(caseNodeId)
+              .withLabel(c.toUpperCase())
+              .withTrueTheme()
+              .commit()
           })
           prevNodeId = condNodeId
         }
       })
       
-      temps[`project-${file}`] = {
-        name: `Projet: ${file}`,
-        description: `Flowchart live - ${items.length} conditions détectées.`,
-        nodes,
-        edges
-      }
+      temps[`project-${file}`] = builder.build()
     }
   }
   return temps

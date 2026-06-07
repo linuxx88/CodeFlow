@@ -1,7 +1,6 @@
 export * from './AlgorithmTemplates'
 export * from './ClassTemplates'
 export * from './ConditionalTemplates'
-export { TEMPLATES } from './IfThenTemplates'
 export * from './LoopTemplates'
 export * from './ProcessTemplates'
 export * from './PythonTemplates'
