@@ -14,10 +14,14 @@ export default defineConfig({
     scanApi()
   ],
   build: {
+    chunkSizeWarningLimit: 1500,
     rollupOptions: {
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
+            if (id.includes('elkjs')) {
+              return 'elk'
+            }
             if (id.includes('@xyflow')) {
               return 'react-flow'
             }

@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { ArrowRight, ArrowDown, SlidersHorizontal } from 'lucide-react'
+import { ArrowRight, ArrowDown, SlidersHorizontal, Settings2, GitFork, Cpu } from 'lucide-react'
+import type { LayoutType } from '../utils/layoutEngine'
 
 interface LayoutToolbarProps {
   direction: 'LR' | 'TB'
@@ -8,6 +9,8 @@ interface LayoutToolbarProps {
   setNodesep: (sep: number) => void
   ranksep: number
   setRanksep: (sep: number) => void
+  layoutType?: LayoutType
+  setLayoutType?: (type: LayoutType) => void
   style?: React.CSSProperties
 }
 
@@ -18,6 +21,8 @@ export const LayoutToolbar: React.FC<LayoutToolbarProps> = ({
   setNodesep,
   ranksep,
   setRanksep,
+  layoutType,
+  setLayoutType,
   style,
 }) => {
   const [isOpen, setIsOpen] = useState(false)
@@ -72,7 +77,7 @@ export const LayoutToolbar: React.FC<LayoutToolbarProps> = ({
             display: 'flex',
             flexDirection: 'column',
             gap: '12px',
-            width: '240px',
+            width: '260px',
             color: 'var(--text)',
             animation: 'fadeIn 0.2s ease',
           }}
@@ -80,6 +85,78 @@ export const LayoutToolbar: React.FC<LayoutToolbarProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
             <span>Disposition du graphe</span>
           </div>
+
+          {/* Layout Strategy Selection */}
+          {layoutType && setLayoutType && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Moteur de Layout</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <button
+                  onClick={() => setLayoutType('dagre')}
+                  style={{
+                    padding: '6px 10px',
+                    borderRadius: '6px',
+                    border: layoutType === 'dagre' ? '1px solid var(--accent)' : '1px solid var(--border)',
+                    backgroundColor: layoutType === 'dagre' ? 'var(--accent-muted)' : 'var(--input-bg)',
+                    color: 'var(--text)',
+                    cursor: 'pointer',
+                    fontSize: '11px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontWeight: layoutType === 'dagre' ? 600 : 400,
+                    transition: 'all 0.2s',
+                    textAlign: 'left',
+                  }}
+                >
+                  <Settings2 size={12} style={{ color: layoutType === 'dagre' ? 'var(--accent)' : 'var(--text-muted)' }} />
+                  <span>Dagre (Standard)</span>
+                </button>
+                <button
+                  onClick={() => setLayoutType('elk')}
+                  style={{
+                    padding: '6px 10px',
+                    borderRadius: '6px',
+                    border: layoutType === 'elk' ? '1px solid var(--accent)' : '1px solid var(--border)',
+                    backgroundColor: layoutType === 'elk' ? 'var(--accent-muted)' : 'var(--input-bg)',
+                    color: 'var(--text)',
+                    cursor: 'pointer',
+                    fontSize: '11px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontWeight: layoutType === 'elk' ? 600 : 400,
+                    transition: 'all 0.2s',
+                    textAlign: 'left',
+                  }}
+                >
+                  <Cpu size={12} style={{ color: layoutType === 'elk' ? 'var(--accent)' : 'var(--text-muted)' }} />
+                  <span>ELK JS (Gros graphes)</span>
+                </button>
+                <button
+                  onClick={() => setLayoutType('python')}
+                  style={{
+                    padding: '6px 10px',
+                    borderRadius: '6px',
+                    border: layoutType === 'python' ? '1px solid var(--accent)' : '1px solid var(--border)',
+                    backgroundColor: layoutType === 'python' ? 'var(--accent-muted)' : 'var(--input-bg)',
+                    color: 'var(--text)',
+                    cursor: 'pointer',
+                    fontSize: '11px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontWeight: layoutType === 'python' ? 600 : 400,
+                    transition: 'all 0.2s',
+                    textAlign: 'left',
+                  }}
+                >
+                  <GitFork size={12} style={{ color: layoutType === 'python' ? 'var(--accent)' : 'var(--text-muted)' }} />
+                  <span>Custom Python (Séquentiel)</span>
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Direction Selection */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -105,7 +182,7 @@ export const LayoutToolbar: React.FC<LayoutToolbarProps> = ({
                 }}
               >
                 <ArrowRight size={12} />
-                <span>Gauche à Droite</span>
+                <span>Gauche-Droite</span>
               </button>
               <button
                 onClick={() => setDirection('TB')}
@@ -127,7 +204,7 @@ export const LayoutToolbar: React.FC<LayoutToolbarProps> = ({
                 }}
               >
                 <ArrowDown size={12} />
-                <span>Du haut vers le bas</span>
+                <span>Haut-Bas</span>
               </button>
             </div>
           </div>

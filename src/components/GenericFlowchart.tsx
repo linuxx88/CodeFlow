@@ -17,7 +17,8 @@ import {
   buildPythonTemplates,
   buildConditionalTemplates
 } from '../utils/templateBuilders'
-import { getLayoutedElements } from '../utils/layoutUtils'
+import { layoutManager } from '../utils/layoutEngine'
+import type { LayoutType } from '../utils/layoutEngine'
 import { LayoutToolbar } from './LayoutToolbar'
 import { ControlsOverlay } from './ControlsOverlay'
 
@@ -60,6 +61,7 @@ const GenericFlowchartContent: React.FC<GenericFlowchartProps> = ({
   const [direction, setDirection] = useState<'LR' | 'TB'>('TB')
   const [nodesep, setNodesep] = useState<number>(50)
   const [ranksep, setRanksep] = useState<number>(60)
+  const [layoutType, setLayoutType] = useState<LayoutType>('dagre')
 
   const {
     nodes,
@@ -110,41 +112,40 @@ const GenericFlowchartContent: React.FC<GenericFlowchartProps> = ({
   useEffect(() => {
     const template = projectTemplates[activeTemplate]
     if (template) {
-      const timer = setTimeout(() => {
-        const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-          template.nodes,
-          template.edges,
-          direction,
-          nodesep,
-          ranksep
-        )
-        setNodes(layoutedNodes)
-        setEdges(layoutedEdges)
-        setSelectedNodeId(null)
-      }, 0)
-      return () => clearTimeout(timer)
+      let isCurrent = true
+      layoutManager.layout(layoutType, template.nodes, template.edges, { direction, nodesep, ranksep })
+        .then(({ nodes: layoutedNodes, edges: layoutedEdges }) => {
+          if (isCurrent) {
+            setNodes(layoutedNodes)
+            setEdges(layoutedEdges)
+            setSelectedNodeId(null)
+          }
+        })
+      return () => { isCurrent = false }
     }
-  }, [activeTemplate, projectTemplates, direction, nodesep, ranksep, setNodes, setEdges, setSelectedNodeId])
+  }, [activeTemplate, projectTemplates, direction, nodesep, ranksep, layoutType, setNodes, setEdges, setSelectedNodeId])
 
   const [lastLayoutKey, setLastLayoutKey] = useState('')
   useEffect(() => {
-    const key = `${nodes.length}-${edges.length}-${direction}-${nodesep}-${ranksep}-${nodes.map(n => `${n.id}:${n.data?.label || ''}:${n.data?.type || ''}`).join(',')}`
+    const key = `${nodes.length}-${edges.length}-${direction}-${nodesep}-${ranksep}-${layoutType}-${nodes.map(n => `${n.id}:${n.data?.label || ''}:${n.data?.type || ''}`).join(',')}`
     if (key !== lastLayoutKey && nodes.length > 0) {
+      let isCurrent = true
       const timer = setTimeout(() => {
         setLastLayoutKey(key)
-        const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-          nodes,
-          edges,
-          direction,
-          nodesep,
-          ranksep
-        )
-        setNodes(layoutedNodes)
-        setEdges(layoutedEdges)
+        layoutManager.layout(layoutType, nodes, edges, { direction, nodesep, ranksep })
+          .then(({ nodes: layoutedNodes, edges: layoutedEdges }) => {
+            if (isCurrent) {
+              setNodes(layoutedNodes)
+              setEdges(layoutedEdges)
+            }
+          })
       }, 0)
-      return () => clearTimeout(timer)
+      return () => {
+        isCurrent = false
+        clearTimeout(timer)
+      }
     }
-  }, [nodes.length, edges.length, direction, nodesep, ranksep, lastLayoutKey, nodes, edges, setNodes, setEdges])
+  }, [nodes.length, edges.length, direction, nodesep, ranksep, layoutType, lastLayoutKey, nodes, edges, setNodes, setEdges])
 
   const projectItems = Object.entries(projectTemplates).filter(([k]) => k.startsWith('project-'))
   const staticItems = Object.entries(projectTemplates).filter(([k]) => !k.startsWith('project-'))
@@ -405,6 +406,8 @@ const GenericFlowchartContent: React.FC<GenericFlowchartProps> = ({
           setNodesep={setNodesep}
           ranksep={ranksep}
           setRanksep={setRanksep}
+          layoutType={layoutType}
+          setLayoutType={setLayoutType}
         />
         <ReactFlow
           key={`${activeTemplate}-${filterType}`}
