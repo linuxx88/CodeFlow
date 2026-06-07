@@ -348,6 +348,7 @@ export const AppDevelopmentProcessFlowchart: React.FC<AppDevelopmentProcessFlowc
           setRanksep={setRanksep}
         />
         <ReactFlow
+          key={`${activeTemplate}-process-flowchart`}
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}

@@ -336,6 +336,7 @@ export const ClassDiagramFlowchart: React.FC<ClassDiagramFlowchartProps> = ({ sc
           setRanksep={setRanksep}
         />
         <ReactFlow
+          key={`${activeTemplate}-class-diagram`}
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}

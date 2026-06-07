@@ -410,6 +410,7 @@ const WhileLoopFlowchartContent: React.FC<WhileLoopFlowchartProps> = ({ scanData
           setRanksep={setRanksep}
         />
         <ReactFlow
+          key={`${activeTemplate}-while-loop`}
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}

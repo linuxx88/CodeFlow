@@ -5,14 +5,7 @@ import { analyzeGit } from './gitAnalyzer'
 import { loadCache, saveCache } from './cache'
 import type { ProjectCacheData, FileCacheData } from './cache'
 import { resolvePythonImport, resolveJsImport } from './parsers/dependencyParser'
-import {
-  parseConditionalsFromFile,
-  parseClassesFromFile,
-  parseLoopsFromFile,
-  parseRepeatLoopsFromFile,
-  parseAlgorithmsFromFile,
-  parsePythonStructuresFromFile
-} from './parser'
+import { ParserRegistry } from './parser'
 
 export interface ScanProgress {
   stage: 'reading' | 'parsing' | 'git' | 'saving' | 'complete'
@@ -175,22 +168,34 @@ export async function handleScan(
       try {
         const content = await fs.readFile(fullFilePath, 'utf-8')
 
-        const fileConds = parseConditionalsFromFile(file, content)
+        const fileResults: Record<string, any[]> = {}
+        for (const parser of ParserRegistry.getParsersForFile(file)) {
+          try {
+            const items = parser.parse(file, content)
+            if (items.length > 0) {
+              fileResults[parser.id] = items
+            }
+          } catch (e) {
+            // Isolated error management per parser
+          }
+        }
+
+        const fileConds = fileResults.conditionals || []
         if (fileConds.length > 0) conditionals.push({ file, items: fileConds })
 
-        const fileClasses = parseClassesFromFile(file, content)
+        const fileClasses = fileResults.classes || []
         if (fileClasses.length > 0) classes.push({ file, items: fileClasses })
 
-        const fileLoops = parseLoopsFromFile(file, content)
+        const fileLoops = fileResults.loops || []
         if (fileLoops.length > 0) loops.push({ file, items: fileLoops })
 
-        const fileRepeats = parseRepeatLoopsFromFile(file, content)
+        const fileRepeats = fileResults.repeatLoops || []
         if (fileRepeats.length > 0) repeatLoops.push({ file, items: fileRepeats })
 
-        const fileAlgos = parseAlgorithmsFromFile(file, content)
+        const fileAlgos = fileResults.algorithms || []
         if (fileAlgos.length > 0) algorithms.push({ file, items: fileAlgos })
 
-        const filePy = parsePythonStructuresFromFile(file, content)
+        const filePy = fileResults.pythonStructures || []
         if (filePy.length > 0) pythonStructures.push({ file, items: filePy })
 
         const rawImports = extractImports(content, ext)

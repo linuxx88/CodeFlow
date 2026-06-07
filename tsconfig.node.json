@@ -20,5 +20,6 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["vite.config.ts", "vite-scanner.ts", "src/scanner/**/*"]
+  "include": ["vite.config.ts", "vite-scanner.ts", "src/scanner/**/*"],
+  "exclude": ["src/scanner/**/*.test.ts"]
 }

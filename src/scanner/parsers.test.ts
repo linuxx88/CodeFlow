@@ -5,7 +5,9 @@ import {
   parseLoopsFromFile,
   parseRepeatLoopsFromFile,
   parseAlgorithmsFromFile,
-  parsePythonStructuresFromFile
+  parsePythonStructuresFromFile,
+  ParserRegistry,
+  ParserStrategy
 } from './parser'
 
 describe('AST Scanner Parsers', () => {
@@ -204,6 +206,63 @@ def run():
         try: 'do_something()',
         except: 'Exception as e'
       })
+    })
+  })
+
+  describe('ParserRegistry & Strategy Pattern', () => {
+    it('should allow dynamic registration of custom strategies', () => {
+      const customParser: ParserStrategy = {
+        id: 'customTest',
+        supports: (file) => file.endsWith('.custom'),
+        parse: (file, content) => [{ type: 'custom', data: content.trim() }]
+      }
+
+      ParserRegistry.register(customParser)
+
+      const parsers = ParserRegistry.getParsersForFile('test.custom')
+      expect(parsers.some((p) => p.id === 'customTest')).toBe(true)
+
+      const result = ParserRegistry.getParser('customTest')?.parse('test.custom', 'hello')
+      expect(result).toEqual([{ type: 'custom', data: 'hello' }])
+    })
+
+    it('should handle parser strategy errors in isolation without failing others', () => {
+      const faultyParser: ParserStrategy = {
+        id: 'faulty',
+        supports: (file) => file.endsWith('.js'),
+        parse: () => {
+          throw new Error('Parsing failed')
+        }
+      }
+
+      ParserRegistry.register(faultyParser)
+
+      const parsers = ParserRegistry.getParsersForFile('test.js')
+      expect(parsers.some((p) => p.id === 'faulty')).toBe(true)
+
+      // Ensure index.ts parsing-like loop works when encountering errors
+      const fileResults: Record<string, any[]> = {}
+      const code = `
+        if (x > 10) {
+          console.log("greater");
+        }
+        else {
+          console.log("smaller");
+        }
+      `
+      for (const parser of parsers) {
+        try {
+          const items = parser.parse('test.js', code)
+          if (items.length > 0) {
+            fileResults[parser.id] = items
+          }
+        } catch (e) {
+          // Faulty parser shouldn't propagate error
+        }
+      }
+
+      expect(fileResults.conditionals).toBeDefined()
+      expect(fileResults.faulty).toBeUndefined()
     })
   })
 })

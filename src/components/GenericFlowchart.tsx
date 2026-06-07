@@ -407,6 +407,7 @@ const GenericFlowchartContent: React.FC<GenericFlowchartProps> = ({
           setRanksep={setRanksep}
         />
         <ReactFlow
+          key={`${activeTemplate}-${filterType}`}
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
