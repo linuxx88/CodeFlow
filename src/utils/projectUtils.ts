@@ -15,6 +15,51 @@ export interface FlatFileItem {
   isCollapsed: boolean
 }
 
+export const fuzzyMatch = (text: string, query: string): boolean => {
+  if (!query) return true
+  const cleanText = text.toLowerCase()
+  const cleanQuery = query.toLowerCase()
+  let queryIdx = 0
+  for (let i = 0; i < cleanText.length; i++) {
+    if (cleanText[i] === cleanQuery[queryIdx]) {
+      queryIdx++
+      if (queryIdx === cleanQuery.length) return true
+    }
+  }
+  return false
+}
+
+export const flattenFullTree = (node: any, depth = 0): FlatFileItem[] => {
+  if (!node) return []
+  const isDir = node.type === 'directory'
+  const path = node.relative_path || ''
+  
+  let sizeStr = ''
+  if (!isDir && node.size !== undefined) {
+    const size = node.size
+    if (size < 1024) sizeStr = `${size} B`
+    else if (size < 1024 * 1024) sizeStr = `${(size / 1024).toFixed(1)} KB`
+    else sizeStr = `${(size / (1024 * 1024)).toFixed(1)} MB`
+  }
+
+  const item: FlatFileItem = {
+    name: node.name,
+    isDir,
+    sizeStr,
+    depth,
+    path,
+    isCollapsed: false
+  }
+
+  const result: FlatFileItem[] = [item]
+  if (node.children) {
+    for (const child of node.children) {
+      result.push(...flattenFullTree(child, depth + 1))
+    }
+  }
+  return result
+}
+
 export const flattenTree = (
   node: FileStructureNode | null,
   collapsedDirs: Record<string, boolean>,

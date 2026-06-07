@@ -7,7 +7,51 @@ export async function analyzeGit(rootPath: string, existingFiles: Set<string>) {
   try {
     await execPromise('git rev-parse --is-inside-work-tree', { cwd: rootPath })
   } catch (e) {
-    return { hotspots: [], is_git: false }
+    return { hotspots: [], statuses: {}, is_git: false }
+  }
+  
+  const statuses: Record<string, 'modified' | 'untracked' | 'added' | 'deleted' | 'renamed' | 'unmerged'> = {}
+  try {
+    const { stdout: statusOutput } = await execPromise(
+      'git status --porcelain',
+      { cwd: rootPath }
+    )
+    const statusLines = statusOutput.split('\n')
+    for (const line of statusLines) {
+      if (line.length > 3) {
+        const code = line.substring(0, 2)
+        let file = line.substring(3).trim()
+        
+        if (file.includes(' -> ')) {
+          const parts = file.split(' -> ')
+          file = parts[parts.length - 1].trim()
+        }
+        if (file.startsWith('"') && file.endsWith('"')) {
+          file = file.slice(1, -1)
+        }
+        
+        let status: 'modified' | 'untracked' | 'added' | 'deleted' | 'renamed' | 'unmerged' | null = null
+        if (code === '??') {
+          status = 'untracked'
+        } else if (code.includes('M')) {
+          status = 'modified'
+        } else if (code.includes('A')) {
+          status = 'added'
+        } else if (code.includes('D')) {
+          status = 'deleted'
+        } else if (code.includes('R')) {
+          status = 'renamed'
+        } else if (code.includes('U')) {
+          status = 'unmerged'
+        }
+        
+        if (status) {
+          statuses[file] = status
+        }
+      }
+    }
+  } catch (e) {
+    console.error('Error running git status:', e)
   }
   
   try {
@@ -45,8 +89,8 @@ export async function analyzeGit(rootPath: string, existingFiles: Set<string>) {
       })
     }
     
-    return { hotspots, is_git: true }
+    return { hotspots, statuses, is_git: true }
   } catch (e) {
-    return { hotspots: [], is_git: false }
+    return { hotspots: [], statuses, is_git: false }
   }
 }

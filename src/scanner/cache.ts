@@ -19,6 +19,7 @@ export interface ProjectCacheData {
   files: Record<string, FileCacheData>
   git: {
     hotspots: any[]
+    statuses?: Record<string, string>
     is_git_repo: boolean
   }
 }

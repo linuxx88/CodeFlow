@@ -410,8 +410,10 @@ function App() {
       ) : (
         <div style={{ display: 'flex', flex: 1, width: '100vw', height: 'calc(100vh - 58px)', overflow: 'hidden' }}>
           <Explorer
+            structure={scanData?.structure}
             flatFiles={flatFiles}
             onToggleDirectory={toggleDirectory}
+            gitStatuses={scanData?.git?.statuses}
           />
           <GraphPanel
             nodes={nodes}

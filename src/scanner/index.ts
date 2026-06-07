@@ -298,6 +298,7 @@ export async function handleScan(
     files: newProjectCacheFiles,
     git: {
       hotspots: git.hotspots,
+      statuses: git.statuses,
       is_git_repo: git.is_git
     }
   }
@@ -308,6 +309,7 @@ export async function handleScan(
     dependencies,
     git: {
       hotspots: git.hotspots,
+      statuses: git.statuses,
       is_git_repo: git.is_git
     },
     conditionals,
