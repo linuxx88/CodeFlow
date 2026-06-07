@@ -419,6 +419,7 @@ const WhileLoopFlowchartContent: React.FC<WhileLoopFlowchartProps> = ({ scanData
           edgeTypes={edgeTypes}
           onNodeClick={handleNodeClick}
           onPaneClick={clearFocus}
+          onlyRenderVisibleElements={nodes.length > 80}
           fitView
         >
           <Background color="var(--border)" gap={16} />

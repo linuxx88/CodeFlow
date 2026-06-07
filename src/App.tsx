@@ -422,6 +422,7 @@ function App() {
                 nodeTypes={nodeTypes}
                 onNodeMouseEnter={(_, node) => setHoveredNodeId(node.id)}
                 onNodeMouseLeave={() => setHoveredNodeId(null)}
+                onlyRenderVisibleElements={nodes.length > 80}
                 fitView
               >
                 <Background color="#2e303a" gap={16} />

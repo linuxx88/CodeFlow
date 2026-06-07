@@ -11,6 +11,7 @@ import { AlertTriangle, GitBranch } from 'lucide-react'
 import { LayoutToolbar } from './LayoutToolbar'
 import { FlowchartRenderer } from './FlowchartRenderer'
 import { MiniMapPanel } from './MiniMapPanel'
+import { useConflictData } from '../hooks/useConflictData'
 
 interface GraphPanelProps {
   nodes: Node[]
@@ -134,51 +135,11 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
     }
   }, [])
 
-  const [conflictData, setConflictData] = useState<{
-    ourParsed: any
-    theirParsed: any
-  } | null>(null)
-  const [loadingConflict, setLoadingConflict] = useState(false)
-  const [conflictError, setConflictError] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!activeFile || !projectPath) {
-      setTimeout(() => {
-        setConflictData(null)
-      }, 0)
-      return
-    }
-
-    const isConflicted = scanData?.git?.statuses?.[activeFile] === 'unmerged' || 
-                         scanData?.git?.hotspots?.find((h: any) => h.file === activeFile)?.hasConflicts
-
-    if (!isConflicted) {
-      setTimeout(() => {
-        setConflictData(null)
-      }, 0)
-      return
-    }
-
-    setTimeout(() => {
-      setLoadingConflict(true)
-      setConflictError(null)
-    }, 0)
-
-    fetch(`/api/parse-conflict?path=${encodeURIComponent(projectPath)}&file=${encodeURIComponent(activeFile)}`)
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to load conflict versions')
-        return res.json()
-      })
-      .then(data => {
-        setConflictData(data)
-      })
-      .catch(err => {
-        setConflictError(err.message)
-      })
-      .finally(() => {
-        setLoadingConflict(false)
-      })
-  }, [activeFile, projectPath, scanData])
+  const {
+    conflictData,
+    loadingConflict,
+    conflictError
+  } = useConflictData({ activeFile, projectPath, scanData })
 
   const detectBestView = (parsed: any, file: string): string => {
     const ext = file.substring(file.lastIndexOf('.')).toLowerCase()
@@ -456,6 +417,7 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
                       return
                     }
                   }}
+                  onlyRenderVisibleElements={nodes.length > 80}
                   fitView
                 >
                   <Background color="#2e303a" gap={16} />

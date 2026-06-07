@@ -2,7 +2,7 @@ import React from 'react'
 import { FileText, RefreshCw } from 'lucide-react'
 import { Handle, Position } from '@xyflow/react'
 
-export const FileNode: React.FC<any> = ({ data, sourcePosition, targetPosition }) => {
+export const FileNode = React.memo(({ data, sourcePosition, targetPosition }: any) => {
   const isBottleneck = data.isBottleneck
   const isPackage = data.isPackage
   const isPartOfCycle = data.isPartOfCycle
@@ -27,24 +27,26 @@ export const FileNode: React.FC<any> = ({ data, sourcePosition, targetPosition }
     glowColor = 'rgba(245, 158, 11, 0.35)'
   }
 
+  const highPerformance = data.highPerformanceMode
+
   return (
     <div
       style={{
         padding: '10px 18px',
         borderRadius: '10px',
         backgroundColor: bgColor,
-        backdropFilter: 'blur(16px)',
+        backdropFilter: highPerformance ? 'none' : 'blur(16px)',
         border: `1.5px solid ${borderColor}`,
         color: textColor,
         fontSize: '13px',
         fontFamily: 'monospace',
-        boxShadow: `0 8px 32px 0 var(--shadow), 0 0 12px ${glowColor}`,
+        boxShadow: highPerformance ? 'none' : `0 8px 32px 0 var(--shadow), 0 0 12px ${glowColor}`,
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
         gap: '10px',
         opacity: data.isDimmed ? 0.25 : 1,
-        transition: 'all 0.3s ease',
+        transition: highPerformance ? 'none' : 'all 0.3s ease',
         position: 'relative',
         minWidth: '120px',
         maxWidth: '320px',
@@ -97,4 +99,13 @@ export const FileNode: React.FC<any> = ({ data, sourcePosition, targetPosition }
       />
     </div>
   )
-}
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.id === nextProps.id &&
+    prevProps.selected === nextProps.selected &&
+    prevProps.sourcePosition === nextProps.sourcePosition &&
+    prevProps.targetPosition === nextProps.targetPosition &&
+    JSON.stringify(prevProps.data) === JSON.stringify(nextProps.data)
+  );
+});
+

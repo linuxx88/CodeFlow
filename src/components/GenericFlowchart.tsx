@@ -424,6 +424,7 @@ const GenericFlowchartContent: React.FC<GenericFlowchartProps> = ({
             })
           }}
           minZoom={0.05}
+          onlyRenderVisibleElements={nodes.length > 80}
           fitView
           style={{
             transform: 'translate3d(0, 0, 0)',

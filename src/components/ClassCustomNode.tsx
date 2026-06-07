@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
 import { Handle } from '@xyflow/react'
 
-export const ClassCustomNode: React.FC<any> = ({ data, sourcePosition, targetPosition }) => {
+export const ClassCustomNode = React.memo(({ data, sourcePosition, targetPosition }: any) => {
   const [isExpanded, setIsExpanded] = useState(true)
+
+  const highPerformance = data.highPerformanceMode
 
   return (
     <div
@@ -10,15 +12,15 @@ export const ClassCustomNode: React.FC<any> = ({ data, sourcePosition, targetPos
         borderRadius: '12px',
         border: '1.5px solid var(--accent)',
         backgroundColor: 'var(--panel-bg)',
-        backdropFilter: 'blur(16px)',
+        backdropFilter: highPerformance ? 'none' : 'blur(16px)',
         color: 'var(--text)',
         fontSize: '12px',
         minWidth: '240px',
-        boxShadow: '0 8px 32px 0 var(--shadow), 0 0 14px var(--accent-glow)',
+        boxShadow: highPerformance ? 'none' : '0 8px 32px 0 var(--shadow), 0 0 14px var(--accent-glow)',
         textAlign: 'left',
         overflow: 'visible',
         position: 'relative',
-        transition: 'all 0.3s ease, opacity 0.3s ease',
+        transition: highPerformance ? 'none' : 'all 0.3s ease, opacity 0.3s ease',
         opacity: data.isDimmed ? 0.15 : 1
       }}
     >
@@ -124,4 +126,13 @@ export const ClassCustomNode: React.FC<any> = ({ data, sourcePosition, targetPos
       />
     </div>
   )
-}
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.id === nextProps.id &&
+    prevProps.selected === nextProps.selected &&
+    prevProps.sourcePosition === nextProps.sourcePosition &&
+    prevProps.targetPosition === nextProps.targetPosition &&
+    JSON.stringify(prevProps.data) === JSON.stringify(nextProps.data)
+  );
+});
+

@@ -351,6 +351,7 @@ export const ClassDiagramFlowchart: React.FC<ClassDiagramFlowchartProps> = ({ sc
           nodeTypes={nodeTypes}
           onNodeClick={handleNodeClick}
           onPaneClick={clearFocus}
+          onlyRenderVisibleElements={nodes.length > 80}
           fitView
         >
           <Background color="#2e303a" gap={16} />

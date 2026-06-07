@@ -294,6 +294,12 @@ body {
   stroke-width: 1.6px !important;
 }
 
+.edge-fast path.react-flow__edge-path {
+  stroke-dasharray: none !important;
+  animation: none !important;
+  stroke-width: 1.5px !important;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

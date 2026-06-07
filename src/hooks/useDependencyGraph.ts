@@ -168,6 +168,7 @@ export const useDependencyGraph = ({
         rootFiles.sort((a: any, b: any) => a.id.localeCompare(b.id))
 
         const finalNodesList = [...dirsList, ...rootFiles, ...pkgsList]
+        const highPerformanceMode = count > 80
 
         const calculatedNodes: Node[] = finalNodesList.map((n: any, idx: number) => {
           let x = 400
@@ -192,7 +193,8 @@ export const useDependencyGraph = ({
               isBottleneck,
               isPackage: n.type === 'package',
               isPartOfCycle,
-              isDimmed
+              isDimmed,
+              highPerformanceMode
             },
             sourcePosition: Position.Right,
             targetPosition: Position.Left
@@ -226,8 +228,8 @@ export const useDependencyGraph = ({
             id: `e-${idx}`,
             source: l.source,
             target: l.target,
-            type: 'smoothstep',
-            className: edgeClass,
+            type: highPerformanceMode ? 'straight' : 'smoothstep',
+            className: highPerformanceMode ? 'edge-fast' : edgeClass,
             style: {
               stroke: strokeColor,
               opacity: isDimmed ? 0.15 : 1

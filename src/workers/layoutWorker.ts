@@ -188,6 +188,7 @@ self.onmessage = (event: MessageEvent) => {
   rootFiles.sort((a: any, b: any) => a.id.localeCompare(b.id))
 
   const finalNodesList = [...dirsList, ...rootFiles, ...pkgsList]
+  const highPerformanceMode = totalVisibleNodesCount > 80
 
   const calculatedNodes = finalNodesList.map((n: any, idx: number) => {
     let x = 400
@@ -212,7 +213,8 @@ self.onmessage = (event: MessageEvent) => {
         isBottleneck,
         isPackage: n.type === 'package',
         isPartOfCycle,
-        isDimmed
+        isDimmed,
+        highPerformanceMode
       },
       sourcePosition: 'right',
       targetPosition: 'left'
@@ -246,8 +248,8 @@ self.onmessage = (event: MessageEvent) => {
       id: `e-${idx}`,
       source: l.source,
       target: l.target,
-      type: 'smoothstep',
-      className: edgeClass,
+      type: highPerformanceMode ? 'straight' : 'smoothstep',
+      className: highPerformanceMode ? 'edge-fast' : edgeClass,
       style: {
         stroke: strokeColor,
         opacity: isDimmed ? 0.15 : 1

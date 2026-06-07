@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Handle } from '@xyflow/react'
 
-export const IfThenCustomNode: React.FC<any> = ({ data, sourcePosition, targetPosition }) => {
+export const IfThenCustomNode = React.memo(({ data, sourcePosition, targetPosition }: any) => {
   const isCondition = data.type === 'condition'
   const isStart = data.type === 'start'
   const color = isStart
@@ -16,16 +16,18 @@ export const IfThenCustomNode: React.FC<any> = ({ data, sourcePosition, targetPo
 
   const [isExpanded, setIsExpanded] = useState(true)
 
+  const highPerformance = data.highPerformanceMode
+
   return (
     <div
       style={{
         position: 'relative',
-        filter: isCondition ? `drop-shadow(0 8px 16px var(--shadow)) drop-shadow(0 0 8px ${glowColor})` : 'none',
+        filter: isCondition && !highPerformance ? `drop-shadow(0 8px 16px var(--shadow)) drop-shadow(0 0 8px ${glowColor})` : 'none',
         display: 'inline-block',
         width: isCondition && data.width ? `${data.width}px` : 'auto',
         height: isCondition && data.height ? `${data.height}px` : 'auto',
         minWidth: isCondition ? 'auto' : '180px',
-        transition: 'all 0.3s ease, opacity 0.3s ease',
+        transition: highPerformance ? 'none' : 'all 0.3s ease, opacity 0.3s ease',
         opacity: data.isDimmed ? 0.15 : 1
       }}
     >
@@ -47,7 +49,7 @@ export const IfThenCustomNode: React.FC<any> = ({ data, sourcePosition, targetPo
           borderRadius: isCondition ? '0px' : '10px',
           border: isCondition ? 'none' : `1.5px solid ${color}`,
           backgroundColor: 'var(--panel-bg)',
-          backdropFilter: 'blur(16px)',
+          backdropFilter: highPerformance ? 'none' : 'blur(16px)',
           clipPath: isCondition ? 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)' : 'none',
           color: 'var(--text)',
           fontSize: '13px',
@@ -144,4 +146,13 @@ export const IfThenCustomNode: React.FC<any> = ({ data, sourcePosition, targetPo
       />
     </div>
   )
-}
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.id === nextProps.id &&
+    prevProps.selected === nextProps.selected &&
+    prevProps.sourcePosition === nextProps.sourcePosition &&
+    prevProps.targetPosition === nextProps.targetPosition &&
+    JSON.stringify(prevProps.data) === JSON.stringify(nextProps.data)
+  );
+});
+
