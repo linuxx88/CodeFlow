@@ -24,6 +24,8 @@ import type { FlowchartView } from './constants/views'
 import { MiniMapPanel } from './components/MiniMapPanel'
 import { ControlsOverlay } from './components/ControlsOverlay'
 import { useProjectScanner } from './hooks/useProjectScanner'
+import { ToastContainer } from './components/ToastContainer'
+
 
 const nodeTypes = {
   custom: FileNode
@@ -552,6 +554,7 @@ function App() {
           }
         }
       `}</style>
+      <ToastContainer />
     </div>
   )
 }

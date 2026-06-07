@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { GitBranch, Play, ChevronDown, Palette, X } from 'lucide-react'
 import { VIEW_OPTIONS, getViewLabel } from '../constants/views'
 import type { FlowchartView } from '../constants/views'
+import { HealthIndicator } from './HealthIndicator'
 
 interface NavbarProps {
   projectPath: string
@@ -83,6 +84,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             transition: 'border-color 0.2s, background-color 0.2s'
           }}
         />
+
+        <HealthIndicator />
 
         {/* Theme Dropdown */}
         <div style={{ position: 'relative' }} onMouseLeave={() => setIsThemeDropdownOpen(false)}>

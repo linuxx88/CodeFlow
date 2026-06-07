@@ -19,6 +19,12 @@ export default function scanApi(): Plugin {
       server.middlewares.use(async (req, res, next) => {
         const reqUrl = url.parse(req.url || '', true)
         
+        if (reqUrl.pathname === '/api/health') {
+          res.writeHead(200, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({ status: 'ok' }))
+          return
+        }
+        
         if (reqUrl.pathname === '/api/parse-conflict') {
           const projectPath = reqUrl.query.path as string
           const relativeFilePath = reqUrl.query.file as string

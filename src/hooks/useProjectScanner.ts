@@ -1,137 +1,88 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react';
+import { scanProjectStream } from '../services/transportService';
 
 interface UseProjectScannerOptions {
-  onScanStart?: () => void
+  onScanStart?: () => void;
 }
 
 /**
  * Hook personnalisé pour orchestrer le scan d'un projet via Server-Sent Events (SSE).
  * Gère l'état du chemin, le statut du scan, la progression en direct et les données finales.
+ * Intègre la résilience (retries/backoff) et le Circuit Breaker du service de transport.
  */
 export function useProjectScanner(options?: UseProjectScannerOptions) {
-  const [projectPath, setProjectPath] = useState('')
-  const [isScanning, setIsScanning] = useState(false)
-  const [scanProgress, setScanProgress] = useState<{ stage: string; current?: number; total?: number; message: string } | null>(null)
-  const [scanData, setScanData] = useState<any>(null)
-  const [scanError, setScanError] = useState<string | null>(null)
+  const [projectPath, setProjectPath] = useState('');
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanProgress, setScanProgress] = useState<{ stage: string; current?: number; total?: number; message: string } | null>(null);
+  const [scanData, setScanData] = useState<any>(null);
+  const [scanError, setScanError] = useState<string | null>(null);
 
-  const abortControllerRef = useRef<AbortController | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const cancelScan = () => {
     if (abortControllerRef.current) {
-      abortControllerRef.current.abort()
-      abortControllerRef.current = null
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
     }
-  }
+  };
 
   // Nettoyage lors du démontage du composant
   useEffect(() => {
     return () => {
       if (abortControllerRef.current) {
-        abortControllerRef.current.abort()
+        abortControllerRef.current.abort();
       }
-    }
-  }, [])
+    };
+  }, []);
 
   const scanProject = async () => {
-    if (!projectPath) return
+    if (!projectPath) return;
     
     // Annuler tout scan en cours
-    cancelScan()
+    cancelScan();
 
-    setIsScanning(true)
-    setScanError(null)
-    setScanProgress({ stage: 'reading', message: 'Démarrage du scan...' })
+    setIsScanning(true);
+    setScanError(null);
+    setScanProgress({ stage: 'reading', message: 'Démarrage du scan...' });
     
     // Déclenche l'événement d'initialisation (ex: réinitialisation des filtres de l'interface)
     if (options?.onScanStart) {
-      options.onScanStart()
+      options.onScanStart();
     }
     
-    const controller = new AbortController()
-    abortControllerRef.current = controller
-
-    let isTimeout = false
-    const timeoutId = setTimeout(() => {
-      isTimeout = true
-      controller.abort()
-    }, 30000) // Augmentation du timeout à 30 secondes pour les plus gros scans
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     try {
-      // Connexion SSE au point de terminaison de scan de l'API
-      const response = await fetch(`/api/scan?path=${encodeURIComponent(projectPath)}`, {
-        signal: controller.signal
-      })
-      if (!response.ok) {
-        throw new Error('Erreur de connexion au scanner')
-      }
-      
-      const reader = response.body?.getReader()
-      if (!reader) {
-        throw new Error("Le flux de réponse n'est pas lisible")
-      }
-      
-      const decoder = new TextDecoder()
-      let buffer = ''
-      
-      // Boucle de lecture asynchrone du flux SSE par morceaux (chunks)
-      while (true) {
-        const { value, done } = await reader.read()
-        if (done) break
-        
-        // Décodage du chunk reçu et ajout au tampon (buffer)
-        buffer += decoder.decode(value, { stream: true })
-        const lines = buffer.split('\n')
-        // Conserve la dernière ligne incomplète dans le tampon pour le prochain chunk
-        buffer = lines.pop() || ''
-        
-        for (const line of lines) {
-          const trimmed = line.trim()
-          // Filtre uniquement les messages SSE préfixés par 'data: '
-          if (!trimmed || !trimmed.startsWith('data: ')) continue
-          
-          let parsed: any = null
-          try {
-            parsed = JSON.parse(trimmed.substring(6))
-          } catch (e: any) {
-            console.error('Erreur parsing SSE:', e)
-            continue
-          }
-          
-          // Traitement des types de messages envoyés par le serveur
-          if (parsed.type === 'progress') {
-            setScanProgress({
-              stage: parsed.stage,
-              current: parsed.current,
-              total: parsed.total,
-              message: parsed.message
-            })
-          } else if (parsed.type === 'result') {
-            setScanData(parsed.result)
-          } else if (parsed.type === 'error') {
-            throw new Error(parsed.error)
-          }
-        }
-      }
+      await scanProjectStream({
+        projectPath,
+        onProgress: (progress) => {
+          setScanProgress({
+            stage: progress.stage,
+            current: progress.current,
+            total: progress.total,
+            message: progress.message
+          });
+        },
+        onResult: (result) => {
+          setScanData(result);
+        },
+        signal: controller.signal,
+      });
     } catch (e: any) {
       if (e.name === 'AbortError') {
-        if (isTimeout) {
-          setScanError('Le scan a expiré après 30 secondes (Timeout).')
-        } else {
-          setScanError('Le scan a été annulé.')
-        }
+        setScanError('Le scan a été annulé.');
       } else {
-        setScanError(`Erreur de scan: ${e.message}`)
+        setScanError(e.message || 'Une erreur inconnue est survenue lors du scan.');
       }
     } finally {
-      clearTimeout(timeoutId)
       if (abortControllerRef.current === controller) {
-        abortControllerRef.current = null
+        abortControllerRef.current = null;
       }
-      setIsScanning(false)
-      setScanProgress(null)
+      setIsScanning(false);
+      setScanProgress(null);
     }
-  }
+  };
 
   return {
     projectPath,
@@ -144,5 +95,5 @@ export function useProjectScanner(options?: UseProjectScannerOptions) {
     cancelScan,
     scanError,
     setScanError
-  }
+  };
 }
