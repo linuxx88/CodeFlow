@@ -6,8 +6,8 @@ export const getLayoutedElements = (
   nodes: Node[],
   edges: Edge[],
   direction = 'LR',
-  nodesep = 40,
-  ranksep = 80
+  nodesep = 80,
+  ranksep = 120
 ) => {
   if (nodes.length === 0) return { nodes, edges }
 
@@ -83,13 +83,11 @@ export const getLayoutedElements = (
   })
 
   const layoutedEdges = edges.map((edge) => {
-    if (!edge.markerEnd) {
-      return {
-        ...edge,
-        markerEnd: { type: MarkerType.ArrowClosed }
-      }
+    return {
+      ...edge,
+      type: edge.type || 'smoothstep',
+      markerEnd: edge.markerEnd || { type: MarkerType.ArrowClosed }
     }
-    return edge
   })
 
   return { nodes: layoutedNodes, edges: layoutedEdges }
