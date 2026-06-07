@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import {
   ReactFlow,
   Background,
@@ -116,6 +116,13 @@ export const ClassDiagramFlowchart: React.FC<ClassDiagramFlowchartProps> = ({ sc
 
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null)
 
+  const nodesRef = useRef(nodes)
+  const edgesRef = useRef(edges)
+  useEffect(() => {
+    nodesRef.current = nodes
+    edgesRef.current = edges
+  })
+
   const clearFocus = () => {
     setFocusedNodeId(null)
   }
@@ -137,7 +144,7 @@ export const ClassDiagramFlowchart: React.FC<ClassDiagramFlowchartProps> = ({ sc
       return
     }
 
-    const reachable = getReachableNodes(nodes, edges, focusedNodeId)
+    const reachable = getReachableNodes(nodesRef.current, edgesRef.current, focusedNodeId)
 
     setNodes(nds => nds.map(n => ({
       ...n,
@@ -157,7 +164,7 @@ export const ClassDiagramFlowchart: React.FC<ClassDiagramFlowchartProps> = ({ sc
         }
       }
     }))
-  }, [focusedNodeId])
+  }, [focusedNodeId, setNodes, setEdges])
 
   // Auto-switch to live project diagram if scan completes
   useEffect(() => {

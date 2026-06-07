@@ -9,6 +9,7 @@ describe('Navbar Component', () => {
     setProjectPath: vi.fn(),
     isScanning: false,
     onScan: vi.fn(),
+    onCancel: vi.fn(),
     currentView: 'all' as const,
     onViewChange: vi.fn(),
     theme: 'dark' as const,
@@ -92,5 +93,15 @@ describe('Navbar Component', () => {
     
     const scanButton = screen.getByRole('button', { name: 'Scanner' })
     expect(scanButton).toBeDisabled()
+  })
+
+  it('should call onCancel when cancel button is clicked', () => {
+    const onCancel = vi.fn()
+    render(<Navbar {...defaultProps} isScanning={true} onCancel={onCancel} />)
+    
+    const cancelButton = screen.getByRole('button', { name: 'Annuler' })
+    expect(cancelButton).toBeInTheDocument()
+    fireEvent.click(cancelButton)
+    expect(onCancel).toHaveBeenCalled()
   })
 })

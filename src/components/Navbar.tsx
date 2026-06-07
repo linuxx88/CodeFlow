@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { GitBranch, Play, ChevronDown, Palette } from 'lucide-react'
+import { GitBranch, Play, ChevronDown, Palette, X } from 'lucide-react'
 import { VIEW_OPTIONS, getViewLabel } from '../constants/views'
 import type { FlowchartView } from '../constants/views'
 
@@ -8,6 +8,7 @@ interface NavbarProps {
   setProjectPath: (val: string) => void
   isScanning: boolean
   onScan: () => void
+  onCancel: () => void
   currentView: FlowchartView
   onViewChange: (view: FlowchartView) => void
   theme: 'dark' | 'light' | 'cyberpunk' | 'nord' | 'matrix'
@@ -27,6 +28,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   setProjectPath,
   isScanning,
   onScan,
+  onCancel,
   currentView,
   onViewChange,
   theme,
@@ -249,7 +251,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <button
           id="Scanner"
           onClick={onScan}
-          disabled={isScanning}
+          disabled={isScanning || !projectPath}
           style={{
             padding: '6px 14px',
             borderRadius: '6px',
@@ -263,9 +265,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             alignItems: 'center',
             gap: '6px',
             transition: 'background-color 0.2s',
-            marginLeft: '12px'
+            marginLeft: '12px',
+            opacity: (isScanning || !projectPath) ? 0.5 : 1
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--accent-hover)')}
+          onMouseEnter={(e) => {
+            if (!isScanning && projectPath) e.currentTarget.style.backgroundColor = 'var(--accent-hover)'
+          }}
           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--accent)')}
         >
           {isScanning ? (
@@ -286,6 +291,42 @@ export const Navbar: React.FC<NavbarProps> = ({
           )}
           <span>Scanner</span>
         </button>
+
+        {isScanning && (
+          <button
+            id="CancelScanner"
+            onClick={onCancel}
+            style={{
+              padding: '6px 14px',
+              borderRadius: '6px',
+              border: 'none',
+              backgroundColor: 'rgba(244, 63, 94, 0.2)',
+              borderWidth: '1px',
+              borderStyle: 'solid',
+              borderColor: 'rgba(244, 63, 94, 0.4)',
+              color: '#fda4af',
+              fontSize: '13px',
+              fontWeight: 500,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'background-color 0.2s, border-color 0.2s',
+              marginLeft: '8px'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(244, 63, 94, 0.3)'
+              e.currentTarget.style.borderColor = 'rgba(244, 63, 94, 0.6)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(244, 63, 94, 0.2)'
+              e.currentTarget.style.borderColor = 'rgba(244, 63, 94, 0.4)'
+            }}
+          >
+            <X size={12} color="#f43f5e" />
+            <span>Annuler</span>
+          </button>
+        )}
       </div>
     </div>
   )

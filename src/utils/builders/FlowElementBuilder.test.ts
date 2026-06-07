@@ -69,7 +69,7 @@ describe('FlowElementBuilder', () => {
     const builder = new FlowElementBuilder('Error Node', 'invalid position')
     builder.addNode('n1').withNodeType('start').withLabel('N1').commit()
     
-    // @ts-ignore
+    // @ts-expect-error - testing invalid private property position assignment
     builder.nodes[0].position = undefined
 
     expect(() => builder.build()).toThrow('Validation Error: Node n1 has invalid position coordinates')

@@ -10,7 +10,7 @@ const { mockExecPromisified } = vi.hoisted(() => {
 
 vi.mock('child_process', () => {
   const execMock = vi.fn()
-  // @ts-ignore
+  // @ts-expect-error - mock property assignment is not defined on type
   execMock[Symbol.for('nodejs.util.promisify.custom')] = mockExecPromisified
   return {
     exec: execMock,

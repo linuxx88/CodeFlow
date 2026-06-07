@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
   useNodesState,
   useEdgesState,
@@ -51,13 +51,20 @@ export const useFlowchartEditor = (options?: { direction?: 'LR' | 'TB' }) => {
       }, 50)
       return () => clearTimeout(timer)
     }
-  }, [options?.direction, fitView])
+  }, [options?.direction, fitView, nodes.length])
   
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const [nodeLabel, setNodeLabel] = useState<string>('')
   const [nodeType, setNodeType] = useState<'condition' | 'action' | 'start'>('action')
   
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null)
+
+  const nodesRef = useRef(nodes)
+  const edgesRef = useRef(edges)
+  useEffect(() => {
+    nodesRef.current = nodes
+    edgesRef.current = edges
+  })
 
   const clearFocus = () => {
     setFocusedNodeId(null)
@@ -76,7 +83,7 @@ export const useFlowchartEditor = (options?: { direction?: 'LR' | 'TB' }) => {
       return
     }
 
-    const reachable = getReachableNodes(nodes, edges, focusedNodeId)
+    const reachable = getReachableNodes(nodesRef.current, edgesRef.current, focusedNodeId)
 
     setNodes(nds => nds.map(n => ({
       ...n,
@@ -96,7 +103,7 @@ export const useFlowchartEditor = (options?: { direction?: 'LR' | 'TB' }) => {
         }
       }
     }))
-  }, [focusedNodeId])
+  }, [focusedNodeId, setNodes, setEdges])
 
   const handleNodeClick = (_event: React.MouseEvent, node: Node) => {
     if (!node || typeof node.id !== 'string') {

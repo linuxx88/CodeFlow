@@ -52,6 +52,7 @@ function App() {
     scanProgress,
     scanData,
     scanProject,
+    cancelScan,
     scanError,
     setScanError
   } = useProjectScanner({
@@ -176,6 +177,7 @@ function App() {
         setProjectPath={setProjectPath}
         isScanning={isScanning}
         onScan={scanProject}
+        onCancel={cancelScan}
         currentView={currentView}
         onViewChange={setCurrentView}
         theme={theme}

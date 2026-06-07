@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 interface UseProjectScannerOptions {
   onScanStart?: () => void
@@ -15,8 +15,30 @@ export function useProjectScanner(options?: UseProjectScannerOptions) {
   const [scanData, setScanData] = useState<any>(null)
   const [scanError, setScanError] = useState<string | null>(null)
 
+  const abortControllerRef = useRef<AbortController | null>(null)
+
+  const cancelScan = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+      abortControllerRef.current = null
+    }
+  }
+
+  // Nettoyage lors du démontage du composant
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+    }
+  }, [])
+
   const scanProject = async () => {
     if (!projectPath) return
+    
+    // Annuler tout scan en cours
+    cancelScan()
+
     setIsScanning(true)
     setScanError(null)
     setScanProgress({ stage: 'reading', message: 'Démarrage du scan...' })
@@ -27,9 +49,13 @@ export function useProjectScanner(options?: UseProjectScannerOptions) {
     }
     
     const controller = new AbortController()
+    abortControllerRef.current = controller
+
+    let isTimeout = false
     const timeoutId = setTimeout(() => {
+      isTimeout = true
       controller.abort()
-    }, 10000)
+    }, 30000) // Augmentation du timeout à 30 secondes pour les plus gros scans
 
     try {
       // Connexion SSE au point de terminaison de scan de l'API
@@ -89,12 +115,19 @@ export function useProjectScanner(options?: UseProjectScannerOptions) {
       }
     } catch (e: any) {
       if (e.name === 'AbortError') {
-        setScanError('Le scan a expiré après 10 secondes (Timeout).')
+        if (isTimeout) {
+          setScanError('Le scan a expiré après 30 secondes (Timeout).')
+        } else {
+          setScanError('Le scan a été annulé.')
+        }
       } else {
         setScanError(`Erreur de scan: ${e.message}`)
       }
     } finally {
       clearTimeout(timeoutId)
+      if (abortControllerRef.current === controller) {
+        abortControllerRef.current = null
+      }
       setIsScanning(false)
       setScanProgress(null)
     }
@@ -108,6 +141,7 @@ export function useProjectScanner(options?: UseProjectScannerOptions) {
     scanData,
     setScanData,
     scanProject,
+    cancelScan,
     scanError,
     setScanError
   }

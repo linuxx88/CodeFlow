@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import {
   ReactFlow,
   Background,
@@ -134,6 +134,13 @@ export const AppDevelopmentProcessFlowchart: React.FC<AppDevelopmentProcessFlowc
 
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null)
 
+  const nodesRef = useRef(nodes)
+  const edgesRef = useRef(edges)
+  useEffect(() => {
+    nodesRef.current = nodes
+    edgesRef.current = edges
+  })
+
   const clearFocus = () => {
     setFocusedNodeId(null)
   }
@@ -155,7 +162,7 @@ export const AppDevelopmentProcessFlowchart: React.FC<AppDevelopmentProcessFlowc
       return
     }
 
-    const reachable = getReachableNodes(nodes, edges, focusedNodeId)
+    const reachable = getReachableNodes(nodesRef.current, edgesRef.current, focusedNodeId)
 
     setNodes(nds => nds.map(n => ({
       ...n,
@@ -175,7 +182,7 @@ export const AppDevelopmentProcessFlowchart: React.FC<AppDevelopmentProcessFlowc
         }
       }
     }))
-  }, [focusedNodeId])
+  }, [focusedNodeId, setNodes, setEdges])
 
   // Auto-switch to live project lifecycle if scan completes
   useEffect(() => {
