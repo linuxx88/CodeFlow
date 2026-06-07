@@ -1,5 +1,5 @@
 import React from 'react'
-import { Activity, AlertTriangle } from 'lucide-react'
+import { Activity, AlertTriangle, Play } from 'lucide-react'
 
 interface GitPanelProps {
   isGitRepo: boolean
@@ -7,6 +7,9 @@ interface GitPanelProps {
   gitSortBy: 'score' | 'commits' | 'authors'
   setGitSortBy: (val: 'score' | 'commits' | 'authors') => void
   sortedGitHotspots: any[]
+  onScan?: () => void
+  activeFile?: string | null
+  onSelectFile?: (path: string) => void
 }
 
 export const GitPanel: React.FC<GitPanelProps> = ({
@@ -14,7 +17,10 @@ export const GitPanel: React.FC<GitPanelProps> = ({
   hasGitData,
   gitSortBy,
   setGitSortBy,
-  sortedGitHotspots
+  sortedGitHotspots,
+  onScan,
+  activeFile,
+  onSelectFile
 }) => {
   return (
     <div
@@ -64,48 +70,102 @@ export const GitPanel: React.FC<GitPanelProps> = ({
         {hasGitData ? (
           isGitRepo ? (
             sortedGitHotspots.length > 0 ? (
-              sortedGitHotspots.map((item, idx) => (
-                <div
-                   key={idx}
-                   style={{
-                     padding: '10px',
-                     borderRadius: '8px',
-                     backgroundColor: 'var(--input-bg)',
-                     border: '1px solid var(--border)',
-                     display: 'flex',
-                     flexDirection: 'column',
-                     gap: '6px',
-                     transition: 'background-color 0.2s, border-color 0.2s'
-                   }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', flex: 1 }} title={item.file}>
-                      {item.file}
-                    </span>
-                    <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--bottleneck)' }}>
-                      {item.score}
-                    </span>
-                  </div>
+              sortedGitHotspots.map((item, idx) => {
+                const isActive = activeFile === item.file
 
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <span style={{ fontSize: '10px', color: 'var(--text-muted)', backgroundColor: 'var(--accent-muted)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--border)' }}>
-                      {item.commits} modifs
-                    </span>
-                    <span style={{ fontSize: '10px', color: 'var(--text-muted)', backgroundColor: 'var(--package-muted)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--border)' }}>
-                      {item.authors} aut.
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
-                    <div style={{ flex: 1, height: '4px', backgroundColor: 'var(--border)', borderRadius: '99px', overflow: 'hidden' }}>
-                      <div style={{ width: `${item.percentage}%`, height: '100%', backgroundColor: 'var(--bottleneck)', borderRadius: '99px' }}></div>
+                return (
+                  <div
+                    key={idx}
+                    onClick={() => onSelectFile && onSelectFile(item.file)}
+                    style={{
+                      padding: '10px',
+                      borderRadius: '8px',
+                      backgroundColor: isActive ? 'var(--accent-muted)' : 'var(--input-bg)',
+                      border: isActive ? '1px solid var(--accent)' : '1px solid var(--border)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '6px',
+                      transition: 'background-color 0.2s, border-color 0.2s',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 500, color: item.hasConflicts ? 'var(--bottleneck)' : 'var(--text)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', flex: 1 }} title={item.file}>
+                        {item.file}
+                      </span>
+                      {item.hasConflicts ? (
+                        <span
+                          style={{
+                            fontSize: '9px',
+                            fontWeight: 700,
+                            backgroundColor: 'var(--bottleneck-muted)',
+                            color: 'var(--bottleneck)',
+                            border: '1px solid rgba(244, 63, 94, 0.3)',
+                            padding: '1px 5px',
+                            borderRadius: '4px',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em'
+                          }}
+                        >
+                          Conflict
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--bottleneck)' }}>
+                          {item.score}
+                        </span>
+                      )}
                     </div>
-                    <span style={{ fontSize: '9px', color: 'var(--text-muted)', width: '24px', textAlign: 'right' }}>
-                      {item.percentage}%
-                    </span>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', backgroundColor: 'var(--accent-muted)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--border)' }}>
+                          {item.commits} modifs
+                        </span>
+                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', backgroundColor: 'var(--package-muted)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--border)' }}>
+                          {item.authors} aut.
+                        </span>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          if (!item.hasConflicts && onScan) {
+                            onScan()
+                          }
+                        }}
+                        disabled={item.hasConflicts}
+                        title={item.hasConflicts ? "Option désactivée : Résolvez les conflits Git avant de scanner" : "Scanner ce fichier"}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          padding: '3px 8px',
+                          borderRadius: '4px',
+                          border: 'none',
+                          backgroundColor: item.hasConflicts ? 'rgba(255, 255, 255, 0.02)' : 'var(--accent)',
+                          color: item.hasConflicts ? 'var(--text-muted)' : '#fff',
+                          fontSize: '10px',
+                          fontWeight: 500,
+                          cursor: item.hasConflicts ? 'not-allowed' : 'pointer',
+                          opacity: item.hasConflicts ? 0.4 : 1,
+                          transition: 'background-color 0.2s',
+                        }}
+                      >
+                        <Play size={8} fill={item.hasConflicts ? "none" : "currentColor"} />
+                        <span>Scanner</span>
+                      </button>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
+                      <div style={{ flex: 1, height: '4px', backgroundColor: 'var(--border)', borderRadius: '99px', overflow: 'hidden' }}>
+                        <div style={{ width: `${item.percentage}%`, height: '100%', backgroundColor: 'var(--bottleneck)', borderRadius: '99px' }}></div>
+                      </div>
+                      <span style={{ fontSize: '9px', color: 'var(--text-muted)', width: '24px', textAlign: 'right' }}>
+                        {item.percentage}%
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))
+                )
+              })
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '8px', color: 'var(--text-muted)', textAlign: 'center', padding: '16px' }}>
                 <Activity size={28} style={{ opacity: 0.5 }} />

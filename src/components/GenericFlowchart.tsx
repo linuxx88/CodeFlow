@@ -77,7 +77,8 @@ const GenericFlowchartContent: React.FC<GenericFlowchartProps> = ({
     handleNodeClick,
     handleUpdateNode,
     handleAddNode,
-    handleDeleteNode
+    handleDeleteNode,
+    clearFocus
   } = useFlowchartEditor({ direction })
 
   const layoutStateRef = useRef<string>('')
@@ -412,6 +413,7 @@ const GenericFlowchartContent: React.FC<GenericFlowchartProps> = ({
           onEdgesChange={onEdgesChange}
           nodeTypes={nodeTypes}
           onNodeClick={handleNodeClick}
+          onPaneClick={clearFocus}
           onMoveEnd={() => {
             nodes.forEach(node => {
               updateNodeInternals(node.id)

@@ -140,7 +140,8 @@ const WhileLoopFlowchartContent: React.FC<WhileLoopFlowchartProps> = ({ scanData
     handleNodeClick,
     handleUpdateNode,
     handleAddNode,
-    handleDeleteNode
+    handleDeleteNode,
+    clearFocus
   } = useFlowchartEditor({ direction })
 
   // Keep separation above minimum node separation threshold (80px)
@@ -416,6 +417,7 @@ const WhileLoopFlowchartContent: React.FC<WhileLoopFlowchartProps> = ({ scanData
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           onNodeClick={handleNodeClick}
+          onPaneClick={clearFocus}
           fitView
         >
           <Background color="var(--border)" gap={16} />

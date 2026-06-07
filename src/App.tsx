@@ -43,6 +43,7 @@ function App() {
   const [gitSortBy, setGitSortBy] = useState<'score' | 'commits' | 'authors'>('score')
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null)
   const [currentView, setCurrentView] = useState<FlowchartView>('all')
+  const [activeFile, setActiveFile] = useState<string | null>(null)
 
   const {
     projectPath,
@@ -91,7 +92,8 @@ function App() {
     currentView,
     direction,
     nodesep,
-    ranksep
+    ranksep,
+    activeFile
   })
 
   const availableExtensions = useMemo(() => {
@@ -433,6 +435,8 @@ function App() {
             onToggleDirectory={toggleDirectory}
             onCollapseAll={collapseAll}
             gitStatuses={scanData?.git?.statuses}
+            activeFile={activeFile}
+            onSelectFile={setActiveFile}
           />
           <GraphPanel
             nodes={nodes}
@@ -465,6 +469,10 @@ function App() {
             setNodesep={setNodesep}
             ranksep={ranksep}
             setRanksep={setRanksep}
+            activeFile={activeFile}
+            onCloseActiveFile={() => setActiveFile(null)}
+            scanData={scanData}
+            projectPath={projectPath}
           />
           <GitPanel
             isGitRepo={scanData?.git?.is_git_repo ?? false}
@@ -472,6 +480,9 @@ function App() {
             gitSortBy={gitSortBy}
             setGitSortBy={setGitSortBy}
             sortedGitHotspots={sortedGitHotspots}
+            onScan={scanProject}
+            activeFile={activeFile}
+            onSelectFile={setActiveFile}
           />
         </div>
       )}

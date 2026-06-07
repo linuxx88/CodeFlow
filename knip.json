@@ -1,0 +1,10 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "vite-scanner.ts",
+    "src/scanner/run_scanner_test.ts"
+  ],
+  "project": [
+    "src/**/*.{ts,tsx}"
+  ]
+}

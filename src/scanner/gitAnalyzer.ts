@@ -1,5 +1,7 @@
 import { exec } from 'child_process'
 import { promisify } from 'util'
+import fs from 'fs/promises'
+import path from 'path'
 
 const execPromise = promisify(exec)
 
@@ -81,11 +83,26 @@ export async function analyzeGit(rootPath: string, existingFiles: Set<string>) {
     const hotspots: any[] = []
     for (const [file, commits] of fileCommits.entries()) {
       const authors = fileAuthors.get(file)?.size || 0
+      
+      let hasConflicts = false
+      if (statuses[file] === 'unmerged') {
+        hasConflicts = true
+      } else {
+        try {
+          const fullPath = path.join(rootPath, file)
+          const content = await fs.readFile(fullPath, 'utf8')
+          hasConflicts = content.includes('<<<<<<<') && content.includes('=======') && content.includes('>>>>>>>')
+        } catch (err) {
+          // ignore
+        }
+      }
+
       hotspots.push({
         file,
         commits,
         authors,
-        score: commits * authors
+        score: commits * authors,
+        hasConflicts
       })
     }
     

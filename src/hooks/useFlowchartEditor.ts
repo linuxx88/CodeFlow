@@ -7,6 +7,36 @@ import {
 } from '@xyflow/react'
 import type { Node, Edge } from '@xyflow/react'
 
+function getReachableNodes(_nodes: Node[], edges: Edge[], startNodeId: string): Set<string> {
+  const reachable = new Set<string>([startNodeId])
+  
+  // Downstream traversal
+  const queueDown = [startNodeId]
+  while (queueDown.length > 0) {
+    const curr = queueDown.shift()!
+    for (const edge of edges) {
+      if (edge.source === curr && !reachable.has(edge.target)) {
+        reachable.add(edge.target)
+        queueDown.push(edge.target)
+      }
+    }
+  }
+
+  // Upstream traversal
+  const queueUp = [startNodeId]
+  while (queueUp.length > 0) {
+    const curr = queueUp.shift()!
+    for (const edge of edges) {
+      if (edge.target === curr && !reachable.has(edge.source)) {
+        reachable.add(edge.source)
+        queueUp.push(edge.source)
+      }
+    }
+  }
+
+  return reachable
+}
+
 
 export const useFlowchartEditor = (options?: { direction?: 'LR' | 'TB' }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
@@ -26,12 +56,55 @@ export const useFlowchartEditor = (options?: { direction?: 'LR' | 'TB' }) => {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const [nodeLabel, setNodeLabel] = useState<string>('')
   const [nodeType, setNodeType] = useState<'condition' | 'action' | 'start'>('action')
+  
+  const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null)
+
+  const clearFocus = () => {
+    setFocusedNodeId(null)
+  }
+
+  useEffect(() => {
+    if (!focusedNodeId) {
+      setNodes(nds => nds.map(n => ({
+        ...n,
+        data: { ...n.data, isDimmed: false }
+      })))
+      setEdges(eds => eds.map(e => ({
+        ...e,
+        style: { ...e.style, opacity: 1 }
+      })))
+      return
+    }
+
+    const reachable = getReachableNodes(nodes, edges, focusedNodeId)
+
+    setNodes(nds => nds.map(n => ({
+      ...n,
+      data: {
+        ...n.data,
+        isDimmed: !reachable.has(n.id)
+      }
+    })))
+
+    setEdges(eds => eds.map(e => {
+      const isConnected = reachable.has(e.source) && reachable.has(e.target)
+      return {
+        ...e,
+        style: {
+          ...e.style,
+          opacity: isConnected ? 1 : 0.15
+        }
+      }
+    }))
+  }, [focusedNodeId])
 
   const handleNodeClick = (_event: React.MouseEvent, node: Node) => {
     if (!node || typeof node.id !== 'string') {
       console.error('Invalid node structure: missing or invalid id')
       return
     }
+
+    setFocusedNodeId(prev => prev === node.id ? null : node.id)
 
     const data = node.data as any
     const label = data?.label || ''
@@ -139,6 +212,8 @@ export const useFlowchartEditor = (options?: { direction?: 'LR' | 'TB' }) => {
     handleNodeClick,
     handleUpdateNode,
     handleAddNode,
-    handleDeleteNode
+    handleDeleteNode,
+    focusedNodeId,
+    clearFocus
   }
 }

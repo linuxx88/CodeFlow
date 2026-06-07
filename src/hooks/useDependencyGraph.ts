@@ -16,6 +16,7 @@ interface UseDependencyGraphProps {
   direction?: 'LR' | 'TB'
   nodesep?: number
   ranksep?: number
+  activeFile?: string | null
 }
 
 export const useDependencyGraph = ({
@@ -28,7 +29,8 @@ export const useDependencyGraph = ({
   currentView,
   direction = 'LR',
   nodesep = 40,
-  ranksep = 80
+  ranksep = 80,
+  activeFile
 }: UseDependencyGraphProps) => {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
@@ -103,13 +105,15 @@ export const useDependencyGraph = ({
     })
 
     const connectedNodeIds = new Set<string>()
-    if (hoveredNodeId) {
-      connectedNodeIds.add(hoveredNodeId)
+    const focusNodeId = hoveredNodeId || activeFile
+
+    if (focusNodeId) {
+      connectedNodeIds.add(focusNodeId)
       for (const link of filteredLinks) {
-        if (link.source === hoveredNodeId) {
+        if (link.source === focusNodeId) {
           connectedNodeIds.add(link.target)
         }
-        if (link.target === hoveredNodeId) {
+        if (link.target === focusNodeId) {
           connectedNodeIds.add(link.source)
         }
       }
@@ -136,7 +140,7 @@ export const useDependencyGraph = ({
       const isBottleneck = inDegree >= 3 && n.type === 'file'
       const isPartOfCycle = cycles.cycleNodes.has(n.id)
       const label = n.id
-      const isDimmed = hoveredNodeId !== null && !connectedNodeIds.has(n.id)
+      const isDimmed = focusNodeId !== null && !connectedNodeIds.has(n.id)
 
       return {
         id: n.id,
@@ -156,15 +160,15 @@ export const useDependencyGraph = ({
 
     const calculatedEdges: Edge[] = calculatedNodes.length > 0 ? filteredLinks.map((l: any, idx: number) => {
       const isExternal = l.type === 'external'
-      const isHighlighted = hoveredNodeId !== null && (l.source === hoveredNodeId || l.target === hoveredNodeId)
-      const isDimmed = hoveredNodeId !== null && !isHighlighted
+      const isHighlighted = focusNodeId !== null && (l.source === focusNodeId || l.target === focusNodeId)
+      const isDimmed = focusNodeId !== null && !isHighlighted
       const isPartOfCycle = cycles.cycleEdges.has(`${l.source}->${l.target}`)
       
       let strokeColor = isExternal ? 'var(--package)' : 'var(--accent)'
       if (isPartOfCycle) {
         strokeColor = 'var(--cycle)'
       }
-      if (hoveredNodeId !== null) {
+      if (focusNodeId !== null) {
         strokeColor = isHighlighted ? (isPartOfCycle ? 'var(--cycle)' : (isExternal ? 'var(--package)' : 'var(--accent)')) : 'rgba(255, 255, 255, 0.04)'
       }
 
@@ -211,6 +215,7 @@ export const useDependencyGraph = ({
     filterQuery,
     nodeInDegrees,
     hoveredNodeId,
+    activeFile,
     currentView,
     showOnlyCycles,
     cycles,

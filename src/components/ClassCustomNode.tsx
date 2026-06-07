@@ -18,7 +18,8 @@ export const ClassCustomNode: React.FC<any> = ({ data, sourcePosition, targetPos
         textAlign: 'left',
         overflow: 'visible',
         position: 'relative',
-        transition: 'all 0.3s ease'
+        transition: 'all 0.3s ease, opacity 0.3s ease',
+        opacity: data.isDimmed ? 0.15 : 1
       }}
     >
       <Handle

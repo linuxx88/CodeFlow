@@ -22,6 +22,31 @@ const nodeTypes = {
   classNode: ClassCustomNode
 }
 
+function getReachableNodes(_nodes: Node[], edges: Edge[], startNodeId: string): Set<string> {
+  const reachable = new Set<string>([startNodeId])
+  const queueDown = [startNodeId]
+  while (queueDown.length > 0) {
+    const curr = queueDown.shift()!
+    for (const edge of edges) {
+      if (edge.source === curr && !reachable.has(edge.target)) {
+        reachable.add(edge.target)
+        queueDown.push(edge.target)
+      }
+    }
+  }
+  const queueUp = [startNodeId]
+  while (queueUp.length > 0) {
+    const curr = queueUp.shift()!
+    for (const edge of edges) {
+      if (edge.target === curr && !reachable.has(edge.source)) {
+        reachable.add(edge.source)
+        queueUp.push(edge.source)
+      }
+    }
+  }
+  return reachable
+}
+
 export const ClassDiagramFlowchart: React.FC<ClassDiagramFlowchartProps> = ({ scanData }) => {
   const projectTemplates = useMemo(() => {
     const temps: Record<string, any> = { ...CLASS_TEMPLATES }
@@ -89,6 +114,51 @@ export const ClassDiagramFlowchart: React.FC<ClassDiagramFlowchartProps> = ({ sc
   const [nodesep, setNodesep] = useState<number>(50)
   const [ranksep, setRanksep] = useState<number>(60)
 
+  const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null)
+
+  const clearFocus = () => {
+    setFocusedNodeId(null)
+  }
+
+  const handleNodeClick = (_event: React.MouseEvent, node: Node) => {
+    setFocusedNodeId(prev => prev === node.id ? null : node.id)
+  }
+
+  useEffect(() => {
+    if (!focusedNodeId) {
+      setNodes(nds => nds.map(n => ({
+        ...n,
+        data: { ...n.data, isDimmed: false }
+      })))
+      setEdges(eds => eds.map(e => ({
+        ...e,
+        style: { ...e.style, opacity: 1 }
+      })))
+      return
+    }
+
+    const reachable = getReachableNodes(nodes, edges, focusedNodeId)
+
+    setNodes(nds => nds.map(n => ({
+      ...n,
+      data: {
+        ...n.data,
+        isDimmed: !reachable.has(n.id)
+      }
+    })))
+
+    setEdges(eds => eds.map(e => {
+      const isConnected = reachable.has(e.source) && reachable.has(e.target)
+      return {
+        ...e,
+        style: {
+          ...e.style,
+          opacity: isConnected ? 1 : 0.15
+        }
+      }
+    }))
+  }, [focusedNodeId])
+
   // Auto-switch to live project diagram if scan completes
   useEffect(() => {
     const projectKeys = Object.keys(projectTemplates).filter(k => k.startsWith('project-'))
@@ -99,6 +169,7 @@ export const ClassDiagramFlowchart: React.FC<ClassDiagramFlowchartProps> = ({ sc
         const defaultKey = Object.keys(projectTemplates)[0] || ''
         setActiveTemplate(defaultKey)
       }
+      setFocusedNodeId(null)
     }, 0)
     return () => clearTimeout(timer)
   }, [projectTemplates])
@@ -270,6 +341,8 @@ export const ClassDiagramFlowchart: React.FC<ClassDiagramFlowchartProps> = ({ sc
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           nodeTypes={nodeTypes}
+          onNodeClick={handleNodeClick}
+          onPaneClick={clearFocus}
           fitView
         >
           <Background color="#2e303a" gap={16} />

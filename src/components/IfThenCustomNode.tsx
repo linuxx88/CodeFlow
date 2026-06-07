@@ -25,6 +25,8 @@ export const IfThenCustomNode: React.FC<any> = ({ data, sourcePosition, targetPo
         width: isCondition && data.width ? `${data.width}px` : 'auto',
         height: isCondition && data.height ? `${data.height}px` : 'auto',
         minWidth: isCondition ? 'auto' : '180px',
+        transition: 'all 0.3s ease, opacity 0.3s ease',
+        opacity: data.isDimmed ? 0.15 : 1
       }}
     >
       <Handle
