@@ -1,4 +1,5 @@
 import fs from 'fs/promises'
+import type { Stats } from 'fs'
 import path from 'path'
 
 const EXCLUDED_DIRS = new Set([
@@ -17,60 +18,66 @@ export interface ScanNode {
   }
 }
 
-export async function scanDir(dirPath: string, rootPath: string, signal?: AbortSignal): Promise<ScanNode | null> {
+function throwIfAborted(signal?: AbortSignal): void {
   if (signal?.aborted) {
     const err = new Error('The operation was aborted.')
     err.name = 'AbortError'
     throw err
   }
+}
+
+function toPosixRelative(rootPath: string, targetPath: string): string {
+  return path.relative(rootPath, targetPath).replace(/\\/g, '/')
+}
+
+export async function scanDir(dirPath: string, rootPath: string, signal?: AbortSignal): Promise<ScanNode | null> {
+  throwIfAborted(signal)
   const name = path.basename(dirPath) || dirPath
-  const relativePath = path.relative(rootPath, dirPath)
-  
-  let stats: any
+  const relativePath = toPosixRelative(rootPath, dirPath)
+
+  let stats: Stats
   try {
     stats = await fs.stat(dirPath)
-  } catch (e: any) {
-    if (e.name === 'AbortError') throw e
+  } catch (e: unknown) {
+    if (e instanceof Error && e.name === 'AbortError') throw e
+    const err = e as NodeJS.ErrnoException
     return {
       name,
       type: 'unknown',
       relative_path: relativePath,
       error: {
-        message: e.message || String(e),
-        code: e.code || 'UNKNOWN'
+        message: err.message || String(e),
+        code: err.code || 'UNKNOWN'
       }
     }
   }
-  
+
   if (stats.isDirectory()) {
     if (EXCLUDED_DIRS.has(name)) return null
-    
+
     const children: ScanNode[] = []
-    let error: any = undefined
+    let error: ScanNode['error']
     try {
       const files = await fs.readdir(dirPath)
       for (const file of files) {
-        if (signal?.aborted) {
-          const err = new Error('The operation was aborted.')
-          err.name = 'AbortError'
-          throw err
-        }
+        throwIfAborted(signal)
         const child = await scanDir(path.join(dirPath, file), rootPath, signal)
         if (child) children.push(child)
       }
-    } catch (e: any) {
-      if (e.name === 'AbortError') throw e
+    } catch (e: unknown) {
+      if (e instanceof Error && e.name === 'AbortError') throw e
+      const err = e as NodeJS.ErrnoException
       error = {
-        message: e.message || String(e),
-        code: e.code || 'UNKNOWN'
+        message: err.message || String(e),
+        code: err.code || 'UNKNOWN'
       }
     }
-    
+
     children.sort((a, b) => {
       if (a.type === b.type) return a.name.localeCompare(b.name)
       return a.type === 'directory' ? -1 : 1
     })
-    
+
     const dirNode: ScanNode = {
       name,
       type: 'directory',
@@ -81,37 +88,34 @@ export async function scanDir(dirPath: string, rootPath: string, signal?: AbortS
       dirNode.error = error
     }
     return dirNode
-  } else {
-    return {
-      name,
-      type: 'file',
-      size: stats.size,
-      relative_path: relativePath
-    }
+  }
+
+  return {
+    name,
+    type: 'file',
+    size: stats.size,
+    relative_path: relativePath
   }
 }
 
-export async function getAllFiles(dirPath: string, rootPath: string, fileList: string[] = [], signal?: AbortSignal): Promise<string[]> {
-  if (signal?.aborted) {
-    const err = new Error('The operation was aborted.')
-    err.name = 'AbortError'
-    throw err
-  }
+export async function getAllFiles(
+  dirPath: string,
+  rootPath: string,
+  fileList: string[] = [],
+  signal?: AbortSignal
+): Promise<string[]> {
+  throwIfAborted(signal)
   try {
     const files = await fs.readdir(dirPath)
     for (const file of files) {
-      if (signal?.aborted) {
-        const err = new Error('The operation was aborted.')
-        err.name = 'AbortError'
-        throw err
-      }
+      throwIfAborted(signal)
       const fullPath = path.join(dirPath, file)
-      let stats: any
+      let stats: Stats
       try {
         stats = await fs.stat(fullPath)
-      } catch (e: any) {
-        if (e.name === 'AbortError') throw e
-        console.error(`Error stating file ${fullPath}:`, e.message || e)
+      } catch (e: unknown) {
+        if (e instanceof Error && e.name === 'AbortError') throw e
+        console.error(`Error stating file ${fullPath}:`, e instanceof Error ? e.message : e)
         continue
       }
       if (stats.isDirectory()) {
@@ -119,12 +123,12 @@ export async function getAllFiles(dirPath: string, rootPath: string, fileList: s
           await getAllFiles(fullPath, rootPath, fileList, signal)
         }
       } else {
-        fileList.push(path.relative(rootPath, fullPath))
+        fileList.push(toPosixRelative(rootPath, fullPath))
       }
     }
-  } catch (e: any) {
-    if (e.name === 'AbortError') throw e
-    console.error(`Error reading directory ${dirPath}:`, e.message || e)
+  } catch (e: unknown) {
+    if (e instanceof Error && e.name === 'AbortError') throw e
+    console.error(`Error reading directory ${dirPath}:`, e instanceof Error ? e.message : e)
   }
   return fileList
 }

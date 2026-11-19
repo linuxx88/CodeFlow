@@ -8,7 +8,7 @@ export const HealthIndicator: React.FC = () => {
   const [breakerState, setBreakerState] = useState<CircuitBreakerState | null>(null);
 
   useEffect(() => {
-    // S'abonner aux changements d'état du Circuit Breaker
+    // Subscribe to Circuit Breaker state changes
     const unsubscribeBreaker = scanBreaker.subscribe((state) => {
       setBreakerState(state);
     });
@@ -21,10 +21,10 @@ export const HealthIndicator: React.FC = () => {
       }
     };
 
-    // Premier check immédiat
+    // Immediate initial check
     checkHealth();
     
-    // Check régulier toutes les 10 secondes
+    // Periodic check every 10 seconds
     const interval = setInterval(checkHealth, 10000);
 
     return () => {
@@ -35,26 +35,26 @@ export const HealthIndicator: React.FC = () => {
   }, []);
 
   let color = 'var(--text-muted)';
-  let label = 'Vérification de la connectivité...';
-  let badgeText = 'Vérification...';
+  let label = 'Checking connectivity...';
+  let badgeText = 'Checking...';
   let isPulseNeeded = true;
 
   if (isOnline === false) {
     color = 'var(--bottleneck)';
-    label = 'Moteur de scan hors ligne. Les requêtes échoueront.';
-    badgeText = 'Scanner HS';
+    label = 'Scanner engine offline. Requests will fail.';
+    badgeText = 'Scanner Offline';
   } else if (breakerState?.state === 'OPEN') {
     color = 'var(--cycle)';
-    label = `Moteur saturé (Circuit Breaker ouvert). Attente de cooldown...`;
-    badgeText = 'Circuit Ouvert';
+    label = 'Engine overloaded (Circuit Breaker open). Waiting for cooldown...';
+    badgeText = 'Circuit Open';
   } else if (breakerState?.state === 'HALF-OPEN') {
     color = 'var(--warning)';
-    label = 'Tentative de reconnexion au moteur...';
-    badgeText = 'Reconnexion...';
+    label = 'Attempting to reconnect to engine...';
+    badgeText = 'Reconnecting...';
   } else if (isOnline === true) {
     color = 'var(--success)';
-    label = 'Moteur de scan en ligne et prêt.';
-    badgeText = 'Moteur OK';
+    label = 'Scanner engine online and ready.';
+    badgeText = 'Engine OK';
     isPulseNeeded = true;
   }
 

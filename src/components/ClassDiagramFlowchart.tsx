@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo, useRef } from 'react'
 import {
   ReactFlow,
   Background,
-  Controls,
   useNodesState,
   useEdgesState,
 } from '@xyflow/react'
@@ -13,6 +12,8 @@ import { ClassCustomNode } from './ClassCustomNode'
 import { CLASS_TEMPLATES } from '../templates'
 import { getLayoutedElements } from '../utils/layoutUtils'
 import { LayoutToolbar } from './LayoutToolbar'
+import { ControlsOverlay } from './ControlsOverlay'
+import { FitViewHandler } from './FitViewHandler'
 
 interface ClassDiagramFlowchartProps {
   scanData?: any
@@ -86,7 +87,7 @@ export const ClassDiagramFlowchart: React.FC<ClassDiagramFlowchartProps> = ({ sc
                 source: childId,
                 target: parentId,
                 type: 'smoothstep',
-                label: 'HÉRITE',
+                label: 'INHERITS',
                 style: { stroke: 'var(--accent)', strokeWidth: 2 },
                 labelStyle: { fill: 'var(--accent)', fontWeight: 'bold' }
               })
@@ -95,8 +96,8 @@ export const ClassDiagramFlowchart: React.FC<ClassDiagramFlowchartProps> = ({ sc
         })
         
         temps[`project-${file}`] = {
-          name: `Projet: ${file}`,
-          description: `Diagramme de classes - ${items.length} classes détectées.`,
+          name: `Project: ${file}`,
+          description: `Class diagram - ${items.length} classes detected.`,
           nodes,
           edges
         }
@@ -235,7 +236,7 @@ export const ClassDiagramFlowchart: React.FC<ClassDiagramFlowchartProps> = ({ sc
         style={{
           width: '320px',
           borderRight: '1px solid var(--border)',
-          backgroundColor: 'rgba(10, 10, 15, 0.5)',
+          backgroundColor: 'var(--panel-bg)',
           padding: '20px',
           display: 'flex',
           flexDirection: 'column',
@@ -244,15 +245,15 @@ export const ClassDiagramFlowchart: React.FC<ClassDiagramFlowchartProps> = ({ sc
         }}
       >
         <div>
-          <h2 style={{ fontSize: '15px', fontWeight: 'bold', color: '#fff', marginBottom: '12px' }}>
-            Sélectionner un Diagramme
+          <h2 style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--text)', marginBottom: '12px' }}>
+            Select a Diagram
           </h2>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {projectItems.length > 0 && (
               <div>
                 <div style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--accent)', textTransform: 'uppercase', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Code size={12} /> Classes Live du Projet
+                  <Code size={12} /> Live Project Classes
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {projectItems.map(([key, temp]) => (
@@ -272,7 +273,7 @@ export const ClassDiagramFlowchart: React.FC<ClassDiagramFlowchartProps> = ({ sc
                       }}
                     >
                       <div style={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{temp.name}</div>
-                      <div style={{ fontSize: '11px', color: activeTemplate === key ? '#e0e0ff' : 'var(--text-muted)', marginTop: '4px' }}>
+                      <div style={{ fontSize: '11px', color: activeTemplate === key ? 'var(--accent-fg)' : 'var(--text-muted)', opacity: activeTemplate === key ? 0.85 : 1, marginTop: '4px' }}>
                         {temp.description}
                       </div>
                     </button>
@@ -284,7 +285,7 @@ export const ClassDiagramFlowchart: React.FC<ClassDiagramFlowchartProps> = ({ sc
             <div>
               {projectItems.length > 0 && (
                 <div style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '8px' }}>
-                  Modèles de Démo
+                  Demo Templates
                 </div>
               )}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -305,7 +306,7 @@ export const ClassDiagramFlowchart: React.FC<ClassDiagramFlowchartProps> = ({ sc
                     }}
                   >
                     <div style={{ fontWeight: 'bold' }}>{temp.name}</div>
-                    <div style={{ fontSize: '11px', color: activeTemplate === key ? '#e0e0ff' : 'var(--text-muted)', marginTop: '4px' }}>
+                    <div style={{ fontSize: '11px', color: activeTemplate === key ? 'var(--accent-fg)' : 'var(--text-muted)', opacity: activeTemplate === key ? 0.85 : 1, marginTop: '4px' }}>
                       {temp.description}
                     </div>
                   </button>
@@ -318,15 +319,15 @@ export const ClassDiagramFlowchart: React.FC<ClassDiagramFlowchartProps> = ({ sc
         <div style={{ height: '1px', backgroundColor: 'var(--border)' }}></div>
 
         <div>
-          <h2 style={{ fontSize: '14px', fontWeight: 'bold', color: '#fff', marginBottom: '8px' }}>
-            À propos de ce diagramme
+          <h2 style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--text)', marginBottom: '8px' }}>
+            About this diagram
           </h2>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: '8px', lineHeight: '1.5' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <HelpCircle size={14} /> Ce diagramme UML affiche les classes, attributs et méthodes extraits.
+              <HelpCircle size={14} /> This UML diagram displays the extracted classes, attributes, and methods.
             </div>
             <div>
-              Les flèches indiquent la relation d'héritage (<span style={{ fontFamily: 'monospace', color: 'var(--accent)' }}>extends</span>) entre les classes.
+              Arrows indicate inheritance (<span style={{ fontFamily: 'monospace', color: 'var(--accent)' }}>extends</span>) between classes.
             </div>
           </div>
         </div>
@@ -353,9 +354,11 @@ export const ClassDiagramFlowchart: React.FC<ClassDiagramFlowchartProps> = ({ sc
           onPaneClick={clearFocus}
           onlyRenderVisibleElements={nodes.length > 80}
           fitView
+          fitViewOptions={{ padding: 0.2 }}
         >
-          <Background color="#2e303a" gap={16} />
-          <Controls />
+          <Background color="var(--flow-grid)" gap={16} />
+          <ControlsOverlay />
+          <FitViewHandler triggerKey={`${activeTemplate}-${direction}-${nodesep}-${ranksep}-${nodes.length}`} />
         </ReactFlow>
       </div>
     </div>

@@ -10,7 +10,7 @@ export const AlgorithmFlowchart: React.FC<AlgorithmFlowchartProps> = ({ scanData
   return (
     <GenericFlowchart
       templates={ALGO_TEMPLATES}
-      title="Sélectionner un Algorithme"
+      title="Select an Algorithm"
       scanData={scanData}
       filterType="algo"
     />

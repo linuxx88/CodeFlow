@@ -24,9 +24,13 @@ export const IfThenCustomNode = React.memo(({ data, sourcePosition, targetPositi
         position: 'relative',
         filter: isCondition && !highPerformance ? `drop-shadow(0 8px 16px var(--shadow)) drop-shadow(0 0 8px ${glowColor})` : 'none',
         display: 'inline-block',
-        width: isCondition && data.width ? `${data.width}px` : 'auto',
-        height: isCondition && data.height ? `${data.height}px` : 'auto',
-        minWidth: isCondition ? 'auto' : '180px',
+        width: isCondition
+          ? (data.width ? `${data.width}px` : '200px')
+          : (data.width ? `${Math.min(320, Math.max(180, data.width))}px` : undefined),
+        height: isCondition ? (data.height ? `${data.height}px` : '110px') : 'auto',
+        minWidth: isCondition ? '200px' : '180px',
+        maxWidth: isCondition ? '360px' : '320px',
+        boxSizing: 'border-box',
         transition: highPerformance ? 'none' : 'all 0.3s ease, opacity 0.3s ease',
         opacity: data.isDimmed ? 0.15 : 1
       }}
@@ -45,18 +49,18 @@ export const IfThenCustomNode = React.memo(({ data, sourcePosition, targetPositi
       />
       <div
         style={{
-          padding: isCondition ? '10px 24px' : '12px 20px',
+          padding: isCondition ? '22px 36px' : '12px 20px',
           borderRadius: isCondition ? '0px' : '10px',
           border: isCondition ? 'none' : `1.5px solid ${color}`,
-          backgroundColor: 'var(--panel-bg)',
-          backdropFilter: highPerformance ? 'none' : 'blur(16px)',
-          clipPath: isCondition ? 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)' : 'none',
+          backgroundColor: isCondition ? 'transparent' : 'var(--panel-bg)',
+          backdropFilter: isCondition || highPerformance ? 'none' : 'blur(16px)',
           color: 'var(--text)',
           fontSize: '13px',
           width: '100%',
           height: '100%',
           textAlign: 'center',
           position: 'relative',
+          zIndex: 1,
           transition: 'all 0.3s ease',
           display: 'flex',
           flexDirection: 'column',
@@ -79,16 +83,17 @@ export const IfThenCustomNode = React.memo(({ data, sourcePosition, targetPositi
             gap: '6px'
           }}
         >
-          <span>{isStart ? 'Début' : isCondition ? 'SI (Condition)' : 'ALORS / SINON'}</span>
+          <span>{isStart ? 'Start' : isCondition ? 'IF (Condition)' : 'THEN / ELSE'}</span>
           {!isStart && (
             <button
+              aria-expanded={isExpanded}
               onClick={(e) => {
                 e.stopPropagation()
                 setIsExpanded(!isExpanded)
               }}
               style={{
-                background: 'rgba(255,255,255,0.08)',
-                border: 'none',
+                background: 'var(--input-bg)',
+                border: '1px solid var(--border)',
                 color: color,
                 cursor: 'pointer',
                 borderRadius: '4px',
@@ -104,9 +109,9 @@ export const IfThenCustomNode = React.memo(({ data, sourcePosition, targetPositi
           )}
         </div>
         {!isStart && !isExpanded ? (
-          <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic' }}>Détails masqués</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic' }}>Details hidden</div>
         ) : (
-          <div style={{ fontWeight: 600, wordBreak: 'break-word', maxWidth: '100%' }}>{data.label}</div>
+          <div style={{ fontWeight: 600, wordBreak: 'break-word', overflowWrap: 'anywhere', maxWidth: '100%' }}>{data.label}</div>
         )}
       </div>
       {isCondition && (
@@ -121,14 +126,15 @@ export const IfThenCustomNode = React.memo(({ data, sourcePosition, targetPositi
             height: '100%',
             pointerEvents: 'none',
             transform: 'translate3d(0, 0, 0)',
-            zIndex: 2
+            zIndex: 0
           }}
         >
           <polygon
             points="50,0.75 99.25,50 50,99.25 0.75,50"
-            fill="none"
+            fill="var(--panel-bg)"
             stroke={color}
             strokeWidth="1.5"
+            vectorEffect="non-scaling-stroke"
           />
         </svg>
       )}

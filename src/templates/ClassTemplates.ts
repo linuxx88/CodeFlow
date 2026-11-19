@@ -9,8 +9,8 @@ export interface ClassTemplate {
 
 export const CLASS_TEMPLATES: Record<string, ClassTemplate> = {
   demo: {
-    name: 'Diagramme de Classes (Démo)',
-    description: 'Exemple d\'héritage entre User, Admin et Customer.',
+    name: 'Class Diagram (Demo)',
+    description: 'Inheritance example between User, Admin, and Customer.',
     nodes: [
       {
         id: 'class-user',
@@ -51,7 +51,7 @@ export const CLASS_TEMPLATES: Record<string, ClassTemplate> = {
         source: 'class-admin',
         target: 'class-user',
         type: 'smoothstep',
-        label: 'HÉRITE',
+        label: 'INHERITS',
         style: { stroke: 'var(--accent)', strokeWidth: 2 },
         labelStyle: { fill: 'var(--accent)', fontWeight: 'bold' }
       },
@@ -60,7 +60,7 @@ export const CLASS_TEMPLATES: Record<string, ClassTemplate> = {
         source: 'class-customer',
         target: 'class-user',
         type: 'smoothstep',
-        label: 'HÉRITE',
+        label: 'INHERITS',
         style: { stroke: 'var(--accent)', strokeWidth: 2 },
         labelStyle: { fill: 'var(--accent)', fontWeight: 'bold' }
       }

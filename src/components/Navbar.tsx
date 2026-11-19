@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { GitBranch, Play, ChevronDown, Palette, X } from 'lucide-react'
 import { VIEW_OPTIONS, getViewLabel } from '../constants/views'
 import type { FlowchartView } from '../constants/views'
@@ -17,8 +17,8 @@ interface NavbarProps {
 }
 
 const THEME_OPTIONS = [
-  { value: 'dark', label: 'Sombre', color: '#8b5cf6' },
-  { value: 'light', label: 'Clair', color: '#6366f1' },
+  { value: 'dark', label: 'Dark', color: '#8b5cf6' },
+  { value: 'light', label: 'Light', color: '#6366f1' },
   { value: 'cyberpunk', label: 'Cyberpunk', color: '#ff007f' },
   { value: 'nord', label: 'Nord', color: '#88c0d0' },
   { value: 'matrix', label: 'Matrix', color: '#00ff00' }
@@ -37,9 +37,37 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isThemeDropdownOpen, setIsThemeDropdownOpen] = useState(false)
+  const themeDropdownRef = useRef<HTMLDivElement>(null)
+  const viewDropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (themeDropdownRef.current && !themeDropdownRef.current.contains(e.target as Node)) {
+        setIsThemeDropdownOpen(false)
+      }
+      if (viewDropdownRef.current && !viewDropdownRef.current.contains(e.target as Node)) {
+        setIsDropdownOpen(false)
+      }
+    }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsThemeDropdownOpen(false)
+        setIsDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [])
+
+  const canScan = !isScanning && projectPath.trim().length > 0
 
   return (
-    <div
+    <nav
+      aria-label="Main navigation"
       style={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -51,25 +79,43 @@ export const Navbar: React.FC<NavbarProps> = ({
         zIndex: 200,
         boxShadow: '0 4px 20px var(--shadow)',
         transition: 'background-color 0.3s, border-color 0.3s, box-shadow 0.3s',
-        overflow: 'visible'
+        overflow: 'visible',
+        flexWrap: 'wrap',
+        gap: '12px'
       }}
     >
-      <div 
-        style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+      <button
+        type="button"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          cursor: 'pointer',
+          background: 'none',
+          border: 'none',
+          padding: 0,
+          textAlign: 'left'
+        }}
         onClick={() => onViewChange('all')}
       >
         <GitBranch size={20} color="var(--accent)" />
         <h1 style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--text)', margin: 0, letterSpacing: 'normal' }}>
-          Flux de Dépendance Interactif
+          Interactive Dependency Flow
         </h1>
-      </div>
+      </button>
       
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
         <input
           type="text"
-          placeholder="Entrez le chemin du projet..."
+          aria-label="Project path"
+          placeholder="Enter project path..."
           value={projectPath}
           onChange={(e) => setProjectPath(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && canScan) {
+              onScan()
+            }
+          }}
           style={{
             padding: '6px 12px',
             borderRadius: '6px',
@@ -88,10 +134,13 @@ export const Navbar: React.FC<NavbarProps> = ({
         <HealthIndicator />
 
         {/* Theme Dropdown */}
-        <div style={{ position: 'relative' }} onMouseLeave={() => setIsThemeDropdownOpen(false)}>
+        <div ref={themeDropdownRef} style={{ position: 'relative' }} onMouseLeave={() => setIsThemeDropdownOpen(false)}>
           <button
+            type="button"
             onClick={() => setIsThemeDropdownOpen(!isThemeDropdownOpen)}
-            title="Changer le thème"
+            title="Change theme"
+            aria-expanded={isThemeDropdownOpen}
+            aria-haspopup="listbox"
             style={{
               padding: '6px 10px',
               borderRadius: '6px',
@@ -115,6 +164,8 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {isThemeDropdownOpen && (
             <div
+              role="listbox"
+              aria-label="Select a theme"
               style={{
                 position: 'absolute',
                 top: '100%',
@@ -137,6 +188,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                 return (
                   <button
                     key={opt.value}
+                    type="button"
+                    role="option"
+                    aria-selected={isActive}
                     onClick={() => {
                       setTheme(opt.value)
                       setIsThemeDropdownOpen(false)
@@ -157,7 +211,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       fontWeight: isActive ? 600 : 400
                     }}
                     onMouseEnter={(e) => {
-                      if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)'
+                      if (!isActive) e.currentTarget.style.backgroundColor = 'var(--accent-muted)'
                     }}
                     onMouseLeave={(e) => {
                       if (!isActive) e.currentTarget.style.backgroundColor = 'transparent'
@@ -173,9 +227,12 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Dropdown for Flowchart Type */}
-        <div style={{ position: 'relative' }} onMouseLeave={() => setIsDropdownOpen(false)}>
+        <div ref={viewDropdownRef} style={{ position: 'relative' }} onMouseLeave={() => setIsDropdownOpen(false)}>
           <button
+            type="button"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            aria-expanded={isDropdownOpen}
+            aria-haspopup="listbox"
             style={{
               padding: '6px 12px',
               borderRadius: '6px',
@@ -191,12 +248,14 @@ export const Navbar: React.FC<NavbarProps> = ({
               transition: 'background-color 0.2s, border-color 0.2s'
             }}
           >
-            <span>Type de Flowchart : {getViewLabel(currentView)}</span>
+            <span>Flowchart Type: {getViewLabel(currentView)}</span>
             <ChevronDown size={14} style={{ display: 'inline-block', transform: isDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
           </button>
 
           {isDropdownOpen && (
             <div
+              role="listbox"
+              aria-label="Select a flowchart type"
               style={{
                 position: 'absolute',
                 top: '100%',
@@ -220,6 +279,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                 return (
                   <button
                     key={opt.value}
+                    type="button"
+                    role="option"
+                    aria-selected={isActive}
                     onClick={() => {
                       onViewChange(opt.value)
                       setIsDropdownOpen(false)
@@ -253,8 +315,9 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         <button
           id="Scanner"
+          type="button"
           onClick={onScan}
-          disabled={isScanning || !projectPath}
+          disabled={!canScan}
           style={{
             padding: '6px 14px',
             borderRadius: '6px',
@@ -263,16 +326,16 @@ export const Navbar: React.FC<NavbarProps> = ({
             color: 'var(--accent-fg)',
             fontSize: '13px',
             fontWeight: 500,
-            cursor: 'pointer',
+            cursor: canScan ? 'pointer' : 'not-allowed',
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
             transition: 'background-color 0.2s',
             marginLeft: '12px',
-            opacity: (isScanning || !projectPath) ? 0.5 : 1
+            opacity: canScan ? 1 : 0.5
           }}
           onMouseEnter={(e) => {
-            if (!isScanning && projectPath) e.currentTarget.style.backgroundColor = 'var(--accent-hover)'
+            if (canScan) e.currentTarget.style.backgroundColor = 'var(--accent-hover)'
           }}
           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--accent)')}
         >
@@ -282,7 +345,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               style={{
                 width: '12px',
                 height: '12px',
-                border: '2px solid #fff',
+                border: '2px solid var(--accent-fg)',
                 borderTopColor: 'transparent',
                 borderRadius: '50%',
                 display: 'inline-block',
@@ -292,22 +355,22 @@ export const Navbar: React.FC<NavbarProps> = ({
           ) : (
             <Play size={12} fill="currentColor" />
           )}
-          <span>Scanner</span>
+          <span>Scan</span>
         </button>
 
         {isScanning && (
           <button
             id="CancelScanner"
+            type="button"
             onClick={onCancel}
             style={{
               padding: '6px 14px',
               borderRadius: '6px',
-              border: 'none',
-              backgroundColor: 'rgba(244, 63, 94, 0.2)',
+              backgroundColor: 'var(--bottleneck-muted)',
               borderWidth: '1px',
               borderStyle: 'solid',
-              borderColor: 'rgba(244, 63, 94, 0.4)',
-              color: '#fda4af',
+              borderColor: 'var(--bottleneck)',
+              color: 'var(--bottleneck)',
               fontSize: '13px',
               fontWeight: 500,
               cursor: 'pointer',
@@ -318,19 +381,17 @@ export const Navbar: React.FC<NavbarProps> = ({
               marginLeft: '8px'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(244, 63, 94, 0.3)'
-              e.currentTarget.style.borderColor = 'rgba(244, 63, 94, 0.6)'
+              e.currentTarget.style.opacity = '0.85'
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(244, 63, 94, 0.2)'
-              e.currentTarget.style.borderColor = 'rgba(244, 63, 94, 0.4)'
+              e.currentTarget.style.opacity = '1'
             }}
           >
-            <X size={12} color="#f43f5e" />
-            <span>Annuler</span>
+            <X size={12} color="var(--bottleneck)" />
+            <span>Cancel</span>
           </button>
         )}
       </div>
-    </div>
+    </nav>
   )
 }

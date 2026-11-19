@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import {
   ReactFlow,
-  Background,
-  Controls
+  Background
 } from '@xyflow/react'
 import type { Node, Edge } from '@xyflow/react'
 import { FileNode } from './FileNode'
@@ -11,6 +10,8 @@ import { AlertTriangle, GitBranch } from 'lucide-react'
 import { LayoutToolbar } from './LayoutToolbar'
 import { FlowchartRenderer } from './FlowchartRenderer'
 import { MiniMapPanel } from './MiniMapPanel'
+import { ControlsOverlay } from './ControlsOverlay'
+import { FitViewHandler } from './FitViewHandler'
 import { useConflictData } from '../hooks/useConflictData'
 
 interface GraphPanelProps {
@@ -161,7 +162,7 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <AlertTriangle size={18} color="var(--bottleneck)" />
             <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)' }}>
-              Comparaison de conflits : <span style={{ fontFamily: 'monospace', color: 'var(--bottleneck)' }}>{activeFile}</span>
+              Conflict comparison: <span style={{ fontFamily: 'monospace', color: 'var(--bottleneck)' }}>{activeFile}</span>
             </span>
           </div>
           <button
@@ -180,7 +181,7 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--accent-muted)')}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--input-bg)')}
           >
-            Fermer la comparaison
+            Close comparison
           </button>
         </div>
 
@@ -199,20 +200,20 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
                   animation: 'spin 0.8s linear infinite'
                 }}
               ></span>
-              <span style={{ fontSize: '13px' }}>Chargement des versions du conflit...</span>
+              <span style={{ fontSize: '13px' }}>Loading conflict versions...</span>
             </div>
           ) : conflictError ? (
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', color: 'var(--bottleneck)', backgroundColor: 'var(--bg)', padding: '20px', textAlign: 'center' }}>
               <AlertTriangle size={36} />
-              <span style={{ fontSize: '14px', fontWeight: 'bold' }}>Erreur de chargement</span>
+              <span style={{ fontSize: '14px', fontWeight: 'bold' }}>Loading Error</span>
               <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{conflictError}</span>
             </div>
           ) : conflictData ? (
             <>
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg)', overflow: 'hidden', position: 'relative' }}>
                 <div style={{ padding: '8px 16px', borderBottom: '1px solid var(--border)', backgroundColor: 'rgba(16, 185, 129, 0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--success)' }}>Notre Version (HEAD)</span>
-                  <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Locale</span>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--success)' }}>Our Version (HEAD)</span>
+                  <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Local</span>
                 </div>
                 <div style={{ flex: 1, position: 'relative' }}>
                   {(() => {
@@ -233,8 +234,8 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
 
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg)', overflow: 'hidden', position: 'relative' }}>
                 <div style={{ padding: '8px 16px', borderBottom: '1px solid var(--border)', backgroundColor: 'rgba(244, 63, 94, 0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--bottleneck)' }}>Leur Version (Incoming Change)</span>
-                  <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Dépôt</span>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--bottleneck)' }}>Their Version (Incoming Change)</span>
+                  <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Repository</span>
                 </div>
                 <div style={{ flex: 1, position: 'relative' }}>
                   {(() => {
@@ -266,7 +267,7 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
     return (
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '12px', padding: '24px', textAlign: 'center', backgroundColor: 'var(--bg)', color: 'var(--bottleneck)' }}>
         <AlertTriangle size={48} />
-        <h2 style={{ fontSize: '18px', color: '#fff', margin: 0, fontWeight: 'bold' }}>Structural Validation Error</h2>
+        <h2 style={{ fontSize: '18px', color: 'var(--text)', margin: 0, fontWeight: 'bold' }}>Structural Validation Error</h2>
         <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
           Incoming node or edge configurations failed validation. Coercion is disabled.
         </p>
@@ -294,7 +295,7 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
       {/* Flow Viewer / Warning Card */}
       <div style={{ flex: 1, position: 'relative' }}>
         {isScanning ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '16px', color: '#fff', backgroundColor: 'rgba(10, 10, 15, 0.4)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '16px', color: 'var(--text)', backgroundColor: 'var(--panel-bg)' }}>
             <span
               className="spinner"
               style={{
@@ -308,10 +309,10 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
               }}
             ></span>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '14px', fontWeight: 600 }}>{scanProgress?.message || 'Scan en cours...'}</span>
+              <span style={{ fontSize: '14px', fontWeight: 600 }}>{scanProgress?.message || 'Scanning...'}</span>
               {scanProgress?.current !== undefined && scanProgress?.total !== undefined && (
                 <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                  Progression : {Math.round((scanProgress.current / scanProgress.total) * 100)}% ({scanProgress.current} / {scanProgress.total})
+                  Progress: {Math.round((scanProgress.current / scanProgress.total) * 100)}% ({scanProgress.current} / {scanProgress.total})
                 </span>
               )}
             </div>
@@ -320,16 +321,16 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
           isWebWarning ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', gap: '12px', padding: '24px', textAlign: 'center' }}>
               <AlertTriangle size={48} color="var(--bottleneck)" />
-              <h2 style={{ fontSize: '18px', color: '#fff', margin: 0, fontWeight: 'bold' }}>Le projet n'est pas un projet de développement web !</h2>
+              <h2 style={{ fontSize: '18px', color: 'var(--text)', margin: 0, fontWeight: 'bold' }}>Not a web development project!</h2>
               <p style={{ fontSize: '12px', color: 'var(--text-muted)', maxWidth: '320px' }}>
-                Ce projet ne contient aucun fichier HTML, CSS, JavaScript, TypeScript ou configuration web standard.
+                This project does not contain any HTML, CSS, JavaScript, TypeScript, or standard web configuration files.
               </p>
             </div>
           ) : showWarning ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', gap: '10px' }}>
               <AlertTriangle size={32} color="var(--bottleneck)" />
-              <h3 style={{ fontSize: '15px', color: '#fff', margin: 0 }}>Graphe trop dense ({totalVisibleNodesCount} nœuds)</h3>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center' }}>Filtrez par nom/dossier pour un affichage lisible.</p>
+              <h3 style={{ fontSize: '15px', color: 'var(--text)', margin: 0 }}>Graph too dense ({totalVisibleNodesCount} nodes)</h3>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center' }}>Filter by name or folder for a readable display.</p>
               <button
                 onClick={() => setForceDisplay(true)}
                 style={{
@@ -337,14 +338,14 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
                   borderRadius: '6px',
                   border: 'none',
                   backgroundColor: 'var(--bottleneck)',
-                  color: '#fff',
+                  color: 'var(--accent-fg)',
                   fontSize: '12px',
                   cursor: 'pointer',
                   fontWeight: 500,
                   marginTop: '4px'
                 }}
               >
-                Forcer l'affichage
+                Force display
               </button>
             </div>
           ) : (
@@ -355,6 +356,7 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
                     position: 'absolute',
                     top: '16px',
                     left: '16px',
+                    maxWidth: 'calc(100% - 80px)',
                     zIndex: 10,
                     display: 'flex',
                     alignItems: 'center',
@@ -365,10 +367,23 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
                     borderRadius: '8px',
                     padding: '6px 12px',
                     boxShadow: '0 8px 32px 0 var(--shadow)',
+                    minWidth: 0,
                   }}
                 >
-                  <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Focus :</span>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--accent)', fontFamily: 'monospace' }}>
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', flexShrink: 0 }}>Focus:</span>
+                  <span
+                    title={activeFile}
+                    style={{
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      color: 'var(--accent)',
+                      fontFamily: 'monospace',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      minWidth: 0,
+                    }}
+                  >
                     {activeFile}
                   </span>
                   <button
@@ -386,10 +401,11 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
                       fontWeight: 'bold',
                       cursor: 'pointer',
                       transition: 'background-color 0.2s',
-                      marginLeft: '6px'
+                      marginLeft: '6px',
+                      flexShrink: 0,
                     }}
                   >
-                    Retour à la vue globale
+                    Back to global view
                   </button>
                 </div>
               )}
@@ -418,10 +434,13 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
                     }
                   }}
                   onlyRenderVisibleElements={nodes.length > 80}
+                  minZoom={0.05}
                   fitView
+                  fitViewOptions={{ padding: 0.2 }}
                 >
-                  <Background color="#2e303a" gap={16} />
-                  <Controls />
+                  <Background color="var(--flow-grid)" gap={16} />
+                  <ControlsOverlay />
+                  <FitViewHandler triggerKey={`${direction}-${nodesep}-${ranksep}-${activeFile || ''}-${nodes.length}`} />
                   <MiniMapPanel
                     style={{ backgroundColor: 'var(--panel-bg)' }}
                     nodeColor={(n) => {
@@ -436,7 +455,7 @@ export const GraphPanel: React.FC<GraphPanelProps> = ({
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '8px', color: 'var(--text-muted)' }}>
             <GitBranch size={32} style={{ opacity: 0.5 }} />
-            <span style={{ fontSize: '12px' }}>Scannez le projet pour visualiser le graphe de dépendances.</span>
+            <span style={{ fontSize: '12px' }}>Scan the project to visualize the dependency graph.</span>
           </div>
         )}
       </div>

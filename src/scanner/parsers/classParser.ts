@@ -19,8 +19,8 @@ function isValidIdentifier(name: string): boolean {
 
 export function parseClassesFromFile(file: string, content: string): any[] {
   const result: any[] = []
-  const lines = content.split('\n')
-  const ext = path.extname(file)
+  const lines = content.split(/\r?\n/)
+  const ext = path.extname(file).toLowerCase()
 
   let currentClass: any = null
   let braceCount = 0
@@ -69,6 +69,10 @@ export function parseClassesFromFile(file: string, content: string): any[] {
         }
       }
     } else {
+      const trimmedLine = line.trim()
+      if (trimmedLine.startsWith('//') || trimmedLine.startsWith('*') || trimmedLine.startsWith('/*')) {
+        continue
+      }
       const classMatch = line.match(/\bclass\s+([\w_]+)(?:\s+extends\s+([\w_]+))?\b/)
       if (classMatch) {
         if (currentClass) {
@@ -83,8 +87,17 @@ export function parseClassesFromFile(file: string, content: string): any[] {
         }
         braceCount = 0
         if (line.includes('{')) {
-          braceCount = 1
-          classBraceStart = i
+          const afterOpen = line.slice(line.indexOf('{') + 1)
+          const openOnLine = (afterOpen.match(/\{/g) || []).length
+          const closeOnLine = (afterOpen.match(/\}/g) || []).length
+          braceCount = 1 + openOnLine - closeOnLine
+          if (braceCount <= 0) {
+            result.push(currentClass)
+            currentClass = null
+            classBraceStart = -1
+          } else {
+            classBraceStart = i
+          }
         } else {
           classBraceStart = -1
         }
@@ -137,7 +150,10 @@ export function parseClassesFromFile(file: string, content: string): any[] {
     if (typeof item.line !== 'number' || isNaN(item.line) || item.line <= 0) continue
 
     if (item.inherits !== null) {
-      if (typeof item.inherits !== 'string' || !isValidIdentifier(item.inherits)) {
+      if (
+        typeof item.inherits !== 'string' ||
+        !item.inherits.split('.').every((part: string) => isValidIdentifier(part))
+      ) {
         continue
       }
     }

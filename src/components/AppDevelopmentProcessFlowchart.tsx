@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo, useRef } from 'react'
 import {
   ReactFlow,
   Background,
-  Controls,
   useNodesState,
   useEdgesState,
   Position
@@ -14,6 +13,8 @@ import { IfThenCustomNode } from './IfThenCustomNode'
 import { PROCESS_TEMPLATES } from '../templates'
 import { getLayoutedElements } from '../utils/layoutUtils'
 import { LayoutToolbar } from './LayoutToolbar'
+import { ControlsOverlay } from './ControlsOverlay'
+import { FitViewHandler } from './FitViewHandler'
 
 interface AppDevelopmentProcessFlowchartProps {
   scanData?: any
@@ -60,7 +61,7 @@ export const AppDevelopmentProcessFlowchart: React.FC<AppDevelopmentProcessFlowc
       const linkCount = scanData.dependencies?.links?.length || 0
       const classCount = scanData.classes?.reduce((acc: number, f: any) => acc + f.items.length, 0) || 0
       const functionCount = scanData.algorithms?.reduce((acc: number, f: any) => acc + f.items.length, 0) || 0
-      const hotspot = scanData.git?.hotspots?.[0]?.file || 'Aucun'
+      const hotspot = scanData.git?.hotspots?.[0]?.file || 'None'
       const commits = scanData.git?.hotspots?.[0]?.commits || 0
 
       const nodes: Node[] = [
@@ -68,14 +69,14 @@ export const AppDevelopmentProcessFlowchart: React.FC<AppDevelopmentProcessFlowc
           id: 'live-plan',
           type: 'customNode',
           position: { x: 250, y: 20 },
-          data: { label: `1. Initialisation : Projet scanné avec ${fileCount} fichiers`, type: 'start' },
+          data: { label: `1. Initialization: Project scanned with ${fileCount} files`, type: 'start' },
           sourcePosition: Position.Bottom
         },
         {
           id: 'live-arch',
           type: 'customNode',
           position: { x: 250, y: 120 },
-          data: { label: `2. Architecture : ${pkgCount} packages, ${linkCount} liaisons`, type: 'condition' },
+          data: { label: `2. Architecture: ${pkgCount} packages, ${linkCount} links`, type: 'condition' },
           sourcePosition: Position.Bottom,
           targetPosition: Position.Top
         },
@@ -83,7 +84,7 @@ export const AppDevelopmentProcessFlowchart: React.FC<AppDevelopmentProcessFlowc
           id: 'live-code',
           type: 'customNode',
           position: { x: 250, y: 220 },
-          data: { label: `3. Code : ${functionCount} fonctions, ${classCount} classes`, type: 'action' },
+          data: { label: `3. Code: ${functionCount} functions, ${classCount} classes`, type: 'action' },
           sourcePosition: Position.Bottom,
           targetPosition: Position.Top
         },
@@ -91,7 +92,7 @@ export const AppDevelopmentProcessFlowchart: React.FC<AppDevelopmentProcessFlowc
           id: 'live-quality',
           type: 'customNode',
           position: { x: 250, y: 320 },
-          data: { label: `4. Git : Hotspot principal: ${hotspot} (${commits} commits)`, type: 'action' },
+          data: { label: `4. Git: Top hotspot: ${hotspot} (${commits} commits)`, type: 'action' },
           sourcePosition: Position.Bottom,
           targetPosition: Position.Top
         },
@@ -99,7 +100,7 @@ export const AppDevelopmentProcessFlowchart: React.FC<AppDevelopmentProcessFlowc
           id: 'live-status',
           type: 'customNode',
           position: { x: 250, y: 420 },
-          data: { label: '5. Statut : Prêt pour la production (build OK)', type: 'action' },
+          data: { label: '5. Status: Production ready (build OK)', type: 'action' },
           sourcePosition: Position.Bottom,
           targetPosition: Position.Top
         }
@@ -113,8 +114,8 @@ export const AppDevelopmentProcessFlowchart: React.FC<AppDevelopmentProcessFlowc
       ]
 
       temps['project-lifecycle'] = {
-        name: 'Processus Live de mon Projet',
-        description: 'Cycle et métriques en temps réel issues du scan.',
+        name: 'Live Project Lifecycle',
+        description: 'Real-time lifecycle and metrics from the scan.',
         nodes,
         edges
       }
@@ -247,7 +248,7 @@ export const AppDevelopmentProcessFlowchart: React.FC<AppDevelopmentProcessFlowc
         style={{
           width: '320px',
           borderRight: '1px solid var(--border)',
-          backgroundColor: 'rgba(10, 10, 15, 0.5)',
+          backgroundColor: 'var(--panel-bg)',
           padding: '20px',
           display: 'flex',
           flexDirection: 'column',
@@ -256,15 +257,15 @@ export const AppDevelopmentProcessFlowchart: React.FC<AppDevelopmentProcessFlowc
         }}
       >
         <div>
-          <h2 style={{ fontSize: '15px', fontWeight: 'bold', color: '#fff', marginBottom: '12px' }}>
-            Sélectionner un Processus
+          <h2 style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--text)', marginBottom: '12px' }}>
+            Select a Process
           </h2>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {projectItems.length > 0 && (
               <div>
                 <div style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--accent)', textTransform: 'uppercase', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Code size={12} /> Processus Live du Projet
+                  <Code size={12} /> Live Project Processes
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {projectItems.map(([key, temp]) => (
@@ -284,7 +285,7 @@ export const AppDevelopmentProcessFlowchart: React.FC<AppDevelopmentProcessFlowc
                       }}
                     >
                       <div style={{ fontWeight: 'bold' }}>{temp.name}</div>
-                      <div style={{ fontSize: '11px', color: activeTemplate === key ? '#e0e0ff' : 'var(--text-muted)', marginTop: '4px' }}>
+                      <div style={{ fontSize: '11px', color: activeTemplate === key ? 'var(--accent-fg)' : 'var(--text-muted)', opacity: activeTemplate === key ? 0.85 : 1, marginTop: '4px' }}>
                         {temp.description}
                       </div>
                     </button>
@@ -296,7 +297,7 @@ export const AppDevelopmentProcessFlowchart: React.FC<AppDevelopmentProcessFlowc
             <div>
               {projectItems.length > 0 && (
                 <div style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '8px' }}>
-                  Modèles de Démo
+                  Demo Templates
                 </div>
               )}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -317,7 +318,7 @@ export const AppDevelopmentProcessFlowchart: React.FC<AppDevelopmentProcessFlowc
                     }}
                   >
                     <div style={{ fontWeight: 'bold' }}>{temp.name}</div>
-                    <div style={{ fontSize: '11px', color: activeTemplate === key ? '#e0e0ff' : 'var(--text-muted)', marginTop: '4px' }}>
+                    <div style={{ fontSize: '11px', color: activeTemplate === key ? 'var(--accent-fg)' : 'var(--text-muted)', opacity: activeTemplate === key ? 0.85 : 1, marginTop: '4px' }}>
                       {temp.description}
                     </div>
                   </button>
@@ -330,15 +331,15 @@ export const AppDevelopmentProcessFlowchart: React.FC<AppDevelopmentProcessFlowc
         <div style={{ height: '1px', backgroundColor: 'var(--border)' }}></div>
 
         <div>
-          <h2 style={{ fontSize: '14px', fontWeight: 'bold', color: '#fff', marginBottom: '8px' }}>
-            À propos de ce diagramme
+          <h2 style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--text)', marginBottom: '8px' }}>
+            About this diagram
           </h2>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: '8px', lineHeight: '1.5' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <HelpCircle size={14} /> Ce diagramme affiche le cycle de vie du projet.
+              <HelpCircle size={14} /> This diagram displays the project lifecycle.
             </div>
             <div>
-              Les métriques live sont injectées en temps réel après l'analyse de votre code.
+              Live metrics are injected in real time after scanning your codebase.
             </div>
           </div>
         </div>
@@ -365,9 +366,11 @@ export const AppDevelopmentProcessFlowchart: React.FC<AppDevelopmentProcessFlowc
           onPaneClick={clearFocus}
           onlyRenderVisibleElements={nodes.length > 80}
           fitView
+          fitViewOptions={{ padding: 0.2 }}
         >
-          <Background color="#2e303a" gap={16} />
-          <Controls />
+          <Background color="var(--flow-grid)" gap={16} />
+          <ControlsOverlay />
+          <FitViewHandler triggerKey={`${activeTemplate}-${direction}-${nodesep}-${ranksep}-${nodes.length}`} />
         </ReactFlow>
       </div>
     </div>

@@ -1,17 +1,18 @@
 import fs from 'fs/promises'
+import os from 'os'
 import path from 'path'
 
-const CACHE_FILE_PATH = '/home/ssr/.gemini/antigravity/scan_cache.json'
+const CACHE_FILE_PATH = path.join(os.homedir(), '.gemini', 'antigravity', 'scan_cache.json')
 
 export interface FileCacheData {
   mtime: number
-  dependencies: any
-  conditionals: any
-  classes: any
-  loops: any
-  repeatLoops: any
-  algorithms: any
-  pythonStructures: any
+  dependencies: string[]
+  conditionals: any[]
+  classes: any[]
+  loops: any[]
+  repeatLoops: any[]
+  algorithms: any[]
+  pythonStructures: any[]
 }
 
 export interface ProjectCacheData {
@@ -31,8 +32,20 @@ export interface CacheSchema {
 export async function loadCache(): Promise<CacheSchema> {
   try {
     const content = await fs.readFile(CACHE_FILE_PATH, 'utf-8')
-    return JSON.parse(content)
-  } catch (e) {
+    const parsed: unknown = JSON.parse(content)
+    if (
+      parsed &&
+      typeof parsed === 'object' &&
+      !Array.isArray(parsed) &&
+      'projects' in parsed &&
+      parsed.projects &&
+      typeof parsed.projects === 'object' &&
+      !Array.isArray(parsed.projects)
+    ) {
+      return parsed as CacheSchema
+    }
+    return { projects: {} }
+  } catch {
     return { projects: {} }
   }
 }

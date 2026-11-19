@@ -15,7 +15,10 @@ export const ClassCustomNode = React.memo(({ data, sourcePosition, targetPositio
         backdropFilter: highPerformance ? 'none' : 'blur(16px)',
         color: 'var(--text)',
         fontSize: '12px',
+        width: data.width ? `${Math.min(380, Math.max(240, data.width))}px` : undefined,
         minWidth: '240px',
+        maxWidth: '380px',
+        boxSizing: 'border-box',
         boxShadow: highPerformance ? 'none' : '0 8px 32px 0 var(--shadow), 0 0 14px var(--accent-glow)',
         textAlign: 'left',
         overflow: 'visible',
@@ -56,11 +59,23 @@ export const ClassCustomNode = React.memo(({ data, sourcePosition, targetPositio
           userSelect: 'none'
         }}
       >
-        <span style={{ fontSize: '13px', letterSpacing: '0.5px' }}>{data.name}</span>
+        <span
+          title={data.name}
+          style={{
+            fontSize: '13px',
+            letterSpacing: '0.5px',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            minWidth: 0
+          }}
+        >
+          {data.name}
+        </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {data.inherits && (
             <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-              hérite de {data.inherits}
+              inherits from {data.inherits}
             </span>
           )}
           <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
@@ -89,7 +104,7 @@ export const ClassCustomNode = React.memo(({ data, sourcePosition, targetPositio
               ))
             ) : (
               <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '10px' }}>
-                Aucun attribut
+                No attributes
               </div>
             )}
           </div>
@@ -105,7 +120,7 @@ export const ClassCustomNode = React.memo(({ data, sourcePosition, targetPositio
               ))
             ) : (
               <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '10px' }}>
-                Aucune méthode
+                No methods
               </div>
             )}
           </div>

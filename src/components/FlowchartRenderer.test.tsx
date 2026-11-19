@@ -29,8 +29,8 @@ vi.mock('./PythonFlowchart', () => ({
 describe('FlowchartRenderer Component', () => {
   it('should render empty state when scanData is missing', () => {
     render(<FlowchartRenderer currentView="conditional-statement" scanData={null} />)
-    expect(screen.getByText('Aucun projet ou fichier chargé')).toBeInTheDocument()
-    expect(screen.getByText("Sélectionnez un fichier dans l'explorateur pour afficher son diagramme.")).toBeInTheDocument()
+    expect(screen.getByText('No project or file loaded')).toBeInTheDocument()
+    expect(screen.getByText('Select a file in the explorer to view its diagram.')).toBeInTheDocument()
   })
 
   it('should render validation error if validation fails', () => {
@@ -45,7 +45,7 @@ describe('FlowchartRenderer Component', () => {
     }
     // We render a view with invalid scan data
     render(<FlowchartRenderer currentView="class-diagram" scanData={invalidScanData} />)
-    expect(screen.getByText('Erreur de validation du Flowchart')).toBeInTheDocument()
+    expect(screen.getByText('Flowchart Validation Error')).toBeInTheDocument()
   })
 
   it('should render specific flowchart sub-component when scanData is valid', () => {

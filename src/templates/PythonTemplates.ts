@@ -10,21 +10,21 @@ export interface PythonTemplate {
 
 export const PYTHON_TEMPLATES: Record<string, PythonTemplate> = {
   pyDemo: {
-    name: 'Structure Script Python (Démo)',
-    description: 'Exemple avec décorateurs, bloc try-except et point d\'entrée main.',
+    name: 'Python Script Structure (Demo)',
+    description: 'Example with decorators, try-except block, and main entry point.',
     nodes: [
       {
         id: 'start',
         type: 'customNode',
         position: { x: 250, y: 20 },
-        data: { label: '@auth_required : Décorateur auth', type: 'start' },
+        data: { label: '@auth_required: auth decorator', type: 'start' },
         sourcePosition: Position.Bottom
       },
       {
         id: 'try',
         type: 'customNode',
         position: { x: 250, y: 120 },
-        data: { label: 'Bloc Try : executer_calcul()', type: 'condition' },
+        data: { label: 'Try Block: run_calculation()', type: 'condition' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       },
@@ -32,7 +32,7 @@ export const PYTHON_TEMPLATES: Record<string, PythonTemplate> = {
         id: 'try-success',
         type: 'customNode',
         position: { x: 80, y: 240 },
-        data: { label: 'Succès : print("Calcul terminé")', type: 'action' },
+        data: { label: 'Success: print("Calculation complete")', type: 'action' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       },
@@ -40,7 +40,7 @@ export const PYTHON_TEMPLATES: Record<string, PythonTemplate> = {
         id: 'try-except',
         type: 'customNode',
         position: { x: 420, y: 240 },
-        data: { label: 'Except ZeroDivisionError : print("Erreur")', type: 'action' },
+        data: { label: 'Except ZeroDivisionError: print("Error")', type: 'action' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       },
@@ -48,7 +48,7 @@ export const PYTHON_TEMPLATES: Record<string, PythonTemplate> = {
         id: 'main-entry',
         type: 'customNode',
         position: { x: 250, y: 360 },
-        data: { label: 'if __name__ == "__main__" : demarrer()', type: 'action' },
+        data: { label: 'if __name__ == "__main__": start()', type: 'action' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       }

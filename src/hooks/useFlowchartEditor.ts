@@ -169,7 +169,7 @@ export const useFlowchartEditor = (options?: { direction?: 'LR' | 'TB' }) => {
       type: 'customNode',
       position: { x: newX + (Math.random() - 0.5) * 10, y: newY },
       data: {
-        label: type === 'condition' ? 'Nouvelle Condition ?' : 'Nouvelle Action',
+        label: type === 'condition' ? 'New Condition?' : 'New Action',
         type
       },
       sourcePosition: Position.Bottom,

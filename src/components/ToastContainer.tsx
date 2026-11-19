@@ -16,23 +16,26 @@ export const ToastContainer: React.FC = () => {
 
   return (
     <div
+      role="region"
+      aria-live="polite"
+      aria-label="Notifications"
       style={{
         position: 'fixed',
         bottom: '24px',
-        right: '24px',
-        zIndex: 99999,
+        left: '24px',
+        zIndex: 9999,
         display: 'flex',
         flexDirection: 'column',
         gap: '12px',
-        maxWidth: '380px',
+        maxWidth: 'min(380px, calc(100vw - 48px))',
         width: '100%',
         pointerEvents: 'none',
       }}
     >
       {toasts.map((t) => {
         let icon = <Info size={16} color="var(--accent)" />;
-        let borderColor = 'rgba(255, 255, 255, 0.1)';
-        let bgColor = 'rgba(15, 15, 20, 0.85)';
+        let borderColor = 'var(--border)';
+        let bgColor = 'var(--dropdown-bg)';
         let textColor = 'var(--text)';
 
         if (t.type === 'success') {
@@ -87,7 +90,9 @@ export const ToastContainer: React.FC = () => {
               {t.message}
             </div>
             <button
+              type="button"
               onClick={() => toast.dismiss(t.id)}
+              aria-label="Close notification"
               style={{
                 background: 'none',
                 border: 'none',

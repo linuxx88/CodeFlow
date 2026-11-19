@@ -16,6 +16,7 @@ import { buildLoopTemplates } from '../utils/templateBuilders'
 import { getLayoutedElements } from '../utils/layoutUtils'
 import { LayoutToolbar } from './LayoutToolbar'
 import { ControlsOverlay } from './ControlsOverlay'
+import { FitViewHandler } from './FitViewHandler'
 
 interface WhileLoopFlowchartProps {
   scanData?: any
@@ -221,7 +222,7 @@ const WhileLoopFlowchartContent: React.FC<WhileLoopFlowchartProps> = ({ scanData
       >
         <div>
           <h2 style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--text)', marginBottom: '12px' }}>
-            Sélectionner un Modèle de Boucle
+            Select a Loop Template
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {staticItems.map(([key, temp]) => (
@@ -241,7 +242,7 @@ const WhileLoopFlowchartContent: React.FC<WhileLoopFlowchartProps> = ({ scanData
                 }}
               >
                 <div style={{ fontWeight: 'bold' }}>{temp.name}</div>
-                <div style={{ fontSize: '11px', color: activeTemplate === key ? '#e0e0ff' : 'var(--text-muted)', marginTop: '4px' }}>
+                <div style={{ fontSize: '11px', color: activeTemplate === key ? 'var(--accent-fg)' : 'var(--text-muted)', opacity: activeTemplate === key ? 0.85 : 1, marginTop: '4px' }}>
                   {temp.description}
                 </div>
               </button>
@@ -253,13 +254,13 @@ const WhileLoopFlowchartContent: React.FC<WhileLoopFlowchartProps> = ({ scanData
 
         <div>
           <h2 style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--text)', marginBottom: '12px' }}>
-            Éditeur de Nœud
+            Node Editor
           </h2>
           {selectedNodeId ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>
-                  Texte du Nœud
+                  Node Label
                 </label>
                 <input
                   type="text"
@@ -282,7 +283,7 @@ const WhileLoopFlowchartContent: React.FC<WhileLoopFlowchartProps> = ({ scanData
               {selectedNodeId !== 'start' && (
                 <div>
                   <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>
-                    Type de Nœud
+                    Node Type
                   </label>
                   <select
                     value={nodeType}
@@ -298,8 +299,8 @@ const WhileLoopFlowchartContent: React.FC<WhileLoopFlowchartProps> = ({ scanData
                       outline: 'none'
                     }}
                   >
-                    <option value="condition">SI / Condition</option>
-                    <option value="action">ALORS / Action</option>
+                    <option value="condition">IF / Condition</option>
+                    <option value="action">THEN / Action</option>
                   </select>
                 </div>
               )}
@@ -323,17 +324,20 @@ const WhileLoopFlowchartContent: React.FC<WhileLoopFlowchartProps> = ({ scanData
                     gap: '4px'
                   }}
                 >
-                  <Check size={14} /> Appliquer
+                  <Check size={14} /> Apply
                 </button>
                 {selectedNodeId !== 'start' && (
                   <button
+                    type="button"
+                    aria-label="Delete node"
+                    title="Delete node"
                     onClick={handleDeleteNode}
                     style={{
                       padding: '8px',
                       borderRadius: '6px',
-                      backgroundColor: 'rgba(244, 63, 94, 0.15)',
-                      color: '#f43f5e',
-                      border: '1px solid rgba(244, 63, 94, 0.3)',
+                      backgroundColor: 'var(--bottleneck-muted)',
+                      color: 'var(--bottleneck)',
+                      border: '1px solid var(--bottleneck)',
                       cursor: 'pointer',
                       fontSize: '12px'
                     }}
@@ -345,7 +349,7 @@ const WhileLoopFlowchartContent: React.FC<WhileLoopFlowchartProps> = ({ scanData
             </div>
           ) : (
             <div style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <HelpCircle size={14} /> Cliquez sur un nœud pour le modifier.
+              <HelpCircle size={14} /> Click a node to edit it.
             </div>
           )}
         </div>
@@ -354,7 +358,7 @@ const WhileLoopFlowchartContent: React.FC<WhileLoopFlowchartProps> = ({ scanData
 
         <div>
           <h2 style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--text)', marginBottom: '12px' }}>
-            Ajouter un Élément
+            Add Element
           </h2>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button
@@ -421,9 +425,11 @@ const WhileLoopFlowchartContent: React.FC<WhileLoopFlowchartProps> = ({ scanData
           onPaneClick={clearFocus}
           onlyRenderVisibleElements={nodes.length > 80}
           fitView
+          fitViewOptions={{ padding: 0.2 }}
         >
-          <Background color="var(--border)" gap={16} />
+          <Background color="var(--flow-grid)" gap={16} />
           <ControlsOverlay />
+          <FitViewHandler triggerKey={`${activeTemplate}-${direction}-${nodesep}-${ranksep}-${nodes.length}`} />
         </ReactFlow>
       </div>
     </div>

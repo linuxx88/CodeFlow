@@ -20,15 +20,15 @@ Code Flow is a modern, interactive web application to analyze, scan, and visuali
 ## 🛠️ Tech Stack
 
 - **Core**: React 19, TypeScript, Vite
-- **Visualization**: [@xyflow/react](https://reactflow.dev/) (React Flow), [@dagrejs/dagre](https://github.com/dagrejs/dagre) (automatic layout engine)
+- **Visualization**: [@xyflow/react](https://reactflow.dev/) (React Flow), [@dagrejs/dagre](https://github.com/dagrejs/dagre) & [ELK.js](https://github.com/kieler/elkjs) (automatic layout engines)
 - **Icons**: Lucide React
 - **Styles**: Premium native CSS (customizable themes, neon animations, glassmorphism)
-- **Scanning Backend**: Vite development server middleware with streaming and disk caching.
+- **Scanning Backend**: Vite server middleware (`dev` and `preview`) with streaming and disk caching.
 
 ## 📦 Installation and Setup
 
 ### Prerequisites
-- [Node.js](https://nodejs.org/) (version 18 or higher recommended)
+- [Node.js](https://nodejs.org/) (`^20.19.0` or `>=22.12.0`, required by Vite 8)
 
 ### Installation Steps
 1. Clone this repository.
@@ -44,10 +44,21 @@ npm run dev
 ```
 Open your browser at the address shown (usually `http://localhost:5173`). Then, enter the absolute path of the local project you want to analyze in the top bar.
 
-### Production Build
+### Production Build & Preview
 To generate optimized production files in the `dist` folder:
 ```bash
 npm run build
+```
+To preview the production build locally **with** the `/api/*` scanning middleware enabled:
+```bash
+npm run preview
+```
+> **Note:** The local scanning endpoints (`/api/health`, `/api/scan`, `/api/parse-conflict`) are provided by Vite's `scanApi` middleware (`configureServer` and `configurePreviewServer`). Serving `dist/` on a pure static host without Vite will not provide those `/api/*` routes.
+
+### Quality Checks
+```bash
+npm run lint
+npm run test
 ```
 
 ## 📐 Architecture & Inner Workings
@@ -56,7 +67,7 @@ npm run build
 The local scanner is configured as a Vite plugin/middleware (`vite/plugins/scan-api.ts`). During the scanning phase, it extracts control structures and imports. For Python, a strict indentation parsing system (`baseIndent`) is implemented to correctly map child blocks without overlaps.
 
 ### 2. Layout Engine
-The application integrates the `Dagre` graph engine to compute spatial coordinates for each node on the React Flow canvas. The sizes of "condition" nodes and UML class diagrams are dynamically calculated based on the number of properties and methods to prevent visual overlaps when switching layouts.
+The application integrates both `Dagre` and `ELK.js` graph engines to compute spatial coordinates for each node on the React Flow canvas. The sizes of "condition" nodes and UML class diagrams are dynamically calculated based on the number of properties and methods to prevent visual overlaps when switching layouts.
 
 ## Acknowledgements
 

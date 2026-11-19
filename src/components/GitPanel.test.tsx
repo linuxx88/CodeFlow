@@ -23,18 +23,18 @@ describe('GitPanel Component', () => {
   it('should render git hotspots lists correctly', () => {
     render(<GitPanel {...defaultProps} />)
     
-    expect(screen.getByText('Friction Git / Hotspots')).toBeInTheDocument()
+    expect(screen.getByText('Git Friction / Hotspots')).toBeInTheDocument()
     
     // Sort modes buttons
     expect(screen.getByText('Score')).toBeInTheDocument()
-    expect(screen.getByText('Modifications')).toBeInTheDocument()
-    expect(screen.getByText('Auteurs')).toBeInTheDocument()
+    expect(screen.getByText('Commits')).toBeInTheDocument()
+    expect(screen.getByText('Authors')).toBeInTheDocument()
     
     // Check hotspot items content
     expect(screen.getByText('src/App.tsx')).toBeInTheDocument()
     expect(screen.getByText('85')).toBeInTheDocument() // Score value
-    expect(screen.getByText('15 modifs')).toBeInTheDocument()
-    expect(screen.getByText('3 aut.')).toBeInTheDocument()
+    expect(screen.getByText('15 commits')).toBeInTheDocument()
+    expect(screen.getByText('3 auth.')).toBeInTheDocument()
     
     // Conflict item check
     expect(screen.getByText('src/components/Explorer.tsx')).toBeInTheDocument()
@@ -44,8 +44,8 @@ describe('GitPanel Component', () => {
   it('should call setGitSortBy when sorting mode is clicked', () => {
     render(<GitPanel {...defaultProps} />)
     
-    const modificationsBtn = screen.getByText('Modifications')
-    fireEvent.click(modificationsBtn)
+    const commitsBtn = screen.getByText('Commits')
+    fireEvent.click(commitsBtn)
     
     expect(defaultProps.setGitSortBy).toHaveBeenCalledWith('commits')
   })
@@ -62,7 +62,7 @@ describe('GitPanel Component', () => {
   it('should call onScan when scan button is clicked (if not conflicted)', () => {
     render(<GitPanel {...defaultProps} />)
     
-    const scanButtons = screen.getAllByRole('button', { name: /Scanner/ })
+    const scanButtons = screen.getAllByRole('button', { name: /Scan/ })
     
     // First scan button (App.tsx)
     fireEvent.click(scanButtons[0])
@@ -72,7 +72,7 @@ describe('GitPanel Component', () => {
   it('should disable scan button for conflict files', () => {
     render(<GitPanel {...defaultProps} />)
     
-    const scanButtons = screen.getAllByRole('button', { name: /Scanner/ })
+    const scanButtons = screen.getAllByRole('button', { name: /Scan/ })
     
     // Second scan button (Explorer.tsx - conflicted)
     expect(scanButtons[1]).toBeDisabled()
@@ -81,13 +81,13 @@ describe('GitPanel Component', () => {
   it('should display non-git repo message if isGitRepo is false', () => {
     render(<GitPanel {...defaultProps} isGitRepo={false} />)
     
-    expect(screen.getByText('Dépôt Git non détecté.')).toBeInTheDocument()
-    expect(screen.getByText('Initialisez Git pour suivre la friction des fichiers.')).toBeInTheDocument()
+    expect(screen.getByText('Git repository not detected.')).toBeInTheDocument()
+    expect(screen.getByText('Initialize Git to track file friction.')).toBeInTheDocument()
   })
 
   it('should display scan message if hasGitData is false', () => {
     render(<GitPanel {...defaultProps} hasGitData={false} />)
     
-    expect(screen.getByText('Scannez le projet pour analyser l\'historique de friction Git.')).toBeInTheDocument()
+    expect(screen.getByText('Scan the project to analyze Git friction history.')).toBeInTheDocument()
   })
 })

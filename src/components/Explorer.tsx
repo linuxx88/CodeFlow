@@ -20,7 +20,7 @@ const getGitStatusStyles = (status?: string) => {
         badgeText: 'M',
         badgeBg: 'rgba(234, 179, 8, 0.12)',
         badgeColor: 'var(--warning)',
-        label: 'Modifié'
+        label: 'Modified'
       }
     case 'untracked':
       return {
@@ -28,7 +28,7 @@ const getGitStatusStyles = (status?: string) => {
         badgeText: 'U',
         badgeBg: 'rgba(96, 165, 250, 0.12)',
         badgeColor: '#60a5fa',
-        label: 'Non suivi'
+        label: 'Untracked'
       }
     case 'added':
       return {
@@ -36,7 +36,7 @@ const getGitStatusStyles = (status?: string) => {
         badgeText: 'A',
         badgeBg: 'rgba(16, 185, 129, 0.12)',
         badgeColor: 'var(--success)',
-        label: 'Ajouté'
+        label: 'Added'
       }
     case 'deleted':
       return {
@@ -44,7 +44,7 @@ const getGitStatusStyles = (status?: string) => {
         badgeText: 'D',
         badgeBg: 'rgba(244, 63, 94, 0.12)',
         badgeColor: 'var(--bottleneck)',
-        label: 'Supprimé'
+        label: 'Deleted'
       }
     case 'renamed':
       return {
@@ -52,7 +52,7 @@ const getGitStatusStyles = (status?: string) => {
         badgeText: 'R',
         badgeBg: 'var(--accent-muted)',
         badgeColor: 'var(--accent)',
-        label: 'Renommé'
+        label: 'Renamed'
       }
     case 'unmerged':
       return {
@@ -60,7 +60,7 @@ const getGitStatusStyles = (status?: string) => {
         badgeText: '!',
         badgeBg: 'rgba(244, 63, 94, 0.2)',
         badgeColor: 'var(--bottleneck)',
-        label: 'Conflit'
+        label: 'Conflict'
       }
     default:
       return null
@@ -199,7 +199,7 @@ export const Explorer: React.FC<ExplorerProps> = ({
         height: '100%',
         flexShrink: 0,
         overflow: 'visible',
-        zIndex: isCollapsed ? 1000 : 1
+        zIndex: isCollapsed ? 50 : 10
       }}
     >
       <div
@@ -218,13 +218,13 @@ export const Explorer: React.FC<ExplorerProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <FolderTree size={16} color="var(--accent)" />
             <h2 style={{ fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', margin: 0 }}>
-              Explorateur
+              Explorer
             </h2>
           </div>
           {flatFiles.length > 0 && onCollapseAll && (
             <button
               onClick={onCollapseAll}
-              title="Tout replier"
+              title="Collapse all"
               style={{
                 background: 'none',
                 border: 'none',
@@ -256,7 +256,8 @@ export const Explorer: React.FC<ExplorerProps> = ({
             <Search size={14} color="var(--text-muted)" style={{ position: 'absolute', left: '10px' }} />
             <input
               type="text"
-              placeholder="Filtrer les fichiers..."
+              aria-label="Filter files"
+              placeholder="Filter files..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
@@ -281,6 +282,8 @@ export const Explorer: React.FC<ExplorerProps> = ({
             />
             {searchQuery && (
               <button
+                type="button"
+                aria-label="Clear search"
                 onClick={() => setSearchQuery('')}
                 style={{
                   position: 'absolute',
@@ -330,12 +333,24 @@ export const Explorer: React.FC<ExplorerProps> = ({
 
               return (
                 <div
-                  key={idx}
+                  key={file.path || idx}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => {
                     if (file.isDir) {
                       onToggleDirectory(file.path)
                     } else {
                       if (onSelectFile) {
+                        onSelectFile(file.path)
+                      }
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      if (file.isDir) {
+                        onToggleDirectory(file.path)
+                      } else if (onSelectFile) {
                         onSelectFile(file.path)
                       }
                     }
@@ -422,14 +437,17 @@ export const Explorer: React.FC<ExplorerProps> = ({
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '8px', color: 'var(--text-muted)' }}>
               <FolderTree size={28} style={{ opacity: 0.5 }} />
-              <span style={{ fontSize: '12px' }}>{searchQuery ? 'Aucun fichier ne correspond.' : 'Aucun scan actif.'}</span>
+              <span style={{ fontSize: '12px' }}>{searchQuery ? 'No matching files.' : 'No active scan.'}</span>
             </div>
           )}
         </div>
       </div>
 
       <button
+        type="button"
         onClick={toggleCollapse}
+        aria-label={isCollapsed ? 'Show explorer' : 'Hide explorer'}
+        title={isCollapsed ? 'Show explorer' : 'Hide explorer'}
         style={{
           position: 'absolute',
           top: '50%',
@@ -448,7 +466,7 @@ export const Explorer: React.FC<ExplorerProps> = ({
           justifyContent: 'center',
           cursor: 'pointer',
           boxShadow: '4px 0 10px rgba(0,0,0,0.2)',
-          zIndex: 9999,
+          zIndex: 20,
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
         }}
         onMouseEnter={(e) => {

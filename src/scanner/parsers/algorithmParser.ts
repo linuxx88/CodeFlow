@@ -2,8 +2,8 @@ import path from 'path'
 
 export function parseAlgorithmsFromFile(file: string, content: string): any[] {
   const result: any[] = []
-  const lines = content.split('\n')
-  const ext = path.extname(file)
+  const lines = content.split(/\r?\n/)
+  const ext = path.extname(file).toLowerCase()
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]

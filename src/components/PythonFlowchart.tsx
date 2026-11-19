@@ -10,7 +10,7 @@ export const PythonFlowchart: React.FC<PythonFlowchartProps> = ({ scanData }) =>
   return (
     <GenericFlowchart
       templates={PYTHON_TEMPLATES}
-      title="Sélectionner un Script Python"
+      title="Select a Python Script"
       scanData={scanData}
       filterType="python"
     />

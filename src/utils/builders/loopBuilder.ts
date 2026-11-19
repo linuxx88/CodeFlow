@@ -1,86 +1,114 @@
 import { FlowElementBuilder } from './FlowElementBuilder'
 import { Position } from '@xyflow/react'
-import type { Template } from '../templateBuilders'
+import { getNodeDimensions } from '../layoutEngine'
+import type { FlowNodeType, ScanData, Template } from '../../types'
 
-export const buildLoopTemplates = (scanData: any, templates: Record<string, Template>): Record<string, Template> => {
+const boxSize = (label: string, type: FlowNodeType) =>
+  getNodeDimensions({
+    id: '',
+    type: 'customNode',
+    position: { x: 0, y: 0 },
+    data: { label, type },
+  })
+
+export const buildLoopTemplates = (
+  scanData: ScanData | null | undefined,
+  templates: Record<string, Template>
+): Record<string, Template> => {
   const temps: Record<string, Template> = { ...templates }
-  if (scanData?.loops) {
-    for (const loopFile of scanData.loops) {
-      const file = loopFile.file
-      const items = loopFile.items
-      if (items.length === 0) continue
+  if (!scanData?.loops) return temps
 
-      const builder = new FlowElementBuilder(
-        `Projet: ${file}`,
-        `Boucles live - ${items.length} boucles détectées.`
-      )
-        .addNode('start')
-        .withNodeType('start')
-        .withPosition(250, 20)
-        .withLabel(`Entrée: ${file}`)
+  const VERTICAL_GAP = 60
+  const HORIZONTAL_GAP = 60
+
+  for (const loopFile of scanData.loops) {
+    const file = loopFile.file || 'Unknown file'
+    const items = Array.isArray(loopFile.items) ? loopFile.items : []
+    if (items.length === 0) continue
+
+    const startLabel = `Entry: ${file}`
+    const builder = new FlowElementBuilder(
+      `Project: ${file}`,
+      `Live loops - ${items.length} loops detected.`
+    )
+      .addNode('start')
+      .withNodeType('start')
+      .withPosition(250, 20)
+      .withLabel(startLabel)
+      .commit()
+
+    let prevNodeId = 'start'
+    let cursorY = 20 + boxSize(startLabel, 'start').height + VERTICAL_GAP
+
+    items.forEach((item, idx) => {
+      const condNodeId = `cond-${idx}`
+      const bodyNodeId = `body-${idx}`
+      const exitNodeId = `exit-${idx}`
+
+      const condLabel = `Line ${item.line ?? '?'}: while (${item.condition || '...'})`
+      const bodyLabel = String(item.body ?? 'Loop body')
+      const exitLabel = 'Exit loop'
+
+      const condDims = boxSize(condLabel, 'condition')
+      const bodyDims = boxSize(bodyLabel, 'action')
+      const exitDims = boxSize(exitLabel, 'action')
+
+      const branchY = cursorY + condDims.height + VERTICAL_GAP
+      const exitX = Math.max(420, 20 + bodyDims.width + HORIZONTAL_GAP)
+
+      builder
+        .addNode(condNodeId)
+        .withNodeType('condition')
+        .withPosition(250, cursorY)
+        .withLabel(condLabel)
         .commit()
 
-      let prevNodeId = 'start'
+        .addNode(bodyNodeId)
+        .withNodeType('action')
+        .withPosition(20, branchY)
+        .withLabel(bodyLabel)
+        .withSourcePosition(Position.Top)
+        .withTargetPosition(Position.Top)
+        .commit()
 
-      items.forEach((item: any, idx: number) => {
-        const condNodeId = `cond-${idx}`
-        const bodyNodeId = `body-${idx}`
-        const exitNodeId = `exit-${idx}`
-        const yBase = 120 + idx * 240
+        .addNode(exitNodeId)
+        .withNodeType('action')
+        .withPosition(exitX, branchY)
+        .withLabel(exitLabel)
+        .commit()
 
-        builder
-          .addNode(condNodeId)
-          .withNodeType('condition')
-          .withPosition(250, yBase)
-          .withLabel(`Ligne ${item.line}: while (${item.condition})`)
-          .commit()
+        .addEdge(`edge-to-cond-${idx}`)
+        .from(prevNodeId)
+        .to(condNodeId)
+        .withDefaultTheme()
+        .commit()
 
-          .addNode(bodyNodeId)
-          .withNodeType('action')
-          .withPosition(80, yBase + 100)
-          .withLabel(item.body)
-          .withSourcePosition(Position.Top)
-          .withTargetPosition(Position.Top)
-          .commit()
+        .addEdge(`edge-cond-body-${idx}`)
+        .from(condNodeId)
+        .to(bodyNodeId)
+        .withLabel('TRUE')
+        .withTrueTheme()
+        .commit()
 
-          .addNode(exitNodeId)
-          .withNodeType('action')
-          .withPosition(420, yBase + 100)
-          .withLabel('Sortie de boucle')
-          .commit()
+        .addEdge(`edge-cond-exit-${idx}`)
+        .from(condNodeId)
+        .to(exitNodeId)
+        .withLabel('FALSE')
+        .withFalseTheme()
+        .commit()
 
-          .addEdge(`edge-to-cond-${idx}`)
-          .from(prevNodeId)
-          .to(condNodeId)
-          .withDefaultTheme()
-          .commit()
+        .addEdge(`edge-body-cond-${idx}`)
+        .from(bodyNodeId)
+        .to(condNodeId)
+        .withLabel('LOOP')
+        .withLoopTheme()
+        .commit()
 
-          .addEdge(`edge-cond-body-${idx}`)
-          .from(condNodeId)
-          .to(bodyNodeId)
-          .withLabel('VRAI')
-          .withTrueTheme()
-          .commit()
+      prevNodeId = exitNodeId
+      cursorY = branchY + Math.max(bodyDims.height, exitDims.height) + VERTICAL_GAP
+    })
 
-          .addEdge(`edge-cond-exit-${idx}`)
-          .from(condNodeId)
-          .to(exitNodeId)
-          .withLabel('FAUX')
-          .withFalseTheme()
-          .commit()
-
-          .addEdge(`edge-body-cond-${idx}`)
-          .from(bodyNodeId)
-          .to(condNodeId)
-          .withLabel('BOUCLER')
-          .withLoopTheme()
-          .commit()
-
-        prevNodeId = exitNodeId
-      })
-
-      temps[`project-${file}`] = builder.build()
-    }
+    temps[`project-${file}`] = builder.build()
   }
   return temps
 }

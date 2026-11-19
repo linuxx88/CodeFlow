@@ -4,15 +4,14 @@ import {
   Background
 } from '@xyflow/react'
 import {
-  Search,
   AlertTriangle,
-  ArrowLeft,
-  ChevronDown
+  ArrowLeft
 } from 'lucide-react'
 
 import { Navbar } from './components/Navbar'
 import { Explorer } from './components/Explorer'
 import { GraphPanel } from './components/GraphPanel'
+import { GraphToolbar } from './components/GraphToolbar'
 import { GitPanel } from './components/GitPanel'
 import { FileNode } from './components/FileNode'
 import { FlowchartRenderer } from './components/FlowchartRenderer'
@@ -23,6 +22,7 @@ import { useTheme } from './hooks/useTheme'
 import type { FlowchartView } from './constants/views'
 import { MiniMapPanel } from './components/MiniMapPanel'
 import { ControlsOverlay } from './components/ControlsOverlay'
+import { FitViewHandler } from './components/FitViewHandler'
 import { useProjectScanner } from './hooks/useProjectScanner'
 import { ToastContainer } from './components/ToastContainer'
 
@@ -41,8 +41,18 @@ function App() {
   const [selectedExtensions, setSelectedExtensions] = useState<string[]>([])
   const [forceDisplay, setForceDisplay] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
-  const [isExtDropdownOpen, setIsExtDropdownOpen] = useState(false)
   const [gitSortBy, setGitSortBy] = useState<'score' | 'commits' | 'authors'>('score')
+
+  useEffect(() => {
+    if (!isFullscreen) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsFullscreen(false)
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isFullscreen])
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null)
   const [currentView, setCurrentView] = useState<FlowchartView>('all')
   const [activeFile, setActiveFile] = useState<string | null>(null)
@@ -75,8 +85,8 @@ function App() {
   }, [scanError, setScanError])
 
   const [direction, setDirection] = useState<'LR' | 'TB'>('LR')
-  const [nodesep, setNodesep] = useState<number>(40)
-  const [ranksep, setRanksep] = useState<number>(80)
+  const [nodesep, setNodesep] = useState<number>(70)
+  const [ranksep, setRanksep] = useState<number>(160)
 
   const {
     nodes,
@@ -189,7 +199,7 @@ function App() {
       {currentView !== 'all' && currentView !== 'web' ? (
         <FlowchartRenderer currentView={currentView} scanData={scanData} />
       ) : isFullscreen ? (
-        <div style={{ width: '100vw', height: 'calc(100vh - 58px)', position: 'relative' }}>
+        <div style={{ flex: 1, minHeight: 0, width: '100vw', position: 'relative' }}>
           <div
             style={{
               position: 'absolute',
@@ -198,177 +208,67 @@ function App() {
               right: '16px',
               display: 'flex',
               justifyContent: 'space-between',
-              alignItems: 'center',
+              alignItems: 'flex-start',
+              flexWrap: 'wrap',
+              gap: '12px',
               zIndex: 1000,
               pointerEvents: 'none'
             }}
           >
             <button
+              type="button"
               onClick={() => setIsFullscreen(false)}
               style={{
                 padding: '6px 12px',
                 borderRadius: '6px',
                 border: '1px solid var(--border)',
-                backgroundColor: 'rgba(15,15,20,0.85)',
+                backgroundColor: 'var(--panel-bg)',
                 backdropFilter: 'blur(8px)',
-                color: '#fff',
+                color: 'var(--text)',
                 fontSize: '13px',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                pointerEvents: 'auto'
+                pointerEvents: 'auto',
+                boxShadow: '0 4px 12px var(--shadow)'
               }}
             >
               <ArrowLeft size={14} />
-              <span>Retour</span>
+              <span>Back</span>
             </button>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', backgroundColor: 'rgba(15,15,20,0.85)', padding: '6px 16px', borderRadius: '8px', border: '1px solid var(--border)', backdropFilter: 'blur(8px)', pointerEvents: 'auto', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Search size={14} color="var(--text-muted)" />
-                <input
-                  type="text"
-                  placeholder="Filtrer les fichiers..."
-                  value={filterQuery}
-                  onChange={(e) => setFilterQuery(e.target.value)}
-                  style={{
-                    border: 'none',
-                    backgroundColor: 'transparent',
-                    color: '#fff',
-                    fontSize: '13px',
-                    outline: 'none',
-                    width: '180px'
-                  }}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '12px', pointerEvents: 'none', maxWidth: '100%' }}>
+              <GraphToolbar
+                filterQuery={filterQuery}
+                setFilterQuery={setFilterQuery}
+                showExternal={showExternal}
+                setShowExternal={setShowExternal}
+                showOnlyCycles={showOnlyCycles}
+                setShowOnlyCycles={setShowOnlyCycles}
+                cycleNodesCount={cycles.cycleNodes.size}
+                availableExtensions={availableExtensions}
+                selectedExtensions={selectedExtensions}
+                setSelectedExtensions={setSelectedExtensions}
+                hasData={false}
+                style={{
+                  borderRadius: '8px',
+                  border: '1px solid var(--border)',
+                  pointerEvents: 'auto',
+                  boxShadow: '0 4px 12px var(--shadow)'
+                }}
+              />
+
+              {!isWebWarning && !showWarning && (
+                <LayoutToolbar
+                  direction={direction}
+                  setDirection={setDirection}
+                  nodesep={nodesep}
+                  setNodesep={setNodesep}
+                  ranksep={ranksep}
+                  setRanksep={setRanksep}
+                  style={{ position: 'relative', top: 'auto', right: 'auto', pointerEvents: 'auto' }}
                 />
-              </div>
-
-              <div style={{ height: '16px', width: '1px', backgroundColor: 'var(--border)' }}></div>
-
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: 'var(--text-muted)' }}>
-                <input
-                  type="checkbox"
-                  checked={showExternal}
-                  onChange={(e) => setShowExternal(e.target.checked)}
-                  style={{ cursor: 'pointer' }}
-                />
-                <span>Packages externes</span>
-              </label>
-
-              <div style={{ height: '16px', width: '1px', backgroundColor: 'var(--border)' }}></div>
-
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: 'var(--text-muted)' }}>
-                <input
-                  type="checkbox"
-                  checked={showOnlyCycles}
-                  onChange={(e) => setShowOnlyCycles(e.target.checked)}
-                  style={{ cursor: 'pointer' }}
-                />
-                <span style={{ color: showOnlyCycles ? 'var(--cycle)' : 'inherit' }}>Cycles uniquement</span>
-              </label>
-
-              {cycles.cycleNodes.size > 0 && (
-                <>
-                  <div style={{ height: '16px', width: '1px', backgroundColor: 'var(--border)' }}></div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: 'var(--cycle)', backgroundColor: 'var(--cycle-muted)', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
-                    <AlertTriangle size={12} color="var(--cycle)" />
-                    <span>{cycles.cycleNodes.size} fichiers en cycle</span>
-                  </div>
-                </>
-              )}
-
-              {availableExtensions.length > 0 && (
-                <>
-                  <div style={{ height: '16px', width: '1px', backgroundColor: 'var(--border)' }}></div>
-                  <div style={{ position: 'relative' }} onMouseLeave={() => setIsExtDropdownOpen(false)}>
-                    <button
-                      onClick={() => setIsExtDropdownOpen(!isExtDropdownOpen)}
-                      style={{
-                        padding: '4px 10px',
-                        borderRadius: '6px',
-                        border: '1px solid var(--border)',
-                        backgroundColor: 'var(--input-bg)',
-                        color: 'var(--text)',
-                        fontSize: '12px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        transition: 'background-color 0.2s, border-color 0.2s'
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--accent-muted)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--input-bg)')}
-                    >
-                      <span>Extensions ({selectedExtensions.length})</span>
-                      <ChevronDown size={12} style={{ display: 'inline-block', transform: isExtDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
-                    </button>
-
-                    {isExtDropdownOpen && (
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: '100%',
-                          left: 0,
-                          width: '160px',
-                          maxHeight: '200px',
-                          overflowY: 'auto',
-                          backgroundColor: 'var(--dropdown-bg)',
-                          border: '1px solid var(--border)',
-                          borderRadius: '8px',
-                          boxShadow: '0 10px 25px -5px var(--shadow)',
-                          backdropFilter: 'blur(12px)',
-                          padding: '6px',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '4px',
-                          zIndex: 100
-                        }}
-                      >
-                        {availableExtensions.map((ext) => {
-                          const isSelected = selectedExtensions.includes(ext)
-                          return (
-                            <label
-                              key={ext}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                padding: '6px 8px',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontSize: '12px',
-                                color: isSelected ? 'var(--text)' : 'var(--text-muted)',
-                                backgroundColor: isSelected ? 'var(--accent-muted)' : 'transparent',
-                                transition: 'background-color 0.15s',
-                                userSelect: 'none'
-                              }}
-                              onMouseEnter={(e) => {
-                                if (!isSelected) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)'
-                              }}
-                              onMouseLeave={(e) => {
-                                if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent'
-                              }}
-                            >
-                              <input
-                                type="checkbox"
-                                checked={isSelected}
-                                onChange={() => {
-                                  if (isSelected) {
-                                    setSelectedExtensions(selectedExtensions.filter((e) => e !== ext))
-                                  } else {
-                                    setSelectedExtensions([...selectedExtensions, ext])
-                                  }
-                                }}
-                                style={{ cursor: 'pointer' }}
-                              />
-                              <span>{ext}</span>
-                            </label>
-                          )
-                        })}
-                      </div>
-                    )}
-                  </div>
-                </>
               )}
             </div>
           </div>
@@ -376,44 +276,36 @@ function App() {
           {isWebWarning ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', backgroundColor: 'var(--bg)', gap: '12px', padding: '24px', textAlign: 'center' }}>
               <AlertTriangle size={48} color="var(--bottleneck)" />
-              <h2 style={{ fontSize: '20px', color: '#fff', margin: 0, fontWeight: 'bold' }}>Le projet n'est pas un projet de développement web !</h2>
+              <h2 style={{ fontSize: '20px', color: 'var(--text)', margin: 0, fontWeight: 'bold' }}>Not a web development project!</h2>
               <p style={{ fontSize: '13px', color: 'var(--text-muted)', maxWidth: '360px' }}>
-                Ce projet ne contient aucun fichier HTML, CSS, JavaScript, TypeScript ou configuration web standard.
+                This project does not contain any HTML, CSS, JavaScript, TypeScript, or standard web configuration files.
               </p>
             </div>
           ) : showWarning ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', backgroundColor: 'var(--bg)', gap: '12px' }}>
               <AlertTriangle size={36} color="var(--bottleneck)" />
-              <h2 style={{ fontSize: '18px', color: '#fff', margin: 0 }}>Graphe trop dense ({totalVisibleNodesCount} nœuds)</h2>
-              <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Veuillez utiliser les filtres ci-dessus pour un affichage lisible.</p>
+              <h2 style={{ fontSize: '18px', color: 'var(--text)', margin: 0 }}>Graph too dense ({totalVisibleNodesCount} nodes)</h2>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Please use the filters above for a readable display.</p>
               <button
+                type="button"
                 onClick={() => setForceDisplay(true)}
                 style={{
                   padding: '6px 14px',
                   borderRadius: '6px',
                   border: 'none',
                   backgroundColor: 'var(--bottleneck)',
-                  color: '#fff',
+                  color: 'var(--accent-fg)',
                   fontSize: '13px',
                   cursor: 'pointer',
                   fontWeight: 500,
                   marginTop: '8px'
                 }}
               >
-                Forcer l'affichage entier
+                Force full display
               </button>
             </div>
           ) : (
             <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-              <LayoutToolbar
-                direction={direction}
-                setDirection={setDirection}
-                nodesep={nodesep}
-                setNodesep={setNodesep}
-                ranksep={ranksep}
-                setRanksep={setRanksep}
-                style={{ top: '70px', right: '16px' }}
-              />
               <ReactFlow
                 nodes={nodes}
                 edges={edges}
@@ -423,17 +315,20 @@ function App() {
                 onNodeMouseEnter={(_, node) => setHoveredNodeId(node.id)}
                 onNodeMouseLeave={() => setHoveredNodeId(null)}
                 onlyRenderVisibleElements={nodes.length > 80}
+                minZoom={0.05}
                 fitView
+                fitViewOptions={{ padding: 0.2 }}
               >
-                <Background color="#2e303a" gap={16} />
+                <Background color="var(--flow-grid)" gap={16} />
                 <ControlsOverlay />
+                <FitViewHandler triggerKey={`${direction}-${nodesep}-${ranksep}-${activeFile || ''}-${nodes.length}`} />
                 <MiniMapPanel style={{ backgroundColor: 'var(--panel-bg)' }} nodeColor={(n) => n.data?.isPartOfCycle ? 'var(--cycle)' : (n.data?.isBottleneck ? 'var(--bottleneck)' : 'var(--accent)')} />
               </ReactFlow>
             </div>
           )}
         </div>
       ) : (
-        <div style={{ display: 'flex', flex: 1, width: '100vw', height: 'calc(100vh - 58px)', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', flex: 1, minHeight: 0, width: '100vw', overflow: 'hidden' }}>
           <Explorer
             structure={scanData?.structure}
             flatFiles={flatFiles}
@@ -494,35 +389,37 @@ function App() {
 
       {scanError && (
         <div
+          role="alert"
           style={{
             position: 'fixed',
-            top: '20px',
+            top: '74px',
             right: '20px',
             zIndex: 10000,
             display: 'flex',
             alignItems: 'center',
             gap: '12px',
-            backgroundColor: 'rgba(28, 10, 10, 0.85)',
+            backgroundColor: 'var(--dropdown-bg)',
             backdropFilter: 'blur(16px)',
-            border: '1.5px solid rgba(244, 63, 94, 0.4)',
+            border: '1.5px solid var(--bottleneck)',
             borderRadius: '12px',
             padding: '14px 20px',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 0 10px rgba(244, 63, 94, 0.1)',
-            color: '#fda4af',
+            boxShadow: '0 20px 25px -5px var(--shadow), 0 0 10px var(--bottleneck-muted)',
+            color: 'var(--text)',
             fontSize: '13px',
             fontWeight: 500,
             maxWidth: '380px',
             animation: 'slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards'
           }}
         >
-          <AlertTriangle size={18} color="#f43f5e" style={{ flexShrink: 0 }} />
+          <AlertTriangle size={18} color="var(--bottleneck)" style={{ flexShrink: 0 }} />
           <div style={{ flex: 1 }}>{scanError}</div>
           <button
             onClick={() => setScanError(null)}
+            aria-label="Close error"
             style={{
               background: 'none',
               border: 'none',
-              color: '#fda4af',
+              color: 'var(--text-muted)',
               cursor: 'pointer',
               fontSize: '16px',
               padding: '0 4px',

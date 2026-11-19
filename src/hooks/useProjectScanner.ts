@@ -6,9 +6,9 @@ interface UseProjectScannerOptions {
 }
 
 /**
- * Hook personnalisé pour orchestrer le scan d'un projet via Server-Sent Events (SSE).
- * Gère l'état du chemin, le statut du scan, la progression en direct et les données finales.
- * Intègre la résilience (retries/backoff) et le Circuit Breaker du service de transport.
+ * Custom hook to orchestrate project scanning via Server-Sent Events (SSE).
+ * Manages path state, scan status, live progress, and final scan data.
+ * Integrates transport resilience (retries/backoff) and Circuit Breaker.
  */
 export function useProjectScanner(options?: UseProjectScannerOptions) {
   const [projectPath, setProjectPath] = useState('');
@@ -18,6 +18,7 @@ export function useProjectScanner(options?: UseProjectScannerOptions) {
   const [scanError, setScanError] = useState<string | null>(null);
 
   const abortControllerRef = useRef<AbortController | null>(null);
+  const isMountedRef = useRef(true);
 
   const cancelScan = () => {
     if (abortControllerRef.current) {
@@ -26,9 +27,11 @@ export function useProjectScanner(options?: UseProjectScannerOptions) {
     }
   };
 
-  // Nettoyage lors du démontage du composant
+  // Cleanup on component unmount
   useEffect(() => {
+    isMountedRef.current = true;
     return () => {
+      isMountedRef.current = false;
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
@@ -36,16 +39,17 @@ export function useProjectScanner(options?: UseProjectScannerOptions) {
   }, []);
 
   const scanProject = async () => {
-    if (!projectPath) return;
+    const trimmedPath = projectPath.trim();
+    if (!trimmedPath) return;
     
-    // Annuler tout scan en cours
+    // Cancel any ongoing scan
     cancelScan();
 
     setIsScanning(true);
     setScanError(null);
-    setScanProgress({ stage: 'reading', message: 'Démarrage du scan...' });
+    setScanProgress({ stage: 'reading', message: 'Starting scan...' });
     
-    // Déclenche l'événement d'initialisation (ex: réinitialisation des filtres de l'interface)
+    // Trigger initialization callback (e.g., reset UI filters)
     if (options?.onScanStart) {
       options.onScanStart();
     }
@@ -55,8 +59,9 @@ export function useProjectScanner(options?: UseProjectScannerOptions) {
 
     try {
       await scanProjectStream({
-        projectPath,
+        projectPath: trimmedPath,
         onProgress: (progress) => {
+          if (!isMountedRef.current) return;
           setScanProgress({
             stage: progress.stage,
             current: progress.current,
@@ -65,22 +70,26 @@ export function useProjectScanner(options?: UseProjectScannerOptions) {
           });
         },
         onResult: (result) => {
+          if (!isMountedRef.current) return;
           setScanData(result);
         },
         signal: controller.signal,
       });
     } catch (e: any) {
+      if (!isMountedRef.current) return;
       if (e.name === 'AbortError') {
-        setScanError('Le scan a été annulé.');
+        setScanError('Scan was cancelled.');
       } else {
-        setScanError(e.message || 'Une erreur inconnue est survenue lors du scan.');
+        setScanError(e.message || 'An unknown error occurred during the scan.');
       }
     } finally {
       if (abortControllerRef.current === controller) {
         abortControllerRef.current = null;
       }
-      setIsScanning(false);
-      setScanProgress(null);
+      if (isMountedRef.current) {
+        setIsScanning(false);
+        setScanProgress(null);
+      }
     }
   };
 

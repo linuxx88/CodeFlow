@@ -1,49 +1,68 @@
 import { FlowElementBuilder } from './FlowElementBuilder'
-import type { Template } from '../templateBuilders'
+import { getNodeDimensions } from '../layoutEngine'
+import type { FlowNodeType, ScanData, Template } from '../../types'
 
-export const buildAlgoTemplates = (scanData: any, templates: Record<string, Template>): Record<string, Template> => {
+const boxHeight = (label: string, type: FlowNodeType): number =>
+  getNodeDimensions({
+    id: '',
+    type: 'customNode',
+    position: { x: 0, y: 0 },
+    data: { label, type },
+  }).height
+
+export const buildAlgoTemplates = (
+  scanData: ScanData | null | undefined,
+  templates: Record<string, Template>
+): Record<string, Template> => {
   const temps: Record<string, Template> = { ...templates }
-  if (scanData?.algorithms) {
-    for (const algoFile of scanData.algorithms) {
-      const file = algoFile.file
-      for (const item of algoFile.items) {
-        const funcName = item.name
-        const steps = item.steps
+  if (!scanData?.algorithms) return temps
 
-        const builder = new FlowElementBuilder(
-          `Fonction: ${funcName}()`,
-          `Fichier: ${file}`
-        )
-          .addNode('start')
-          .withNodeType('start')
-          .withPosition(250, 20)
-          .withLabel(`Début: ${funcName}(${item.args})`)
+  const VERTICAL_GAP = 60
+
+  for (const algoFile of scanData.algorithms) {
+    const file = algoFile.file || 'Unknown file'
+    const items = algoFile.items || []
+    for (const item of items) {
+      const funcName = item.name || 'function'
+      const steps = Array.isArray(item.steps) ? item.steps : []
+      const args = item.args ?? ''
+      const startLabel = `Start: ${funcName}(${args})`
+
+      const builder = new FlowElementBuilder(
+        `Function: ${funcName}()`,
+        `File: ${file}`
+      )
+        .addNode('start')
+        .withNodeType('start')
+        .withPosition(250, 20)
+        .withLabel(startLabel)
+        .commit()
+
+      let prevNodeId = 'start'
+      let cursorY = 20 + boxHeight(startLabel, 'start') + VERTICAL_GAP
+
+      steps.forEach((step, sIdx) => {
+        const stepNodeId = `step-${sIdx}`
+        const stepLabel = String(step ?? '')
+
+        builder
+          .addNode(stepNodeId)
+          .withNodeType('action')
+          .withPosition(250, cursorY)
+          .withLabel(stepLabel)
           .commit()
 
-        let prevNodeId = 'start'
+          .addEdge(`edge-${sIdx}`)
+          .from(prevNodeId)
+          .to(stepNodeId)
+          .withDefaultTheme()
+          .commit()
 
-        steps.forEach((step: string, sIdx: number) => {
-          const stepNodeId = `step-${sIdx}`
-          const yBase = 120 + sIdx * 100
+        prevNodeId = stepNodeId
+        cursorY += boxHeight(stepLabel, 'action') + VERTICAL_GAP
+      })
 
-          builder
-            .addNode(stepNodeId)
-            .withNodeType('action')
-            .withPosition(250, yBase)
-            .withLabel(step)
-            .commit()
-
-            .addEdge(`edge-${sIdx}`)
-            .from(prevNodeId)
-            .to(stepNodeId)
-            .withDefaultTheme()
-            .commit()
-
-          prevNodeId = stepNodeId
-        })
-
-        temps[`project-${file}-${funcName}`] = builder.build()
-      }
+      temps[`project-${file}-${funcName}`] = builder.build()
     }
   }
   return temps

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React from 'react'
 import { AlertTriangle, FolderOpen } from 'lucide-react'
 
 const EmptyState: React.FC = () => {
@@ -42,10 +42,10 @@ const EmptyState: React.FC = () => {
         <FolderOpen size={30} color="var(--accent)" />
       </div>
       <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--text)', margin: 0 }}>
-        Aucun projet ou fichier chargé
+        No project or file loaded
       </h3>
       <p style={{ fontSize: '13px', margin: 0, maxWidth: '380px', lineHeight: '1.5', opacity: 0.8 }}>
-        Sélectionnez un fichier dans l'explorateur pour afficher son diagramme.
+        Select a file in the explorer to view its diagram.
       </p>
     </div>
   )
@@ -83,8 +83,8 @@ const ValidationErrorUI: React.FC<ValidationErrorProps> = ({ message, details })
         minHeight: '400px',
         backgroundColor: 'var(--panel-bg)',
         backdropFilter: 'blur(16px)',
-        border: '1.5px solid rgba(244, 63, 94, 0.3)',
-        boxShadow: '0 8px 32px 0 var(--shadow), 0 0 12px rgba(244, 63, 94, 0.1)',
+        border: '1.5px solid var(--bottleneck)',
+        boxShadow: '0 8px 32px 0 var(--shadow), 0 0 12px var(--bottleneck-muted)',
         borderRadius: '12px',
         padding: '30px',
         textAlign: 'center',
@@ -101,15 +101,15 @@ const ValidationErrorUI: React.FC<ValidationErrorProps> = ({ message, details })
           width: '64px',
           height: '64px',
           borderRadius: '50%',
-          backgroundColor: 'rgba(244, 63, 94, 0.1)',
-          border: '1.5px solid #f43f5e',
-          boxShadow: '0 0 16px rgba(244, 63, 94, 0.3)'
+          backgroundColor: 'var(--bottleneck-muted)',
+          border: '1.5px solid var(--bottleneck)',
+          boxShadow: '0 0 16px var(--bottleneck-muted)'
         }}
       >
-        <AlertTriangle size={32} color="#f43f5e" />
+        <AlertTriangle size={32} color="var(--bottleneck)" />
       </div>
-      <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#f43f5e', margin: 0, letterSpacing: '0.5px' }}>
-        Erreur de validation du Flowchart
+      <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--bottleneck)', margin: 0, letterSpacing: '0.5px' }}>
+        Flowchart Validation Error
       </h2>
       <p style={{ fontSize: '14px', color: 'var(--text)', margin: 0, maxWidth: '480px', lineHeight: '1.6', opacity: 0.9 }}>
         {message}
@@ -140,13 +140,7 @@ const ValidationErrorUI: React.FC<ValidationErrorProps> = ({ message, details })
 }
 
 export const FlowchartRenderer: React.FC<FlowchartRendererProps> = ({ currentView, scanData }) => {
-  const renderKey = useMemo(() => {
-    try {
-      return `${currentView}-${JSON.stringify(scanData || {})}`
-    } catch {
-      return `${currentView}-error`
-    }
-  }, [currentView, scanData])
+  const renderKey = currentView
 
   if (!scanData) {
     return <EmptyState />
@@ -174,6 +168,10 @@ export const FlowchartRenderer: React.FC<FlowchartRendererProps> = ({ currentVie
     case 'python-flowchart':
       return <PythonFlowchart key={renderKey} scanData={scanData} />
     default:
-      return null
+      return (
+        <ValidationErrorUI
+          message={`Unsupported diagram view: "${String(currentView)}"`}
+        />
+      )
   }
 }

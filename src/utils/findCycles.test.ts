@@ -21,7 +21,7 @@ describe('findCycles (Tarjan SCC algorithm)', () => {
     const nodes = [{ id: 'A' }, { id: 'B' }, { id: 'C' }]
     const links = [
       { source: 'A', target: 'B' },
-      { source: 'B', target: 'C' }
+      { source: 'B', target: 'C' },
     ]
     const result = findCycles(nodes, links)
     expect(result.cycleNodes.size).toBe(0)
@@ -33,7 +33,7 @@ describe('findCycles (Tarjan SCC algorithm)', () => {
     const nodes = [{ id: 'A' }, { id: 'B' }]
     const links = [
       { source: 'A', target: 'B' },
-      { source: 'B', target: 'A' }
+      { source: 'B', target: 'A' },
     ]
     const result = findCycles(nodes, links)
     expect(result.cycleNodes.has('A')).toBe(true)
@@ -65,7 +65,7 @@ describe('findCycles (Tarjan SCC algorithm)', () => {
       { source: 'B', target: 'A' },
       { source: 'A', target: 'C' },
       { source: 'C', target: 'D' },
-      { source: 'D', target: 'C' }
+      { source: 'D', target: 'C' },
     ]
     const result = findCycles(nodes, links)
     expect(result.cycleNodes.size).toBe(4)
@@ -79,5 +79,22 @@ describe('findCycles (Tarjan SCC algorithm)', () => {
     expect(result.cycleEdges.has('D->C')).toBe(true)
     expect(result.cycleEdges.has('A->C')).toBe(false) // Bridge edge
     expect(result.sccs.length).toBe(2)
+  })
+
+  it('should handle prototype-key node IDs and dangling links safely', () => {
+    const nodes = [{ id: 'constructor' }, { id: 'toString' }]
+    const links = [
+      { source: 'constructor', target: 'toString' },
+      { source: 'toString', target: 'constructor' },
+      { source: 'valueOf', target: 'constructor' }, // dangling source
+      { source: 'constructor', target: 'missing' }, // dangling target
+    ]
+    const result = findCycles(nodes, links)
+    expect(result.cycleNodes.size).toBe(2)
+    expect(result.cycleNodes.has('constructor')).toBe(true)
+    expect(result.cycleNodes.has('toString')).toBe(true)
+    expect(result.cycleEdges.has('constructor->toString')).toBe(true)
+    expect(result.cycleEdges.has('toString->constructor')).toBe(true)
+    expect(result.cycleEdges.has('valueOf->constructor')).toBe(false)
   })
 })

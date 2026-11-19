@@ -1,8 +1,8 @@
-import { parseConditionalsFromFile as originalParseConditionals } from './parsers/conditionalParser'
-import { parseClassesFromFile as originalParseClasses } from './parsers/classParser'
-import { parseLoopsFromFile as originalParseLoops, parseRepeatLoopsFromFile as originalParseRepeatLoops } from './parsers/loopParser'
-import { parseAlgorithmsFromFile as originalParseAlgorithms } from './parsers/algorithmParser'
-import { parsePythonStructuresFromFile as originalParsePythonStructures } from './parsers/pythonParser'
+import { parseConditionalsFromFile as originalParseConditionals } from './parsers/conditionalParser.ts'
+import { parseClassesFromFile as originalParseClasses } from './parsers/classParser.ts'
+import { parseLoopsFromFile as originalParseLoops, parseRepeatLoopsFromFile as originalParseRepeatLoops } from './parsers/loopParser.ts'
+import { parseAlgorithmsFromFile as originalParseAlgorithms } from './parsers/algorithmParser.ts'
+import { parsePythonStructuresFromFile as originalParsePythonStructures } from './parsers/pythonParser.ts'
 import path from 'path'
 
 const isSupportedExt = (ext: string): boolean => {

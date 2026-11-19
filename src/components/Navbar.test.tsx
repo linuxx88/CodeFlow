@@ -1,7 +1,11 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { Navbar } from './Navbar'
 import React from 'react'
+
+vi.mock('../services/transportService', () => ({
+  checkBackendHealth: vi.fn().mockResolvedValue(true)
+}))
 
 describe('Navbar Component', () => {
   const defaultProps = {
@@ -16,14 +20,25 @@ describe('Navbar Component', () => {
     setTheme: vi.fn(),
   }
 
-  it('should render navbar layout and inputs correctly', () => {
-    render(<Navbar {...defaultProps} />)
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  const renderNavbar = async (props = defaultProps) => {
+    render(<Navbar {...props} />)
+    await waitFor(() => {
+      expect(screen.getByText('Engine OK')).toBeInTheDocument()
+    })
+  }
+
+  it('should render navbar layout and inputs correctly', async () => {
+    await renderNavbar()
     
     // Header title
-    expect(screen.getByText('Flux de Dépendance Interactif')).toBeInTheDocument()
+    expect(screen.getByText('Interactive Dependency Flow')).toBeInTheDocument()
     
     // Path input
-    const pathInput = screen.getByPlaceholderText('Entrez le chemin du projet...')
+    const pathInput = screen.getByPlaceholderText('Enter project path...') as HTMLInputElement
     expect(pathInput).toBeInTheDocument()
     expect(pathInput.value).toBe('/mock/path')
     
@@ -31,24 +46,33 @@ describe('Navbar Component', () => {
     expect(screen.getByText('dark')).toBeInTheDocument()
     
     // Scan button
-    const scanButton = screen.getByRole('button', { name: 'Scanner' })
+    const scanButton = screen.getByRole('button', { name: 'Scan' })
     expect(scanButton).toBeInTheDocument()
     expect(scanButton).not.toBeDisabled()
   })
 
-  it('should call setProjectPath when path input changes', () => {
-    render(<Navbar {...defaultProps} />)
+  it('should call setProjectPath when path input changes', async () => {
+    await renderNavbar()
     
-    const pathInput = screen.getByPlaceholderText('Entrez le chemin du projet...')
+    const pathInput = screen.getByPlaceholderText('Enter project path...')
     fireEvent.change(pathInput, { target: { value: '/new/path' } })
     
     expect(defaultProps.setProjectPath).toHaveBeenCalledWith('/new/path')
   })
 
-  it('should toggle theme selection dropdown and select theme option', () => {
-    render(<Navbar {...defaultProps} />)
+  it('should call onScan when pressing Enter in path input', async () => {
+    await renderNavbar()
+
+    const pathInput = screen.getByPlaceholderText('Enter project path...')
+    fireEvent.keyDown(pathInput, { key: 'Enter' })
+
+    expect(defaultProps.onScan).toHaveBeenCalledTimes(1)
+  })
+
+  it('should toggle theme selection dropdown and select theme option', async () => {
+    await renderNavbar()
     
-    const themeBtn = screen.getByTitle('Changer le thème')
+    const themeBtn = screen.getByTitle('Change theme')
     expect(themeBtn).toBeInTheDocument()
     
     // Click theme dropdown
@@ -62,44 +86,48 @@ describe('Navbar Component', () => {
     expect(defaultProps.setTheme).toHaveBeenCalledWith('cyberpunk')
   })
 
-  it('should toggle view options dropdown and call onViewChange when clicked', () => {
-    render(<Navbar {...defaultProps} />)
+  it('should toggle view options dropdown and call onViewChange when clicked', async () => {
+    await renderNavbar()
     
-    const viewBtn = screen.getByText(/Type de Flowchart :/)
+    const viewBtn = screen.getByText(/Flowchart Type:/)
     expect(viewBtn).toBeInTheDocument()
     
     // Click view dropdown
     fireEvent.click(viewBtn)
     
-    // Select conditional-statement option (e.g. "Flowchart d'Instructions Conditionnelles")
-    const conditionalOption = screen.getByText("Flowchart d'Instructions Conditionnelles")
+    // Select conditional-statement option
+    const conditionalOption = screen.getByText('Conditional Statements Flowchart')
     expect(conditionalOption).toBeInTheDocument()
     
     fireEvent.click(conditionalOption)
     expect(defaultProps.onViewChange).toHaveBeenCalledWith('conditional-statement')
   })
 
-  it('should call onScan when scan button is clicked', () => {
-    render(<Navbar {...defaultProps} />)
+  it('should call onScan when scan button is clicked', async () => {
+    await renderNavbar()
     
-    const scanButton = screen.getByRole('button', { name: 'Scanner' })
+    const scanButton = screen.getByRole('button', { name: 'Scan' })
     fireEvent.click(scanButton)
     
     expect(defaultProps.onScan).toHaveBeenCalled()
   })
 
-  it('should disable scan button when isScanning is true', () => {
-    render(<Navbar {...defaultProps} isScanning={true} />)
+  it('should disable scan button when isScanning is true or projectPath is empty', async () => {
+    await renderNavbar({ ...defaultProps, isScanning: true })
     
-    const scanButton = screen.getByRole('button', { name: 'Scanner' })
+    const scanButton = screen.getByRole('button', { name: 'Scan' })
     expect(scanButton).toBeDisabled()
+
+    await renderNavbar({ ...defaultProps, projectPath: '   ' })
+    const scanButtons = screen.getAllByRole('button', { name: 'Scan' })
+    expect(scanButtons[1]).toBeDisabled()
   })
 
-  it('should call onCancel when cancel button is clicked', () => {
+  it('should call onCancel when cancel button is clicked', async () => {
     const onCancel = vi.fn()
-    render(<Navbar {...defaultProps} isScanning={true} onCancel={onCancel} />)
+    await renderNavbar({ ...defaultProps, isScanning: true, onCancel })
     
-    const cancelButton = screen.getByRole('button', { name: 'Annuler' })
+    const cancelButton = screen.getByRole('button', { name: 'Cancel' })
     expect(cancelButton).toBeInTheDocument()
     fireEvent.click(cancelButton)
     expect(onCancel).toHaveBeenCalled()

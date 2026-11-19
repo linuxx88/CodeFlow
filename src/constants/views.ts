@@ -15,15 +15,15 @@ export interface ViewOption {
 }
 
 export const VIEW_OPTIONS: ViewOption[] = [
-  { value: 'all', label: 'Flux de Dépendances' },
-  { value: 'web', label: 'Flowchart de Développement Web' },
-  { value: 'conditional-statement', label: "Flowchart d'Instructions Conditionnelles" },
-  { value: 'class-diagram', label: 'Flowchart de Diagramme de Classes' },
-  { value: 'while-loop', label: 'Flowchart de Boucle TANT QUE' },
-  { value: 'repeat-loop', label: 'Flowchart de Boucle RÉPÉTER' },
-  { value: 'algo', label: "Flowchart d'Algorithme" },
-  { value: 'process-flowchart', label: 'Flowchart de Processus de Développement' },
-  { value: 'python-flowchart', label: 'Flowchart Python' }
+  { value: 'all', label: 'Dependency Graph' },
+  { value: 'web', label: 'Web Development Flowchart' },
+  { value: 'conditional-statement', label: 'Conditional Statements Flowchart' },
+  { value: 'class-diagram', label: 'Class Diagram Flowchart' },
+  { value: 'while-loop', label: 'While Loop Flowchart' },
+  { value: 'repeat-loop', label: 'Repeat Loop Flowchart' },
+  { value: 'algo', label: 'Algorithm Flowchart' },
+  { value: 'process-flowchart', label: 'Development Process Flowchart' },
+  { value: 'python-flowchart', label: 'Python Flowchart' }
 ]
 
 export const getViewLabel = (view: FlowchartView | string): string => {

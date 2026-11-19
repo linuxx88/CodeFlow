@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react'
 import { ReactFlowProvider, useReactFlow, useNodes, useEdges, useUpdateNodeInternals } from '@xyflow/react'
-import { GenericFlowchart } from './GenericFlowchart'
+import { GenericFlowchartContent } from './GenericFlowchart'
 import { REPEAT_TEMPLATES } from '../templates'
 
 interface RepeatLoopFlowchartProps {
@@ -61,9 +61,9 @@ export const RepeatLoopFlowchart: React.FC<RepeatLoopFlowchartProps> = ({ scanDa
   return (
     <ReactFlowProvider>
       <div ref={containerRef} style={{ display: 'flex', flex: 1, width: '100%', height: '100%' }}>
-        <GenericFlowchart
+        <GenericFlowchartContent
           templates={REPEAT_TEMPLATES}
-          title="Sélectionner un Modèle Repeat (Do-While)"
+          title="Select a Repeat (Do-While) Template"
           scanData={scanData}
           filterType="repeat"
         />

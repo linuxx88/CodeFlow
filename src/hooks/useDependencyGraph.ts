@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useState, useRef } from 'react'
+import { useMemo, useEffect } from 'react'
 import { useNodesState, useEdgesState, Position, MarkerType } from '@xyflow/react'
 import type { Node, Edge } from '@xyflow/react'
 import { findCycles } from '../utils/projectUtils'
@@ -19,6 +19,8 @@ interface UseDependencyGraphProps {
   activeFile?: string | null
 }
 
+const WEB_EXTENSIONS = ['.html', '.css', '.js', '.ts', '.jsx', '.tsx', '.vue', '.svelte', '.json']
+
 export const useDependencyGraph = ({
   scanData,
   showExternal,
@@ -28,262 +30,225 @@ export const useDependencyGraph = ({
   hoveredNodeId,
   currentView,
   direction = 'LR',
-  nodesep = 40,
-  ranksep = 80,
+  nodesep = 70,
+  ranksep = 160,
   activeFile
 }: UseDependencyGraphProps) => {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
-  const [totalVisibleNodesCount, setTotalVisibleNodesCount] = useState(0)
-  const [cyclesData, setCyclesData] = useState<{ cycleNodes: string[]; cycleEdges: string[] }>({
-    cycleNodes: [],
-    cycleEdges: []
-  })
-  const [nodeInDegrees, setNodeInDegrees] = useState<Record<string, number>>({})
 
-  const workerRef = useRef<Worker | null>(null)
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && typeof window.Worker !== 'undefined') {
-      const worker = new Worker(
-        new URL('../workers/layoutWorker.ts', import.meta.url),
-        { type: 'module' }
-      )
-      workerRef.current = worker
-
-      worker.onmessage = (event) => {
-        const {
-          nodes: layoutedNodes,
-          edges: layoutedEdges,
-          totalVisibleNodesCount: count,
-          cycles,
-          nodeInDegrees: degrees
-        } = event.data
-
-        setNodes(layoutedNodes)
-        setEdges(layoutedEdges)
-        setTotalVisibleNodesCount(count)
-        setCyclesData(cycles)
-        setNodeInDegrees(degrees)
-      }
-
-      return () => {
-        worker.terminate()
-        workerRef.current = null
+  const graphStats = useMemo(() => {
+    if (!scanData?.dependencies) {
+      return {
+        nodeInDegrees: {} as Record<string, number>,
+        cycles: { cycleNodes: new Set<string>(), cycleEdges: new Set<string>() }
       }
     }
-  }, [setNodes, setEdges])
 
-  useEffect(() => {
-    if (workerRef.current) {
-      workerRef.current.postMessage({
-        scanData,
-        showExternal,
-        filterQuery,
-        showOnlyCycles,
-        selectedExtensions,
-        hoveredNodeId,
-        currentView,
-        direction,
-        nodesep,
-        ranksep,
-        activeFile
-      })
-    } else {
-      setTimeout(() => {
-        if (!scanData?.dependencies) {
-          setNodes([])
-          setEdges([])
-          setTotalVisibleNodesCount(0)
-          setCyclesData({ cycleNodes: [], cycleEdges: [] })
-          setNodeInDegrees({})
-          return
+    const degrees: Record<string, number> = {}
+    if (scanData.dependencies.links) {
+      for (const link of scanData.dependencies.links) {
+        const target = link.target
+        degrees[target] = (degrees[target] || 0) + 1
+      }
+    }
+
+    const cycles = findCycles(scanData.dependencies.nodes, scanData.dependencies.links)
+    return { nodeInDegrees: degrees, cycles }
+  }, [scanData])
+
+  // Compute base layout only when graph structure, filters, or layout settings change (NOT on hover)
+  const baseLayout = useMemo(() => {
+    if (!scanData?.dependencies) {
+      return {
+        nodes: [] as Node[],
+        edges: [] as Edge[],
+        filteredLinks: [] as any[],
+        totalVisibleNodesCount: 0
+      }
+    }
+
+    const { nodeInDegrees, cycles } = graphStats
+    const { nodes: rawNodes = [], links: rawLinks = [] } = scanData.dependencies
+
+    const filteredNodes = rawNodes.filter((n: any) => {
+      if (!showExternal && n.type === 'package') return false
+      if (filterQuery && !n.id.toLowerCase().includes(filterQuery.toLowerCase())) return false
+      if (showOnlyCycles && !cycles.cycleNodes.has(n.id)) return false
+      if (selectedExtensions.length > 0 && n.type === 'file') {
+        const ext = n.id.substring(n.id.lastIndexOf('.')).toLowerCase()
+        if (!selectedExtensions.includes(ext)) return false
+      }
+      if (currentView === 'web' && n.type === 'file') {
+        const ext = n.id.substring(n.id.lastIndexOf('.')).toLowerCase()
+        if (!WEB_EXTENSIONS.includes(ext) && !n.id.startsWith('src/') && !n.id.startsWith('public/')) {
+          return false
         }
+      }
+      return true
+    })
 
-        const degrees: Record<string, number> = {}
-        if (scanData.dependencies.links) {
-          for (const link of scanData.dependencies.links) {
-            const target = link.target
-            degrees[target] = (degrees[target] || 0) + 1
-          }
-        }
-        setNodeInDegrees(degrees)
+    const count = filteredNodes.length
+    const filteredNodeIds = new Set(filteredNodes.map((n: any) => n.id))
+    const filteredLinks = rawLinks.filter((l: any) => {
+      if (!showExternal && l.type === 'external') return false
+      if (!filteredNodeIds.has(l.source) || !filteredNodeIds.has(l.target)) return false
+      return true
+    })
 
-        const cycles = findCycles(scanData.dependencies.nodes, scanData.dependencies.links)
-        setCyclesData({
-          cycleNodes: Array.from(cycles.cycleNodes),
-          cycleEdges: Array.from(cycles.cycleEdges)
-        })
+    const sortedNodes = [...filteredNodes].sort((a: any, b: any) => a.id.localeCompare(b.id))
+    const highPerformanceMode = count > 80
 
-        const { nodes: rawNodes, links: rawLinks } = scanData.dependencies
-        
-        const filteredNodes = rawNodes.filter((n: any) => {
-          if (!showExternal && n.type === 'package') return false
-          if (filterQuery && !n.id.toLowerCase().includes(filterQuery.toLowerCase())) return false
-          if (showOnlyCycles && !cycles.cycleNodes.has(n.id)) return false
-          if (selectedExtensions.length > 0 && n.type === 'file') {
-            const ext = n.id.substring(n.id.lastIndexOf('.')).toLowerCase()
-            if (!selectedExtensions.includes(ext)) return false
-          }
-          if (currentView === 'web' && n.type === 'file') {
-            const ext = n.id.substring(n.id.lastIndexOf('.')).toLowerCase()
-            const webExtensions = ['.html', '.css', '.js', '.ts', '.jsx', '.tsx', '.vue', '.svelte', '.json']
-            if (!webExtensions.includes(ext) && !n.id.startsWith('src/') && !n.id.startsWith('public/')) {
-              return false
-            }
-          }
-          return true
-        })
+    const calculatedNodes: Node[] = sortedNodes.map((n: any) => {
+      const normalized = String(n.id).replace(/\\/g, '/')
+      const lastSlash = normalized.lastIndexOf('/')
+      const fileName = lastSlash >= 0 ? normalized.slice(lastSlash + 1) : normalized
+      const folderPath = lastSlash >= 0 ? normalized.slice(0, lastSlash) : ''
+      const inDegree = nodeInDegrees[n.id] || 0
+      const isBottleneck = inDegree >= 3 && n.type === 'file'
+      const isPartOfCycle = cycles.cycleNodes.has(n.id)
 
-        const count = filteredNodes.length
-        setTotalVisibleNodesCount(count)
+      return {
+        id: n.id,
+        type: 'custom',
+        position: { x: 0, y: 0 },
+        data: {
+          label: n.id,
+          fullPath: n.id,
+          fileName,
+          folderPath,
+          inDegree,
+          isBottleneck,
+          isPackage: n.type === 'package',
+          isPartOfCycle,
+          isDimmed: false,
+          highPerformanceMode
+        },
+        sourcePosition: direction === 'LR' ? Position.Right : Position.Bottom,
+        targetPosition: direction === 'LR' ? Position.Left : Position.Top
+      }
+    })
 
-        const filteredNodeIds = new Set(filteredNodes.map((n: any) => n.id))
-        const filteredLinks = rawLinks.filter((l: any) => {
-          if (!showExternal && l.type === 'external') return false
-          if (!filteredNodeIds.has(l.source) || !filteredNodeIds.has(l.target)) return false
-          return true
-        })
-
-        const connectedNodeIds = new Set<string>()
-        const focusNodeId = hoveredNodeId || activeFile
-
-        if (focusNodeId) {
-          connectedNodeIds.add(focusNodeId)
-          for (const link of filteredLinks) {
-            if (link.source === focusNodeId) {
-              connectedNodeIds.add(link.target)
-            }
-            if (link.target === focusNodeId) {
-              connectedNodeIds.add(link.source)
-            }
-          }
-        }
-
-        const dirsList = filteredNodes.filter((n: any) => n.type === 'file' && n.id.includes('/'))
-        const rootFiles = filteredNodes.filter((n: any) => n.type === 'file' && !n.id.includes('/'))
-        const pkgsList = filteredNodes.filter((n: any) => n.type === 'package')
-
-        dirsList.sort((a: any, b: any) => a.id.localeCompare(b.id))
-        rootFiles.sort((a: any, b: any) => a.id.localeCompare(b.id))
-
-        const finalNodesList = [...dirsList, ...rootFiles, ...pkgsList]
-        const highPerformanceMode = count > 80
-
-        const calculatedNodes: Node[] = finalNodesList.map((n: any, idx: number) => {
-          let x = 400
-          if (n.type === 'package') {
-            x = 800
-          } else if (n.id.includes('/')) {
-            x = 100
-          }
-          
-          const inDegree = degrees[n.id] || 0
-          const isBottleneck = inDegree >= 3 && n.type === 'file'
-          const isPartOfCycle = cycles.cycleNodes.has(n.id)
-          const label = n.id
-          const isDimmed = focusNodeId !== null && !connectedNodeIds.has(n.id)
-
-          return {
-            id: n.id,
-            type: 'custom',
-            position: { x, y: idx * 80 + 50 },
-            data: {
-              label: `${label} (${inDegree} in)`,
-              isBottleneck,
-              isPackage: n.type === 'package',
-              isPartOfCycle,
-              isDimmed,
-              highPerformanceMode
-            },
-            sourcePosition: Position.Right,
-            targetPosition: Position.Left
-          }
-        })
-
-        const calculatedEdges: Edge[] = calculatedNodes.length > 0 ? filteredLinks.map((l: any, idx: number) => {
+    const calculatedEdges: Edge[] = calculatedNodes.length > 0
+      ? filteredLinks.map((l: any, idx: number) => {
           const isExternal = l.type === 'external'
-          const isHighlighted = focusNodeId !== null && (l.source === focusNodeId || l.target === focusNodeId)
-          const isDimmed = focusNodeId !== null && !isHighlighted
           const isPartOfCycle = cycles.cycleEdges.has(`${l.source}->${l.target}`)
-          
-          let strokeColor = isExternal ? 'var(--package)' : 'var(--accent)'
-          if (isPartOfCycle) {
-            strokeColor = 'var(--cycle)'
-          }
-          if (focusNodeId !== null) {
-            strokeColor = isHighlighted ? (isPartOfCycle ? 'var(--cycle)' : (isExternal ? 'var(--package)' : 'var(--accent)')) : 'rgba(255, 255, 255, 0.04)'
-          }
+          const strokeColor = isPartOfCycle
+            ? 'var(--cycle)'
+            : (isExternal ? 'var(--package)' : 'var(--accent)')
 
-          let edgeClass = 'edge-normal'
-          if (isPartOfCycle) {
-            edgeClass = 'edge-cycle'
-          } else if (isHighlighted) {
-            edgeClass = 'edge-highlighted'
-          } else if (isExternal) {
-            edgeClass = 'edge-package'
-          }
+          const edgeClass = isPartOfCycle
+            ? 'edge-cycle'
+            : (isExternal ? 'edge-package' : 'edge-normal')
 
           return {
             id: `e-${idx}`,
             source: l.source,
             target: l.target,
-            type: highPerformanceMode ? 'straight' : 'smoothstep',
+            type: 'smoothstep',
+            pathOptions: { borderRadius: 12 },
             className: highPerformanceMode ? 'edge-fast' : edgeClass,
+            data: { isExternal, isPartOfCycle },
             style: {
               stroke: strokeColor,
-              opacity: isDimmed ? 0.15 : 1
+              strokeWidth: isPartOfCycle ? 2 : 1.5,
+              opacity: isPartOfCycle ? 0.75 : 0.38
             },
             markerEnd: {
               type: MarkerType.ArrowClosed,
               color: strokeColor,
-              width: isHighlighted || isPartOfCycle ? 18 : 15,
-              height: isHighlighted || isPartOfCycle ? 18 : 15
+              width: isPartOfCycle ? 16 : 14,
+              height: isPartOfCycle ? 16 : 14
             }
           }
-        }) : []
+        })
+      : []
 
-        const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-          calculatedNodes,
-          calculatedEdges,
-          direction,
-          nodesep,
-          ranksep
-        )
-        setNodes(layoutedNodes)
-        setEdges(layoutedEdges)
-      }, 0)
+    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
+      calculatedNodes,
+      calculatedEdges,
+      direction,
+      nodesep,
+      ranksep
+    )
+
+    return {
+      nodes: layoutedNodes,
+      edges: layoutedEdges,
+      filteredLinks,
+      totalVisibleNodesCount: count
     }
   }, [
     scanData,
+    graphStats,
     showExternal,
     filterQuery,
     showOnlyCycles,
     selectedExtensions,
-    hoveredNodeId,
     currentView,
     direction,
     nodesep,
-    ranksep,
-    activeFile,
-    setNodes,
-    setEdges
+    ranksep
   ])
 
-  const cyclesSet = useMemo(() => {
-    return {
-      cycleNodes: new Set(cyclesData.cycleNodes),
-      cycleEdges: new Set(cyclesData.cycleEdges)
+  // Sync base layout & apply hover/selection highlighting without re-running layout
+  useEffect(() => {
+    const focusNodeId = hoveredNodeId || activeFile || null
+    const connectedNodeIds = new Set<string>()
+
+    if (focusNodeId) {
+      connectedNodeIds.add(focusNodeId)
+      for (const link of baseLayout.filteredLinks) {
+        if (link.source === focusNodeId) connectedNodeIds.add(link.target)
+        if (link.target === focusNodeId) connectedNodeIds.add(link.source)
+      }
     }
-  }, [cyclesData])
+
+    setNodes(
+      baseLayout.nodes.map((node) => ({
+        ...node,
+        data: {
+          ...node.data,
+          isDimmed: focusNodeId !== null && !connectedNodeIds.has(node.id)
+        }
+      }))
+    )
+
+    setEdges(
+      baseLayout.edges.map((edge) => {
+        const isHighlighted = focusNodeId !== null && (edge.source === focusNodeId || edge.target === focusNodeId)
+        const isExternal = Boolean((edge.data as any)?.isExternal)
+        const isPartOfCycle = Boolean((edge.data as any)?.isPartOfCycle)
+        const strokeColor = isPartOfCycle
+          ? 'var(--cycle)'
+          : (isExternal ? 'var(--package)' : 'var(--accent)')
+
+        const opacity = focusNodeId === null
+          ? (isPartOfCycle ? 0.75 : 0.38)
+          : (isHighlighted ? 1 : 0.08)
+
+        return {
+          ...edge,
+          className: isHighlighted ? 'edge-highlighted' : edge.className,
+          zIndex: isHighlighted ? 10 : 0,
+          style: {
+            ...edge.style,
+            stroke: strokeColor,
+            strokeWidth: isHighlighted ? 2.5 : (isPartOfCycle ? 2 : 1.5),
+            opacity
+          }
+        }
+      })
+    )
+  }, [baseLayout, hoveredNodeId, activeFile, setNodes, setEdges])
 
   return {
     nodes,
     edges,
     onNodesChange,
     onEdgesChange,
-    totalVisibleNodesCount,
-    cycles: cyclesSet,
-    nodeInDegrees
+    totalVisibleNodesCount: baseLayout.totalVisibleNodesCount,
+    cycles: graphStats.cycles,
+    nodeInDegrees: graphStats.nodeInDegrees
   }
 }

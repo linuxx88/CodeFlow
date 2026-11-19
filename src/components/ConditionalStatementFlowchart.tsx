@@ -10,7 +10,7 @@ export const ConditionalStatementFlowchart: React.FC<ConditionalStatementFlowcha
   return (
     <GenericFlowchart
       templates={CONDITIONAL_TEMPLATES}
-      title="Sélectionner un Modèle Conditionnel"
+      title="Select a Conditional Template"
       scanData={scanData}
     />
   )

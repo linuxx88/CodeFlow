@@ -1,7 +1,7 @@
+import type { CSSProperties } from 'react'
 import type { Node, Edge } from '@xyflow/react'
 import { Position } from '@xyflow/react'
-import type { Template } from '../templateBuilders'
-import React from 'react'
+import type { FlowNodeType, Template } from '../../types'
 
 export class FlowElementBuilder {
   private nodes: Node[] = []
@@ -33,14 +33,14 @@ export class FlowElementBuilder {
   }
 
   addRawNode(node: Node): this {
-    if (!this.nodes.some(n => n.id === node.id)) {
+    if (!this.nodes.some((n) => n.id === node.id)) {
       this.nodes.push(node)
     }
     return this
   }
 
   addRawEdge(edge: Edge): this {
-    if (!this.edges.some(e => e.id === edge.id)) {
+    if (!this.edges.some((e) => e.id === edge.id)) {
       this.edges.push(edge)
     }
     return this
@@ -51,11 +51,17 @@ export class FlowElementBuilder {
 
     for (const node of this.nodes) {
       if (!node.id || typeof node.id !== 'string') {
-        throw new Error(`Validation Error: Node has invalid or missing id`)
+        throw new Error('Validation Error: Node has invalid or missing id')
       }
       nodeIds.add(node.id)
 
-      if (!node.position || typeof node.position.x !== 'number' || typeof node.position.y !== 'number') {
+      if (
+        !node.position ||
+        typeof node.position.x !== 'number' ||
+        typeof node.position.y !== 'number' ||
+        !Number.isFinite(node.position.x) ||
+        !Number.isFinite(node.position.y)
+      ) {
         throw new Error(`Validation Error: Node ${node.id} has invalid position coordinates`)
       }
 
@@ -79,13 +85,17 @@ export class FlowElementBuilder {
 
     for (const edge of this.edges) {
       if (!edge.id || typeof edge.id !== 'string') {
-        throw new Error(`Validation Error: Edge has invalid or missing id`)
+        throw new Error('Validation Error: Edge has invalid or missing id')
       }
       if (!edge.source || !nodeIds.has(edge.source)) {
-        throw new Error(`Validation Error: Edge ${edge.id} references non-existent source node "${edge.source}"`)
+        throw new Error(
+          `Validation Error: Edge ${edge.id} references non-existent source node "${edge.source}"`
+        )
       }
       if (!edge.target || !nodeIds.has(edge.target)) {
-        throw new Error(`Validation Error: Edge ${edge.id} references non-existent target node "${edge.target}"`)
+        throw new Error(
+          `Validation Error: Edge ${edge.id} references non-existent target node "${edge.target}"`
+        )
       }
     }
   }
@@ -96,7 +106,7 @@ export class FlowElementBuilder {
       name: this.name,
       description: this.description,
       nodes: this.nodes,
-      edges: this.edges
+      edges: this.edges,
     }
   }
 }
@@ -111,7 +121,7 @@ export class NodeBuilder {
       id,
       type: 'customNode',
       position: { x: 0, y: 0 },
-      data: { label: '', type: 'action' }
+      data: { label: '', type: 'action' },
     }
   }
 
@@ -125,7 +135,7 @@ export class NodeBuilder {
     return this
   }
 
-  withData(data: Record<string, any>): this {
+  withData(data: Record<string, unknown>): this {
     this.node.data = { ...this.node.data, ...data }
     return this
   }
@@ -135,18 +145,17 @@ export class NodeBuilder {
     return this
   }
 
-  withNodeType(nodeType: 'start' | 'condition' | 'action'): this {
+  withNodeType(nodeType: FlowNodeType): this {
     this.node.data = { ...this.node.data, type: nodeType }
-    
-    // Auto configure defaults handles positions based on type
+
+    // Auto-configure default handle positions unless already overridden
     if (nodeType === 'start') {
-      this.node.sourcePosition = Position.Bottom
-      this.node.targetPosition = undefined
+      this.node.sourcePosition ??= Position.Bottom
     } else {
-      this.node.sourcePosition = Position.Bottom
-      this.node.targetPosition = Position.Top
+      this.node.sourcePosition ??= Position.Bottom
+      this.node.targetPosition ??= Position.Top
     }
-    
+
     return this
   }
 
@@ -160,12 +169,11 @@ export class NodeBuilder {
     return this
   }
 
-  withStyle(style: React.CSSProperties): this {
+  withStyle(style: CSSProperties): this {
     this.node.style = style
     return this
   }
 
-  // Chaining API
   addNode(id: string): NodeBuilder {
     this.parent.addRawNode(this.node)
     return this.parent.addNode(id)
@@ -197,7 +205,7 @@ export class EdgeBuilder {
       id,
       source: '',
       target: '',
-      type: 'smoothstep'
+      type: 'smoothstep',
     }
   }
 
@@ -226,17 +234,16 @@ export class EdgeBuilder {
     return this
   }
 
-  withStyle(style: React.CSSProperties): this {
+  withStyle(style: CSSProperties): this {
     this.edge.style = { ...this.edge.style, ...style }
     return this
   }
 
-  withLabelStyle(style: React.CSSProperties): this {
+  withLabelStyle(style: CSSProperties): this {
     this.edge.labelStyle = style
     return this
   }
 
-  // Predefined Themes CSS
   withDefaultTheme(): this {
     this.edge.type = 'smoothstep'
     this.edge.style = { stroke: 'var(--accent)' }
@@ -265,7 +272,6 @@ export class EdgeBuilder {
     return this
   }
 
-  // Chaining API
   addNode(id: string): NodeBuilder {
     this.parent.addRawEdge(this.edge)
     return this.parent.addNode(id)

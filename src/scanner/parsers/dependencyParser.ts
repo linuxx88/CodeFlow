@@ -1,32 +1,59 @@
 import path from 'path'
 
-export function resolvePythonImport(importingFile: string, moduleName: string, nodesMap: Map<string, any>): string | null {
-  const parts = moduleName.split('.')
-  const relDir = path.dirname(importingFile)
-  
-  const relativeCandidates = [
-    path.normalize(path.join(relDir, ...parts)) + '.py',
-    path.normalize(path.join(relDir, ...parts, '__init__.py')),
-    path.normalize(path.join(relDir, parts[0])) + '.py',
-    path.normalize(path.join(relDir, parts[0], '__init__.py')),
-  ]
-  
-  const rootCandidates = [
-    path.normalize(path.join(...parts)) + '.py',
-    path.normalize(path.join(...parts, '__init__.py')),
-    path.normalize(path.join(parts[0])) + '.py',
-    path.normalize(path.join(parts[0], '__init__.py')),
-  ]
+function normalizeCandidate(candidate: string): string {
+  return candidate.replace(/\\/g, '/').replace(/^\/+/, '').replace(/^\.\//, '')
+}
 
-  const allCandidates = [...relativeCandidates, ...rootCandidates]
-  for (let candidate of allCandidates) {
-    if (candidate.startsWith('/')) {
-      candidate = candidate.substring(1)
+export function resolvePythonImport(
+  importingFile: string,
+  moduleName: string,
+  nodesMap: Map<string, unknown>
+): string | null {
+  if (!moduleName) return null
+
+  const leadingDotsMatch = moduleName.match(/^(\.+)(.*)$/)
+  const relDir = path.posix.dirname(importingFile.replace(/\\/g, '/'))
+
+  const candidates: string[] = []
+
+  if (leadingDotsMatch) {
+    const dotCount = leadingDotsMatch[1].length
+    const rest = leadingDotsMatch[2]
+    let baseDir = relDir === '.' ? '' : relDir
+    for (let i = 1; i < dotCount; i++) {
+      baseDir = baseDir ? path.posix.dirname(baseDir) : ''
+      if (baseDir === '.') baseDir = ''
     }
-    if (candidate.startsWith('./')) {
-      candidate = candidate.substring(2)
+    const parts = rest ? rest.split('.').filter(Boolean) : []
+    if (parts.length > 0) {
+      candidates.push(
+        path.posix.join(baseDir, ...parts) + '.py',
+        path.posix.join(baseDir, ...parts, '__init__.py'),
+        path.posix.join(baseDir, parts[0]) + '.py',
+        path.posix.join(baseDir, parts[0], '__init__.py')
+      )
+    } else if (baseDir) {
+      candidates.push(path.posix.join(baseDir, '__init__.py'))
     }
-    const cleaned = candidate.replace(/\\/g, '/')
+  } else {
+    const parts = moduleName.split('.').filter(Boolean)
+    if (parts.length === 0) return null
+
+    const baseDir = relDir === '.' ? '' : relDir
+    candidates.push(
+      path.posix.join(baseDir, ...parts) + '.py',
+      path.posix.join(baseDir, ...parts, '__init__.py'),
+      path.posix.join(baseDir, parts[0]) + '.py',
+      path.posix.join(baseDir, parts[0], '__init__.py'),
+      path.posix.join(...parts) + '.py',
+      path.posix.join(...parts, '__init__.py'),
+      path.posix.join(parts[0]) + '.py',
+      path.posix.join(parts[0], '__init__.py')
+    )
+  }
+
+  for (const candidate of candidates) {
+    const cleaned = normalizeCandidate(candidate)
     if (nodesMap.has(cleaned)) {
       return cleaned
     }
@@ -34,47 +61,44 @@ export function resolvePythonImport(importingFile: string, moduleName: string, n
   return null
 }
 
-export function resolveJsImport(importingFile: string, moduleName: string, nodesMap: Map<string, any>): string | null {
+export function resolveJsImport(
+  importingFile: string,
+  moduleName: string,
+  nodesMap: Map<string, unknown>
+): string | null {
+  if (!moduleName) return null
+
   let resolvedPath = moduleName
   if (moduleName.startsWith('@/')) {
     resolvedPath = 'src/' + moduleName.substring(2)
-  }
-  
-  if (resolvedPath.startsWith('/')) {
-    resolvedPath = resolvedPath.substring(1)
+  } else if (moduleName.startsWith('.')) {
+    const dir = path.posix.dirname(importingFile.replace(/\\/g, '/'))
+    resolvedPath = path.posix.normalize(path.posix.join(dir, moduleName))
   }
 
-  if (moduleName.startsWith('.')) {
-    const dir = path.dirname(importingFile)
-    resolvedPath = path.normalize(path.join(dir, moduleName))
-    if (resolvedPath.startsWith('/')) resolvedPath = resolvedPath.substring(1)
-  }
+  resolvedPath = normalizeCandidate(resolvedPath)
 
   const extensions = ['', '.ts', '.js', '.tsx', '.jsx', '.json']
   for (const ext of extensions) {
-    const candidate = resolvedPath + ext
-    const cleaned = candidate.replace(/\\/g, '/').replace(/^\.\//, '')
+    const cleaned = normalizeCandidate(resolvedPath + ext)
     if (nodesMap.has(cleaned)) {
       return cleaned
     }
-    
-    const indexCandidate = path.join(resolvedPath, 'index' + ext)
-    const indexCleaned = indexCandidate.replace(/\\/g, '/').replace(/^\.\//, '')
+
+    const indexCleaned = normalizeCandidate(path.posix.join(resolvedPath, 'index' + ext))
     if (nodesMap.has(indexCleaned)) {
       return indexCleaned
     }
   }
 
-  for (const ext of extensions) {
-    const candidate = resolvedPath + ext
-    const cleaned = candidate.replace(/\\/g, '/')
-    if (nodesMap.has(cleaned)) {
-      return cleaned
-    }
-    const indexCandidate = path.join(resolvedPath, 'index' + ext)
-    const indexCleaned = indexCandidate.replace(/\\/g, '/')
-    if (nodesMap.has(indexCleaned)) {
-      return indexCleaned
+  // Handle ESM TypeScript imports written with .js/.jsx extensions
+  if (resolvedPath.endsWith('.js') || resolvedPath.endsWith('.jsx')) {
+    const stem = resolvedPath.replace(/\.jsx?$/, '')
+    for (const tsExt of ['.ts', '.tsx']) {
+      const cleaned = normalizeCandidate(stem + tsExt)
+      if (nodesMap.has(cleaned)) {
+        return cleaned
+      }
     }
   }
 

@@ -23,23 +23,23 @@ describe('GraphToolbar Component', () => {
     render(<GraphToolbar {...defaultProps} />)
     
     // Search input
-    expect(screen.getByPlaceholderText('Filtrer...')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Filter...')).toBeInTheDocument()
     
     // Checkboxes
-    expect(screen.getByLabelText('Packages externes')).toBeInTheDocument()
-    expect(screen.getByLabelText('Cycles uniquement')).toBeInTheDocument()
+    expect(screen.getByLabelText('External packages')).toBeInTheDocument()
+    expect(screen.getByLabelText('Cycles only')).toBeInTheDocument()
     
     // Fullscreen button
-    expect(screen.getByText('Plein écran')).toBeInTheDocument()
+    expect(screen.getByText('Fullscreen')).toBeInTheDocument()
     
     // Cycle badge should not be present since count is 0
-    expect(screen.queryByText(/fichiers en cycle/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/files in cycles/)).not.toBeInTheDocument()
   })
 
   it('should call setFilterQuery on typing in filter input', () => {
     render(<GraphToolbar {...defaultProps} />)
     
-    const filterInput = screen.getByPlaceholderText('Filtrer...')
+    const filterInput = screen.getByPlaceholderText('Filter...')
     fireEvent.change(filterInput, { target: { value: 'utils' } })
     
     expect(defaultProps.setFilterQuery).toHaveBeenCalledWith('utils')
@@ -48,8 +48,8 @@ describe('GraphToolbar Component', () => {
   it('should call setShowExternal and setShowOnlyCycles when checked/unchecked', () => {
     render(<GraphToolbar {...defaultProps} />)
     
-    const externalCheckbox = screen.getByLabelText('Packages externes')
-    const cyclesCheckbox = screen.getByLabelText('Cycles uniquement')
+    const externalCheckbox = screen.getByLabelText('External packages')
+    const cyclesCheckbox = screen.getByLabelText('Cycles only')
     
     fireEvent.click(externalCheckbox)
     expect(defaultProps.setShowExternal).toHaveBeenCalledWith(true)
@@ -60,7 +60,7 @@ describe('GraphToolbar Component', () => {
 
   it('should display cycle warning when cycleNodesCount > 0', () => {
     render(<GraphToolbar {...defaultProps} cycleNodesCount={3} />)
-    expect(screen.getByText('3 fichiers en cycle')).toBeInTheDocument()
+    expect(screen.getByText('3 files in cycles')).toBeInTheDocument()
   })
 
   it('should toggle extensions dropdown and select extensions', () => {
@@ -94,7 +94,7 @@ describe('GraphToolbar Component', () => {
   it('should call setIsFullscreen when fullscreen button clicked', () => {
     render(<GraphToolbar {...defaultProps} />)
     
-    const fullscreenBtn = screen.getByText('Plein écran')
+    const fullscreenBtn = screen.getByText('Fullscreen')
     fireEvent.click(fullscreenBtn)
     
     expect(defaultProps.setIsFullscreen).toHaveBeenCalledWith(true)

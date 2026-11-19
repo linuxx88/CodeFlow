@@ -21,6 +21,7 @@ import { layoutManager } from '../utils/layoutEngine'
 import type { LayoutType } from '../utils/layoutEngine'
 import { LayoutToolbar } from './LayoutToolbar'
 import { ControlsOverlay } from './ControlsOverlay'
+import { FitViewHandler } from './FitViewHandler'
 
 interface GenericFlowchartProps {
   templates: Record<string, Template>
@@ -33,7 +34,7 @@ const nodeTypes = {
   customNode: IfThenCustomNode
 }
 
-const GenericFlowchartContent: React.FC<GenericFlowchartProps> = ({
+export const GenericFlowchartContent: React.FC<GenericFlowchartProps> = ({
   templates,
   title,
   scanData,
@@ -176,7 +177,7 @@ const GenericFlowchartContent: React.FC<GenericFlowchartProps> = ({
             {projectItems.length > 0 && (
               <div>
                 <div style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--accent)', textTransform: 'uppercase', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Code size={12} /> Flowcharts Live du Projet
+                  <Code size={12} /> Live Project Flowcharts
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {projectItems.map(([key, temp]) => (
@@ -196,7 +197,7 @@ const GenericFlowchartContent: React.FC<GenericFlowchartProps> = ({
                       }}
                     >
                       <div style={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{temp.name}</div>
-                      <div style={{ fontSize: '11px', color: activeTemplate === key ? '#e0e0ff' : 'var(--text-muted)', marginTop: '4px' }}>
+                      <div style={{ fontSize: '11px', color: activeTemplate === key ? 'var(--accent-fg)' : 'var(--text-muted)', opacity: activeTemplate === key ? 0.85 : 1, marginTop: '4px' }}>
                         {temp.description}
                       </div>
                     </button>
@@ -208,7 +209,7 @@ const GenericFlowchartContent: React.FC<GenericFlowchartProps> = ({
             <div>
               {projectItems.length > 0 && (
                 <div style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '8px' }}>
-                  Modèles de Démo
+                  Demo Templates
                 </div>
               )}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -229,7 +230,7 @@ const GenericFlowchartContent: React.FC<GenericFlowchartProps> = ({
                     }}
                   >
                     <div style={{ fontWeight: 'bold' }}>{temp.name}</div>
-                    <div style={{ fontSize: '11px', color: activeTemplate === key ? '#e0e0ff' : 'var(--text-muted)', marginTop: '4px' }}>
+                    <div style={{ fontSize: '11px', color: activeTemplate === key ? 'var(--accent-fg)' : 'var(--text-muted)', opacity: activeTemplate === key ? 0.85 : 1, marginTop: '4px' }}>
                       {temp.description}
                     </div>
                   </button>
@@ -243,15 +244,16 @@ const GenericFlowchartContent: React.FC<GenericFlowchartProps> = ({
 
         <div>
           <h2 style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--text)', marginBottom: '12px' }}>
-            Éditeur de Nœud
+            Node Editor
           </h2>
           {selectedNodeId ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>
-                  Texte du Nœud
+                <label htmlFor="generic-node-label" style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>
+                  Node Label
                 </label>
                 <input
+                  id="generic-node-label"
                   type="text"
                   value={nodeLabel}
                   onChange={(e) => setNodeLabel(e.target.value)}
@@ -271,10 +273,11 @@ const GenericFlowchartContent: React.FC<GenericFlowchartProps> = ({
 
               {selectedNodeId !== 'start' && (
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>
-                    Type de Nœud
+                  <label htmlFor="generic-node-type" style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>
+                    Node Type
                   </label>
                   <select
+                    id="generic-node-type"
                     value={nodeType}
                     onChange={(e: any) => setNodeType(e.target.value)}
                     style={{
@@ -288,8 +291,8 @@ const GenericFlowchartContent: React.FC<GenericFlowchartProps> = ({
                       outline: 'none'
                     }}
                   >
-                    <option value="condition">SI / Condition (Condition)</option>
-                    <option value="action">ALORS / Action (Action)</option>
+                    <option value="condition">IF / Condition</option>
+                    <option value="action">THEN / Action</option>
                   </select>
                 </div>
               )}
@@ -313,17 +316,20 @@ const GenericFlowchartContent: React.FC<GenericFlowchartProps> = ({
                     gap: '4px'
                   }}
                 >
-                  <Check size={14} /> Appliquer
+                  <Check size={14} /> Apply
                 </button>
                 {selectedNodeId !== 'start' && (
                   <button
+                    type="button"
+                    aria-label="Delete node"
+                    title="Delete node"
                     onClick={handleDeleteNode}
                     style={{
                       padding: '8px',
                       borderRadius: '6px',
-                      backgroundColor: 'rgba(244, 63, 94, 0.15)',
-                      color: '#f43f5e',
-                      border: '1px solid rgba(244, 63, 94, 0.3)',
+                      backgroundColor: 'var(--bottleneck-muted)',
+                      color: 'var(--bottleneck)',
+                      border: '1px solid var(--bottleneck)',
                       cursor: 'pointer',
                       fontSize: '12px'
                     }}
@@ -336,7 +342,7 @@ const GenericFlowchartContent: React.FC<GenericFlowchartProps> = ({
             </div>
           ) : (
             <div style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <HelpCircle size={14} /> Cliquez sur un nœud pour le modifier.
+              <HelpCircle size={14} /> Click a node to edit it.
             </div>
           )}
         </div>
@@ -345,7 +351,7 @@ const GenericFlowchartContent: React.FC<GenericFlowchartProps> = ({
 
         <div>
           <h2 style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--text)', marginBottom: '12px' }}>
-            Ajouter un Élément
+            Add Element
           </h2>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button
@@ -426,13 +432,15 @@ const GenericFlowchartContent: React.FC<GenericFlowchartProps> = ({
           minZoom={0.05}
           onlyRenderVisibleElements={nodes.length > 80}
           fitView
+          fitViewOptions={{ padding: 0.2 }}
           style={{
             transform: 'translate3d(0, 0, 0)',
             willChange: 'transform'
           }}
         >
-          <Background color="var(--border)" gap={16} />
+          <Background color="var(--flow-grid)" gap={16} />
           <ControlsOverlay />
+          <FitViewHandler triggerKey={`${activeTemplate}-${direction}-${nodesep}-${ranksep}-${layoutType}-${nodes.length}`} />
         </ReactFlow>
       </div>
     </div>

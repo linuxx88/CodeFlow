@@ -109,4 +109,25 @@ describe('gitAnalyzer', () => {
     expect(conflictHotspot.score).toBe(1)
     expect(conflictHotspot.hasConflicts).toBe(true)
   })
+
+  it('should return is_git: true when git repo has no commits yet and handle AA/DD/CRLF', async () => {
+    mockExecPromisified.mockImplementation(async (cmd: string) => {
+      if (cmd.includes('git rev-parse')) {
+        return { stdout: 'true\r\n', stderr: '' }
+      } else if (cmd.includes('git status')) {
+        return { stdout: 'AA both_added.ts\r\n?? new.ts\r\n', stderr: '' }
+      } else if (cmd.includes('git log')) {
+        throw new Error('fatal: your current branch does not have any commits yet')
+      }
+      return { stdout: '', stderr: '' }
+    })
+
+    const result = await analyzeGit('/mock/empty-repo', new Set(['both_added.ts', 'new.ts']))
+    expect(result.is_git).toBe(true)
+    expect(result.hotspots).toEqual([])
+    expect(result.statuses).toEqual({
+      'both_added.ts': 'unmerged',
+      'new.ts': 'untracked'
+    })
+  })
 })

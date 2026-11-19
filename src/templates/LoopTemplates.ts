@@ -10,21 +10,21 @@ export interface LoopTemplate {
 
 export const LOOP_TEMPLATES: Record<string, LoopTemplate> = {
   basicWhile: {
-    name: 'Boucle While Classique',
-    description: 'Structure de boucle simple avec condition d\'arrêt et retour arrière.',
+    name: 'Classic While Loop',
+    description: 'Simple loop structure with exit condition and back-edge.',
     nodes: [
       {
         id: 'start',
         type: 'customNode',
         position: { x: 250, y: 20 },
-        data: { label: 'Initialiser : i = 0', type: 'start' },
+        data: { label: 'Initialize: i = 0', type: 'start' },
         sourcePosition: Position.Bottom
       },
       {
         id: 'condition',
         type: 'customNode',
         position: { x: 250, y: 120 },
-        data: { label: 'Tant que : i < 5 ?', type: 'condition' },
+        data: { label: 'While: i < 5 ?', type: 'condition' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       },
@@ -32,7 +32,7 @@ export const LOOP_TEMPLATES: Record<string, LoopTemplate> = {
         id: 'body',
         type: 'customNode',
         position: { x: 80, y: 240 },
-        data: { label: 'Exécuter : print(i); i++', type: 'action' },
+        data: { label: 'Execute: print(i); i++', type: 'action' },
         sourcePosition: Position.Top,
         targetPosition: Position.Top
       },
@@ -40,7 +40,7 @@ export const LOOP_TEMPLATES: Record<string, LoopTemplate> = {
         id: 'exit',
         type: 'customNode',
         position: { x: 420, y: 240 },
-        data: { label: 'Sortie de Boucle', type: 'action' },
+        data: { label: 'Exit Loop', type: 'action' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       }
@@ -57,7 +57,7 @@ export const LOOP_TEMPLATES: Record<string, LoopTemplate> = {
         id: 'e-cond-body',
         source: 'condition',
         target: 'body',
-        label: 'VRAI',
+        label: 'TRUE',
         type: 'smoothstep',
         style: { stroke: '#10b981', strokeWidth: 2 },
         labelStyle: { fill: '#10b981', fontWeight: 'bold' }
@@ -66,7 +66,7 @@ export const LOOP_TEMPLATES: Record<string, LoopTemplate> = {
         id: 'e-cond-exit',
         source: 'condition',
         target: 'exit',
-        label: 'FAUX',
+        label: 'FALSE',
         type: 'smoothstep',
         style: { stroke: '#f43f5e', strokeWidth: 2 },
         labelStyle: { fill: '#f43f5e', fontWeight: 'bold' }
@@ -75,7 +75,7 @@ export const LOOP_TEMPLATES: Record<string, LoopTemplate> = {
         id: 'e-body-cond',
         source: 'body',
         target: 'condition',
-        label: 'BOUCLER',
+        label: 'LOOP',
         type: 'smoothstep',
         animated: true,
         style: { stroke: '#eab308', strokeWidth: 2, strokeDasharray: '4 4' },

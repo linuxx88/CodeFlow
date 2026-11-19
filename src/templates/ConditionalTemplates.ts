@@ -10,21 +10,21 @@ export interface Template {
 
 export const CONDITIONAL_TEMPLATES: Record<string, Template> = {
   ifelse: {
-    name: 'Structure If-Else de Base',
-    description: 'Structure conditionnelle classique avec branche Vrai et branche Faux.',
+    name: 'Basic If-Else Structure',
+    description: 'Classic conditional structure with True and False branches.',
     nodes: [
       {
         id: 'start',
         type: 'customNode',
         position: { x: 250, y: 20 },
-        data: { label: 'Évaluer (x > 10)', type: 'start' },
+        data: { label: 'Evaluate (x > 10)', type: 'start' },
         sourcePosition: Position.Bottom
       },
       {
         id: 'condition',
         type: 'customNode',
         position: { x: 250, y: 120 },
-        data: { label: 'La condition est-elle vraie ?', type: 'condition' },
+        data: { label: 'Is the condition true?', type: 'condition' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       },
@@ -32,7 +32,7 @@ export const CONDITIONAL_TEMPLATES: Record<string, Template> = {
         id: 'then-branch',
         type: 'customNode',
         position: { x: 80, y: 240 },
-        data: { label: 'Exécuter bloc THEN (Vrai)', type: 'action' },
+        data: { label: 'Execute THEN block (True)', type: 'action' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       },
@@ -40,7 +40,7 @@ export const CONDITIONAL_TEMPLATES: Record<string, Template> = {
         id: 'else-branch',
         type: 'customNode',
         position: { x: 420, y: 240 },
-        data: { label: 'Exécuter bloc ELSE (Faux)', type: 'action' },
+        data: { label: 'Execute ELSE block (False)', type: 'action' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       }
@@ -58,7 +58,7 @@ export const CONDITIONAL_TEMPLATES: Record<string, Template> = {
         id: 'e-2',
         source: 'condition',
         target: 'then-branch',
-        label: 'VRAI',
+        label: 'TRUE',
         type: 'smoothstep',
         style: { stroke: '#10b981', strokeWidth: 2 },
         labelStyle: { fill: '#10b981', fontWeight: 'bold' }
@@ -67,7 +67,7 @@ export const CONDITIONAL_TEMPLATES: Record<string, Template> = {
         id: 'e-3',
         source: 'condition',
         target: 'else-branch',
-        label: 'FAUX',
+        label: 'FALSE',
         type: 'smoothstep',
         style: { stroke: '#f43f5e', strokeWidth: 2 },
         labelStyle: { fill: '#f43f5e', fontWeight: 'bold' }
@@ -75,21 +75,21 @@ export const CONDITIONAL_TEMPLATES: Record<string, Template> = {
     ]
   },
   switchcase: {
-    name: 'Structure Switch-Case',
-    description: 'Sélection multiple basée sur la valeur d\'une expression.',
+    name: 'Switch-Case Structure',
+    description: 'Multi-way branch based on an expression value.',
     nodes: [
       {
         id: 'start',
         type: 'customNode',
         position: { x: 250, y: 20 },
-        data: { label: 'Switch (couleur)', type: 'start' },
+        data: { label: 'Switch (color)', type: 'start' },
         sourcePosition: Position.Bottom
       },
       {
         id: 'case-red',
         type: 'customNode',
         position: { x: 50, y: 140 },
-        data: { label: 'Case "Rouge"', type: 'condition' },
+        data: { label: 'Case "Red"', type: 'condition' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       },
@@ -97,7 +97,7 @@ export const CONDITIONAL_TEMPLATES: Record<string, Template> = {
         id: 'case-blue',
         type: 'customNode',
         position: { x: 250, y: 140 },
-        data: { label: 'Case "Bleu"', type: 'condition' },
+        data: { label: 'Case "Blue"', type: 'condition' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       },
@@ -113,7 +113,7 @@ export const CONDITIONAL_TEMPLATES: Record<string, Template> = {
         id: 'action-red',
         type: 'customNode',
         position: { x: 50, y: 260 },
-        data: { label: 'Afficher fond rouge', type: 'action' },
+        data: { label: 'Show red background', type: 'action' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       },
@@ -121,7 +121,7 @@ export const CONDITIONAL_TEMPLATES: Record<string, Template> = {
         id: 'action-blue',
         type: 'customNode',
         position: { x: 250, y: 260 },
-        data: { label: 'Afficher fond bleu', type: 'action' },
+        data: { label: 'Show blue background', type: 'action' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       },
@@ -129,7 +129,7 @@ export const CONDITIONAL_TEMPLATES: Record<string, Template> = {
         id: 'action-default',
         type: 'customNode',
         position: { x: 450, y: 260 },
-        data: { label: 'Afficher fond blanc', type: 'action' },
+        data: { label: 'Show white background', type: 'action' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       }
@@ -186,14 +186,14 @@ export const CONDITIONAL_TEMPLATES: Record<string, Template> = {
     ]
   },
   ternary: {
-    name: 'Opérateur Ternaire',
-    description: 'Expression conditionnelle condensée sous forme (condition ? expr1 : expr2).',
+    name: 'Ternary Operator',
+    description: 'Condensed conditional expression in the form (condition ? expr1 : expr2).',
     nodes: [
       {
         id: 'start',
         type: 'customNode',
         position: { x: 250, y: 20 },
-        data: { label: 'Calculer : (isMember ? 2.00 : 10.00)', type: 'start' },
+        data: { label: 'Evaluate: (isMember ? 2.00 : 10.00)', type: 'start' },
         sourcePosition: Position.Bottom
       },
       {
@@ -208,7 +208,7 @@ export const CONDITIONAL_TEMPLATES: Record<string, Template> = {
         id: 'val-true',
         type: 'customNode',
         position: { x: 80, y: 240 },
-        data: { label: 'Retourner 2.00', type: 'action' },
+        data: { label: 'Return 2.00', type: 'action' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       },
@@ -216,7 +216,7 @@ export const CONDITIONAL_TEMPLATES: Record<string, Template> = {
         id: 'val-false',
         type: 'customNode',
         position: { x: 420, y: 240 },
-        data: { label: 'Retourner 10.00', type: 'action' },
+        data: { label: 'Return 10.00', type: 'action' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       }
@@ -234,7 +234,7 @@ export const CONDITIONAL_TEMPLATES: Record<string, Template> = {
         id: 'e-2',
         source: 'condition',
         target: 'val-true',
-        label: 'VRAI (?)',
+        label: 'TRUE (?)',
         type: 'smoothstep',
         style: { stroke: '#10b981', strokeWidth: 2 },
         labelStyle: { fill: '#10b981', fontWeight: 'bold' }
@@ -243,7 +243,7 @@ export const CONDITIONAL_TEMPLATES: Record<string, Template> = {
         id: 'e-3',
         source: 'condition',
         target: 'val-false',
-        label: 'FAUX (:)',
+        label: 'FALSE (:)',
         type: 'smoothstep',
         style: { stroke: '#f43f5e', strokeWidth: 2 },
         labelStyle: { fill: '#f43f5e', fontWeight: 'bold' }

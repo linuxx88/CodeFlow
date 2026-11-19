@@ -1,109 +1,152 @@
 import { FlowElementBuilder } from './FlowElementBuilder'
-import type { Template } from '../templateBuilders'
+import { getNodeDimensions } from '../layoutEngine'
+import type { FlowNodeType, ScanData, Template } from '../../types'
+
+const boxSize = (label: string, type: FlowNodeType) =>
+  getNodeDimensions({
+    id: '',
+    type: 'customNode',
+    position: { x: 0, y: 0 },
+    data: { label, type },
+  })
 
 export const buildConditionalTemplates = (
-  scanData: any,
+  scanData: ScanData | null | undefined,
   templates: Record<string, Template>,
   filterType: string
 ): Record<string, Template> => {
   const temps: Record<string, Template> = { ...templates }
-  if (scanData?.conditionals) {
-    for (const condFile of scanData.conditionals) {
-      const file = condFile.file
-      const items = filterType === 'ifelse' 
-        ? condFile.items.filter((i: any) => i.type === 'ifelse')
-        : condFile.items
-        
-      if (items.length === 0) continue
+  if (!scanData?.conditionals) return temps
 
-      const builder = new FlowElementBuilder(
-        `Projet: ${file}`,
-        `Flowchart live - ${items.length} conditions détectées.`
-      )
-        .addNode('start')
-        .withNodeType('start')
-        .withPosition(250, 20)
-        .withLabel(`Début: ${file}`)
+  const VERTICAL_GAP = 60
+  const HORIZONTAL_GAP = 60
+
+  for (const condFile of scanData.conditionals) {
+    const file = condFile.file || 'Unknown file'
+    const rawItems = Array.isArray(condFile.items) ? condFile.items : []
+    const items =
+      filterType === 'ifelse'
+        ? rawItems.filter((i) => i.type === 'ifelse')
+        : rawItems
+
+    if (items.length === 0) continue
+
+    const startLabel = `Start: ${file}`
+    const builder = new FlowElementBuilder(
+      `Project: ${file}`,
+      `Live flowchart - ${items.length} conditionals detected.`
+    )
+      .addNode('start')
+      .withNodeType('start')
+      .withPosition(250, 20)
+      .withLabel(startLabel)
+      .commit()
+
+    let prevNodeId = 'start'
+    let cursorY = 20 + boxSize(startLabel, 'start').height + VERTICAL_GAP
+
+    items.forEach((item, idx) => {
+      const condNodeId = `cond-${idx}`
+      const condText = item.condition || item.expression || 'condition'
+      const condLabel = `Line ${item.line ?? '?'}: ${condText}`
+      const condDims = boxSize(condLabel, 'condition')
+
+      builder
+        .addNode(condNodeId)
+        .withNodeType('condition')
+        .withPosition(250, cursorY)
+        .withLabel(condLabel)
         .commit()
 
-      let prevNodeId = 'start'
-      
-      items.forEach((item: any, idx: number) => {
-        const condNodeId = `cond-${idx}`
-        const yBase = 120 + idx * 240
-        
+        .addEdge(`edge-to-cond-${idx}`)
+        .from(prevNodeId)
+        .to(condNodeId)
+        .withDefaultTheme()
+        .commit()
+
+      const branchY = cursorY + condDims.height + VERTICAL_GAP
+      let maxBranchHeight = 0
+
+      if (item.type === 'ifelse') {
+        const thenLabel = String(item.then ?? 'Action')
+        const thenDims = boxSize(thenLabel, 'action')
+        maxBranchHeight = Math.max(maxBranchHeight, thenDims.height)
+
+        const thenNodeId = `then-${idx}`
         builder
-          .addNode(condNodeId)
-          .withNodeType('condition')
-          .withPosition(250, yBase)
-          .withLabel(`Ligne ${item.line}: ${item.condition || item.expression}`)
+          .addNode(thenNodeId)
+          .withNodeType('action')
+          .withPosition(20, branchY)
+          .withLabel(thenLabel)
           .commit()
 
-          .addEdge(`edge-to-cond-${idx}`)
-          .from(prevNodeId)
-          .to(condNodeId)
-          .withDefaultTheme()
+          .addEdge(`edge-then-${idx}`)
+          .from(condNodeId)
+          .to(thenNodeId)
+          .withLabel('TRUE')
+          .withTrueTheme()
           .commit()
-        
-        if (item.type === 'ifelse') {
-          const thenNodeId = `then-${idx}`
+
+        if (item.else) {
+          const elseLabel = String(item.else)
+          const elseDims = boxSize(elseLabel, 'action')
+          maxBranchHeight = Math.max(maxBranchHeight, elseDims.height)
+
+          const elseX = Math.max(420, 20 + thenDims.width + HORIZONTAL_GAP)
+          const elseNodeId = `else-${idx}`
           builder
-            .addNode(thenNodeId)
+            .addNode(elseNodeId)
             .withNodeType('action')
-            .withPosition(80, yBase + 100)
-            .withLabel(item.then)
+            .withPosition(elseX, branchY)
+            .withLabel(elseLabel)
             .commit()
-            
-            .addEdge(`edge-then-${idx}`)
+
+            .addEdge(`edge-else-${idx}`)
             .from(condNodeId)
-            .to(thenNodeId)
-            .withLabel('VRAI')
+            .to(elseNodeId)
+            .withLabel('FALSE')
+            .withFalseTheme()
+            .commit()
+        }
+        prevNodeId = condNodeId
+      } else if (item.type === 'switch') {
+        const cases = Array.isArray(item.cases) ? item.cases : []
+        const caseDims = cases.map((c) => boxSize(`Action: ${String(c ?? '')}`, 'action'))
+        const totalWidth = caseDims.reduce(
+          (sum, d, cIdx) => sum + d.width + (cIdx > 0 ? HORIZONTAL_GAP : 0),
+          0
+        )
+        let cursorX = 250 + condDims.width / 2 - totalWidth / 2
+
+        cases.forEach((c, caseIdx) => {
+          const caseText = String(c ?? '')
+          const caseNodeId = `case-${idx}-${caseIdx}`
+          const dims = caseDims[caseIdx]
+          maxBranchHeight = Math.max(maxBranchHeight, dims.height)
+
+          builder
+            .addNode(caseNodeId)
+            .withNodeType('action')
+            .withPosition(cursorX, branchY)
+            .withLabel(`Action: ${caseText}`)
+            .commit()
+
+            .addEdge(`edge-case-${idx}-${caseIdx}`)
+            .from(condNodeId)
+            .to(caseNodeId)
+            .withLabel(caseText.toUpperCase())
             .withTrueTheme()
             .commit()
-          
-          if (item.else) {
-            const elseNodeId = `else-${idx}`
-            builder
-              .addNode(elseNodeId)
-              .withNodeType('action')
-              .withPosition(420, yBase + 100)
-              .withLabel(item.else)
-              .commit()
-              
-              .addEdge(`edge-else-${idx}`)
-              .from(condNodeId)
-              .to(elseNodeId)
-              .withLabel('FAUX')
-              .withFalseTheme()
-              .commit()
-          }
-          prevNodeId = condNodeId
-        } else if (item.type === 'switch') {
-          const cases = item.cases || []
-          cases.forEach((c: string, caseIdx: number) => {
-            const caseNodeId = `case-${idx}-${caseIdx}`
-            const xPos = cases.length > 1 ? 50 + (caseIdx * (400 / (cases.length - 1))) : 250
-            
-            builder
-              .addNode(caseNodeId)
-              .withNodeType('action')
-              .withPosition(xPos, yBase + 100)
-              .withLabel(`Action: ${c}`)
-              .commit()
-              
-              .addEdge(`edge-case-${idx}-${caseIdx}`)
-              .from(condNodeId)
-              .to(caseNodeId)
-              .withLabel(c.toUpperCase())
-              .withTrueTheme()
-              .commit()
-          })
-          prevNodeId = condNodeId
-        }
-      })
-      
-      temps[`project-${file}`] = builder.build()
-    }
+
+          cursorX += dims.width + HORIZONTAL_GAP
+        })
+        prevNodeId = condNodeId
+      }
+
+      cursorY = branchY + maxBranchHeight + VERTICAL_GAP
+    })
+
+    temps[`project-${file}`] = builder.build()
   }
   return temps
 }

@@ -1,18 +1,19 @@
-import { DagreLayoutEngine } from './layoutEngine'
 import type { Node, Edge } from '@xyflow/react'
+import type { LayoutDirection, LayoutResult } from '../types'
+import { DagreLayoutEngine } from './layoutEngine'
+
+const defaultDagreEngine = new DagreLayoutEngine()
 
 export const getLayoutedElements = (
   nodes: Node[],
   edges: Edge[],
-  direction = 'LR',
-  nodesep = 80,
-  ranksep = 120
-) => {
-  const engine = new DagreLayoutEngine()
-  return engine.layout(nodes, edges, {
-    direction: direction as 'LR' | 'TB',
+  direction: LayoutDirection = 'LR',
+  nodesep = 90,
+  ranksep = 180
+): LayoutResult => {
+  return defaultDagreEngine.layout(nodes, edges, {
+    direction,
     nodesep,
     ranksep,
-  }) as { nodes: Node[]; edges: Edge[] }
+  })
 }
-

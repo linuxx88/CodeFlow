@@ -1,1 +1,1 @@
-export { handleScan } from './src/scanner'
+export { handleScan } from './src/scanner/index.ts'

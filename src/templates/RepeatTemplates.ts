@@ -10,21 +10,21 @@ export interface RepeatTemplate {
 
 export const REPEAT_TEMPLATES: Record<string, RepeatTemplate> = {
   basicRepeat: {
-    name: 'Boucle Repeat (Do-While)',
-    description: 'Structure de boucle do-while (exécution avant condition).',
+    name: 'Repeat Loop (Do-While)',
+    description: 'Do-while loop structure (executes body before checking condition).',
     nodes: [
       {
         id: 'start',
         type: 'customNode',
         position: { x: 250, y: 20 },
-        data: { label: 'Initialiser : i = 0', type: 'start' },
+        data: { label: 'Initialize: i = 0', type: 'start' },
         sourcePosition: Position.Bottom
       },
       {
         id: 'body',
         type: 'customNode',
         position: { x: 250, y: 120 },
-        data: { label: 'Exécuter corps de boucle : i++', type: 'action' },
+        data: { label: 'Execute loop body: i++', type: 'action' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       },
@@ -32,7 +32,7 @@ export const REPEAT_TEMPLATES: Record<string, RepeatTemplate> = {
         id: 'condition',
         type: 'customNode',
         position: { x: 250, y: 240 },
-        data: { label: 'Condition : i < 5 ?', type: 'condition' },
+        data: { label: 'Condition: i < 5 ?', type: 'condition' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       },
@@ -40,7 +40,7 @@ export const REPEAT_TEMPLATES: Record<string, RepeatTemplate> = {
         id: 'exit',
         type: 'customNode',
         position: { x: 420, y: 360 },
-        data: { label: 'Sortie de Boucle', type: 'action' },
+        data: { label: 'Exit Loop', type: 'action' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       }
@@ -64,7 +64,7 @@ export const REPEAT_TEMPLATES: Record<string, RepeatTemplate> = {
         id: 'e-cond-exit',
         source: 'condition',
         target: 'exit',
-        label: 'FAUX',
+        label: 'FALSE',
         type: 'smoothstep',
         style: { stroke: '#f43f5e', strokeWidth: 2 },
         labelStyle: { fill: '#f43f5e', fontWeight: 'bold' }
@@ -73,7 +73,7 @@ export const REPEAT_TEMPLATES: Record<string, RepeatTemplate> = {
         id: 'e-cond-body-loop',
         source: 'condition',
         target: 'body',
-        label: 'VRAI (BOUCLER)',
+        label: 'TRUE (LOOP)',
         type: 'smoothstep',
         animated: true,
         style: { stroke: '#10b981', strokeWidth: 2, strokeDasharray: '4 4' },

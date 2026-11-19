@@ -12,7 +12,7 @@ export const ControlsOverlay: React.FC<ControlsOverlayProps> = ({ position = 'bo
       <Controls
         position={position}
         style={{
-          zIndex: 9999,
+          zIndex: 50,
           boxShadow: '0 8px 32px 0 var(--shadow)',
           border: '1px solid var(--border)',
           borderRadius: '10px',
@@ -23,7 +23,7 @@ export const ControlsOverlay: React.FC<ControlsOverlayProps> = ({ position = 'bo
       <style>{`
         /* Enforce custom positioning and responsive offsets for controls */
         .react-flow__controls {
-          z-index: 9999 !important;
+          z-index: 50 !important;
           margin: 16px !important;
           box-shadow: 0 8px 32px 0 var(--shadow) !important;
           border: 1px solid var(--border) !important;

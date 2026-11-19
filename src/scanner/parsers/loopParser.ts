@@ -7,8 +7,23 @@ function hasSyntaxErrors(str: string): boolean {
     ']': '[',
     '}': '{'
   }
+  let inQuote: string | null = null
   for (let i = 0; i < str.length; i++) {
     const char = str[i]
+    if (inQuote) {
+      if (char === '\\') {
+        i++
+        continue
+      }
+      if (char === inQuote) {
+        inQuote = null
+      }
+      continue
+    }
+    if (char === "'" || char === '"' || char === '`') {
+      inQuote = char
+      continue
+    }
     if (char === '(' || char === '[' || char === '{') {
       stack.push(char)
     } else if (char === ')' || char === ']' || char === '}') {
@@ -22,8 +37,8 @@ function hasSyntaxErrors(str: string): boolean {
 
 export function parseLoopsFromFile(file: string, content: string): any[] {
   const result: any[] = []
-  const lines = content.split('\n')
-  const ext = path.extname(file)
+  const lines = content.split(/\r?\n/)
+  const ext = path.extname(file).toLowerCase()
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
@@ -33,7 +48,7 @@ export function parseLoopsFromFile(file: string, content: string): any[] {
         const pyWhileMatch = line.match(/^\s*while\s+(.+):/)
         if (pyWhileMatch) {
           const condition = pyWhileMatch[1].trim()
-          let bodyBlock = 'Répéter les instructions'
+          let bodyBlock = 'Repeat instructions'
           
           const baseIndent = (line.match(/^(\s*)/)?.[1] || '').length
           let j = i + 1
@@ -68,7 +83,7 @@ export function parseLoopsFromFile(file: string, content: string): any[] {
         const whileMatch = line.match(/^\s*while\s*\((.+)\)/)
         if (whileMatch) {
           const condition = whileMatch[1].trim()
-          let bodyBlock = 'Répéter les instructions'
+          let bodyBlock = 'Repeat instructions'
 
           let hasBrace = line.includes('{')
           let j = i + 1
@@ -139,8 +154,8 @@ export function parseLoopsFromFile(file: string, content: string): any[] {
 
 export function parseRepeatLoopsFromFile(file: string, content: string): any[] {
   const result: any[] = []
-  const lines = content.split('\n')
-  const ext = path.extname(file)
+  const lines = content.split(/\r?\n/)
+  const ext = path.extname(file).toLowerCase()
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
@@ -149,7 +164,7 @@ export function parseRepeatLoopsFromFile(file: string, content: string): any[] {
       if (ext !== '.py') {
         const doMatch = line.match(/^\s*do\s*\{/)
         if (doMatch) {
-          let bodyBlock = 'Répéter les instructions'
+          let bodyBlock = 'Repeat instructions'
           let condition = ''
           let braceCount = 1
           let j = i + 1

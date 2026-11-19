@@ -18,31 +18,31 @@ describe('LayoutToolbar Component', () => {
   it('should render only the toggle button initially', () => {
     render(<LayoutToolbar {...defaultProps} />)
     
-    const toggleButton = screen.getByTitle('Options de disposition')
+    const toggleButton = screen.getByTitle('Layout options')
     expect(toggleButton).toBeInTheDocument()
     
-    expect(screen.queryByText('Disposition du graphe')).not.toBeInTheDocument()
+    expect(screen.queryByText('Graph Layout')).not.toBeInTheDocument()
   })
 
   it('should toggle dropdown when clicking the toggle button', async () => {
     render(<LayoutToolbar {...defaultProps} />)
     
-    const toggleButton = screen.getByTitle('Options de disposition')
+    const toggleButton = screen.getByTitle('Layout options')
     
     fireEvent.click(toggleButton)
-    expect(screen.getByText('Disposition du graphe')).toBeInTheDocument()
+    expect(screen.getByText('Graph Layout')).toBeInTheDocument()
     
     fireEvent.click(toggleButton)
-    expect(screen.queryByText('Disposition du graphe')).not.toBeInTheDocument()
+    expect(screen.queryByText('Graph Layout')).not.toBeInTheDocument()
   })
 
   it('should call setDirection when selecting orientation buttons', () => {
     render(<LayoutToolbar {...defaultProps} />)
     
-    fireEvent.click(screen.getByTitle('Options de disposition'))
+    fireEvent.click(screen.getByTitle('Layout options'))
     
-    const lrButton = screen.getByText('Gauche-Droite')
-    const tbButton = screen.getByText('Haut-Bas')
+    const lrButton = screen.getByText('Left-to-Right')
+    const tbButton = screen.getByText('Top-to-Bottom')
     
     expect(lrButton).toBeInTheDocument()
     expect(tbButton).toBeInTheDocument()
@@ -57,11 +57,11 @@ describe('LayoutToolbar Component', () => {
   it('should call setLayoutType when selecting layout engine buttons', () => {
     render(<LayoutToolbar {...defaultProps} />)
     
-    fireEvent.click(screen.getByTitle('Options de disposition'))
+    fireEvent.click(screen.getByTitle('Layout options'))
     
     const dagreButton = screen.getByText('Dagre (Standard)')
-    const elkButton = screen.getByText('ELK JS (Gros graphes)')
-    const pythonButton = screen.getByText('Custom Python (Séquentiel)')
+    const elkButton = screen.getByText('ELK JS (Large graphs)')
+    const pythonButton = screen.getByText('Custom Python (Sequential)')
     
     expect(dagreButton).toBeInTheDocument()
     expect(elkButton).toBeInTheDocument()
@@ -74,7 +74,7 @@ describe('LayoutToolbar Component', () => {
   it('should call setNodesep and setRanksep when changing sliders', () => {
     render(<LayoutToolbar {...defaultProps} />)
     
-    fireEvent.click(screen.getByTitle('Options de disposition'))
+    fireEvent.click(screen.getByTitle('Layout options'))
     
     const rangeSliders = screen.getAllByRole('slider')
     expect(rangeSliders).toHaveLength(2)

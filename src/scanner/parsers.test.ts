@@ -70,6 +70,27 @@ else:
         cases: ["'a'", "'b'", 'default']
       })
     })
+
+    it('should handle single-line if, nested blocks in switch, and CRLF line endings', () => {
+      const code = [
+        'if (ready) { return true; }',
+        'switch (mode) {',
+        "  case 'x':",
+        '    if (nested) {',
+        '      run();',
+        '    }',
+        '    break;',
+        '  default:',
+        '    break;',
+        '}'
+      ].join('\r\n')
+
+      const result = parseConditionalsFromFile('test.ts', code)
+      expect(result.some(r => r.type === 'ifelse' && r.condition === 'ready' && r.then === 'return true;')).toBe(true)
+      const sw = result.find(r => r.type === 'switch')
+      expect(sw).toBeDefined()
+      expect(sw?.cases).toEqual(["'x'", 'default'])
+    })
   })
 
   describe('parseClassesFromFile', () => {
@@ -115,6 +136,15 @@ class Dog(Animal):
         line: 2
       })
     })
+
+    it('should parse Python classes inheriting from dotted module base classes', () => {
+      const code = 'class MyPlugin(abc.ABC):\r\n    def run(self):\r\n        pass\r\n'
+      const result = parseClassesFromFile('plugin.py', code)
+      expect(result.length).toBe(1)
+      expect(result[0].name).toBe('MyPlugin')
+      expect(result[0].inherits).toBe('abc.ABC')
+      expect(result[0].methods).toEqual(['run'])
+    })
   })
 
   describe('parseLoopsFromFile & parseRepeatLoopsFromFile', () => {
@@ -148,6 +178,17 @@ class Dog(Animal):
         condition: 'x > 10',
         body: 'x = x + 1;'
       })
+    })
+
+    it('should allow brackets inside string literals in while conditions', () => {
+      const code = `
+        while (ch !== "(") {
+          advance();
+        }
+      `
+      const result = parseLoopsFromFile('test.js', code)
+      expect(result.length).toBe(1)
+      expect(result[0].condition).toBe('ch !== "("')
     })
   })
 

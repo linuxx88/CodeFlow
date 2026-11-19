@@ -5,25 +5,45 @@ import path from 'path'
 
 const execPromise = promisify(exec)
 
+export type GitFileStatus = 'modified' | 'untracked' | 'added' | 'deleted' | 'renamed' | 'unmerged'
+
+export interface GitHotspot {
+  file: string
+  commits: number
+  authors: number
+  score: number
+  hasConflicts: boolean
+}
+
+function parsePorcelainStatus(code: string): GitFileStatus | null {
+  if (code === '??') return 'untracked'
+  if (code === 'AA' || code === 'DD' || code.includes('U')) return 'unmerged'
+  if (code.includes('M')) return 'modified'
+  if (code.includes('A')) return 'added'
+  if (code.includes('D')) return 'deleted'
+  if (code.includes('R')) return 'renamed'
+  return null
+}
+
 export async function analyzeGit(rootPath: string, existingFiles: Set<string>) {
   try {
     await execPromise('git rev-parse --is-inside-work-tree', { cwd: rootPath })
-  } catch (e) {
-    return { hotspots: [], statuses: {}, is_git: false }
+  } catch {
+    return { hotspots: [] as GitHotspot[], statuses: {} as Record<string, GitFileStatus>, is_git: false }
   }
-  
-  const statuses: Record<string, 'modified' | 'untracked' | 'added' | 'deleted' | 'renamed' | 'unmerged'> = {}
+
+  const statuses: Record<string, GitFileStatus> = {}
   try {
     const { stdout: statusOutput } = await execPromise(
       'git status --porcelain',
       { cwd: rootPath }
     )
-    const statusLines = statusOutput.split('\n')
+    const statusLines = statusOutput.split(/\r?\n/)
     for (const line of statusLines) {
       if (line.length > 3) {
         const code = line.substring(0, 2)
         let file = line.substring(3).trim()
-        
+
         if (file.includes(' -> ')) {
           const parts = file.split(' -> ')
           file = parts[parts.length - 1].trim()
@@ -31,22 +51,9 @@ export async function analyzeGit(rootPath: string, existingFiles: Set<string>) {
         if (file.startsWith('"') && file.endsWith('"')) {
           file = file.slice(1, -1)
         }
-        
-        let status: 'modified' | 'untracked' | 'added' | 'deleted' | 'renamed' | 'unmerged' | null = null
-        if (code === '??') {
-          status = 'untracked'
-        } else if (code.includes('M')) {
-          status = 'modified'
-        } else if (code.includes('A')) {
-          status = 'added'
-        } else if (code.includes('D')) {
-          status = 'deleted'
-        } else if (code.includes('R')) {
-          status = 'renamed'
-        } else if (code.includes('U')) {
-          status = 'unmerged'
-        }
-        
+        file = file.replace(/\\/g, '/')
+
+        const status = parsePorcelainStatus(code)
         if (status) {
           statuses[file] = status
         }
@@ -55,23 +62,23 @@ export async function analyzeGit(rootPath: string, existingFiles: Set<string>) {
   } catch (e) {
     console.error('Error running git status:', e)
   }
-  
+
   try {
     const { stdout: logOutput } = await execPromise(
       'git log --name-only --pretty=format:"COMMIT:%ae"',
       { cwd: rootPath, maxBuffer: 10 * 1024 * 1024 }
     )
-    
+
     const fileCommits = new Map<string, number>()
     const fileAuthors = new Map<string, Set<string>>()
-    
+
     let currentAuthor = ''
-    const lines = logOutput.split('\n')
+    const lines = logOutput.split(/\r?\n/)
     for (const line of lines) {
       if (line.startsWith('COMMIT:')) {
-        currentAuthor = line.substring(7)
+        currentAuthor = line.substring(7).trim()
       } else if (line.trim()) {
-        const file = line.trim()
+        const file = line.trim().replace(/\\/g, '/')
         if (existingFiles.has(file)) {
           fileCommits.set(file, (fileCommits.get(file) || 0) + 1)
           if (!fileAuthors.has(file)) fileAuthors.set(file, new Set())
@@ -79,11 +86,11 @@ export async function analyzeGit(rootPath: string, existingFiles: Set<string>) {
         }
       }
     }
-    
-    const hotspots: any[] = []
+
+    const hotspots: GitHotspot[] = []
     for (const [file, commits] of fileCommits.entries()) {
       const authors = fileAuthors.get(file)?.size || 0
-      
+
       let hasConflicts = false
       if (statuses[file] === 'unmerged') {
         hasConflicts = true
@@ -92,8 +99,8 @@ export async function analyzeGit(rootPath: string, existingFiles: Set<string>) {
           const fullPath = path.join(rootPath, file)
           const content = await fs.readFile(fullPath, 'utf8')
           hasConflicts = content.includes('<<<<<<<') && content.includes('=======') && content.includes('>>>>>>>')
-        } catch (err) {
-          // ignore
+        } catch {
+          // ignore unreadable/deleted files
         }
       }
 
@@ -105,9 +112,10 @@ export async function analyzeGit(rootPath: string, existingFiles: Set<string>) {
         hasConflicts
       })
     }
-    
+
     return { hotspots, statuses, is_git: true }
-  } catch (e) {
-    return { hotspots: [], statuses, is_git: false }
+  } catch {
+    // Repo may have no commits yet; it is still a git repository
+    return { hotspots: [] as GitHotspot[], statuses, is_git: true }
   }
 }

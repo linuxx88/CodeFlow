@@ -43,12 +43,12 @@ describe('Explorer Component', () => {
     // App.tsx is modified ('M' badge)
     const modifiedBadge = screen.getByText('M')
     expect(modifiedBadge).toBeInTheDocument()
-    expect(modifiedBadge).toHaveAttribute('title', 'Modifié')
+    expect(modifiedBadge).toHaveAttribute('title', 'Modified')
     
     // index.css is untracked ('U' badge)
     const untrackedBadge = screen.getByText('U')
     expect(untrackedBadge).toBeInTheDocument()
-    expect(untrackedBadge).toHaveAttribute('title', 'Non suivi')
+    expect(untrackedBadge).toHaveAttribute('title', 'Untracked')
   })
 
   it('should call onToggleDirectory when directory is clicked', () => {
@@ -72,7 +72,7 @@ describe('Explorer Component', () => {
   it('should call onCollapseAll when collapse all button is clicked', () => {
     render(<Explorer {...defaultProps} />)
     
-    const collapseAllBtn = screen.getByTitle('Tout replier')
+    const collapseAllBtn = screen.getByTitle('Collapse all')
     expect(collapseAllBtn).toBeInTheDocument()
     
     fireEvent.click(collapseAllBtn)
@@ -82,7 +82,7 @@ describe('Explorer Component', () => {
   it('should filter files through search input field', () => {
     render(<Explorer {...defaultProps} />)
     
-    const searchInput = screen.getByPlaceholderText('Filtrer les fichiers...')
+    const searchInput = screen.getByPlaceholderText('Filter files...') as HTMLInputElement
     expect(searchInput).toBeInTheDocument()
     
     fireEvent.change(searchInput, { target: { value: 'App' } })
@@ -93,12 +93,13 @@ describe('Explorer Component', () => {
     render(<Explorer {...defaultProps} />)
     
     // Panel starts expanded
-    expect(screen.getByText('Explorateur')).toBeInTheDocument()
+    expect(screen.getByText('Explorer')).toBeInTheDocument()
     
-    const toggleButton = screen.getByRole('button', { name: '' })
+    const toggleButton = screen.getByRole('button', { name: 'Hide explorer' })
     expect(toggleButton).toBeInTheDocument()
     
     // Click toggle button to collapse
     fireEvent.click(toggleButton)
+    expect(screen.getByRole('button', { name: 'Show explorer' })).toBeInTheDocument()
   })
 })

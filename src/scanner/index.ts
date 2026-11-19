@@ -1,11 +1,12 @@
 import fs from 'fs/promises'
+import type { Stats } from 'fs'
 import path from 'path'
-import { scanDir, getAllFiles } from './fileScanner'
-import { analyzeGit } from './gitAnalyzer'
-import { loadCache, saveCache } from './cache'
-import type { ProjectCacheData, FileCacheData } from './cache'
-import { resolvePythonImport, resolveJsImport } from './parsers/dependencyParser'
-import { ParserRegistry } from './parser'
+import { scanDir, getAllFiles } from './fileScanner.ts'
+import { analyzeGit } from './gitAnalyzer.ts'
+import { loadCache, saveCache } from './cache.ts'
+import type { ProjectCacheData, FileCacheData } from './cache.ts'
+import { resolvePythonImport, resolveJsImport } from './parsers/dependencyParser.ts'
+import { ParserRegistry } from './parser.ts'
 
 export interface ScanProgress {
   stage: 'reading' | 'parsing' | 'git' | 'saving' | 'complete'
@@ -14,22 +15,29 @@ export interface ScanProgress {
   message: string
 }
 
+function throwIfAborted(signal?: AbortSignal): void {
+  if (signal?.aborted) {
+    const err = new Error('The operation was aborted.')
+    err.name = 'AbortError'
+    throw err
+  }
+}
+
 function extractImports(content: string, ext: string): string[] {
   const targets = new Set<string>()
   if (ext === '.py') {
-    let match
+    let match: RegExpExecArray | null
 
-    // 1. import a, b, c (single line)
+    // 1. import a, b as c (single line)
     const pyImportRegex = /^\s*import\s+([\w., ]+)/mg
     while ((match = pyImportRegex.exec(content)) !== null) {
       const imports = match[1].split(',')
-      for (let imp of imports) {
-        imp = imp.trim()
+      for (const rawImp of imports) {
+        const imp = rawImp.split(/\s+as\s+/)[0].trim()
         if (imp) targets.add(imp)
       }
     }
 
-    // Reset regex index before running next searches just in case, but they are fresh local variables
     // 2. from a import b, c (single line)
     const pyFromImportRegex = /^\s*from\s+([\w.]+)\s+import\s+([\w., *]+)/mg
     while ((match = pyFromImportRegex.exec(content)) !== null) {
@@ -44,8 +52,8 @@ function extractImports(content: string, ext: string): string[] {
       if (fromMod) targets.add(fromMod)
     }
   } else {
-    const jsImportRegex = /(?:import\s+(?:[\w*\s{},]*\s+from\s+)?['"]([^'"]+)['"]|import\(['"]([^'"]+)['"]\)|require\(['"]([^'"]+)['"]\))/g
-    let match
+    const jsImportRegex = /(?:(?:import|export)\s+(?:[\w*\s{},]*\s+from\s+)?['"]([^'"]+)['"]|import\(['"]([^'"]+)['"]\)|require\(['"]([^'"]+)['"]\))/g
+    let match: RegExpExecArray | null
     while ((match = jsImportRegex.exec(content)) !== null) {
       const moduleName = match[1] || match[2] || match[3]
       if (moduleName) targets.add(moduleName)
@@ -59,11 +67,7 @@ export async function handleScan(
   onProgress?: (progress: ScanProgress) => void,
   signal?: AbortSignal
 ) {
-  if (signal?.aborted) {
-    const err = new Error('The operation was aborted.')
-    err.name = 'AbortError'
-    throw err
-  }
+  throwIfAborted(signal)
   const resolvedPath = path.resolve(projectPath)
   
   // 1. Check folder existence
@@ -72,7 +76,7 @@ export async function handleScan(
     if (!stats.isDirectory()) {
       throw new Error('Project path is not a directory')
     }
-  } catch (e: any) {
+  } catch (e: unknown) {
     throw new Error('Project path does not exist: ' + resolvedPath, { cause: e })
   }
 
@@ -86,7 +90,7 @@ export async function handleScan(
 
   // 3. Scan directory structure and files
   if (onProgress) {
-    onProgress({ stage: 'reading', message: 'Lecture de la structure des dossiers...' })
+    onProgress({ stage: 'reading', message: 'Reading directory structure...' })
   }
   const structure = await scanDir(resolvedPath, resolvedPath, signal)
   const files = await getAllFiles(resolvedPath, resolvedPath, [], signal)
@@ -107,21 +111,17 @@ export async function handleScan(
   const newProjectCacheFiles: Record<string, FileCacheData> = {}
 
   for (const file of files) {
-    if (signal?.aborted) {
-      const err = new Error('The operation was aborted.')
-      err.name = 'AbortError'
-      throw err
-    }
+    throwIfAborted(signal)
     parsedCount++
-    const ext = path.extname(file)
+    const ext = path.extname(file).toLowerCase()
     const isSupported = ext === '.py' || ext === '.js' || ext === '.ts' || ext === '.jsx' || ext === '.tsx'
 
-    if (onProgress && parsedCount % 10 === 0) {
+    if (onProgress && (parsedCount === 1 || parsedCount % 10 === 0 || parsedCount === totalFiles)) {
       onProgress({
         stage: 'parsing',
         current: parsedCount,
         total: totalFiles,
-        message: `Analyse du fichier ${parsedCount}/${totalFiles}...`
+        message: `Analyzing file ${parsedCount}/${totalFiles}...`
       })
     }
 
@@ -130,10 +130,10 @@ export async function handleScan(
     }
 
     const fullFilePath = path.join(resolvedPath, file)
-    let fileStats: any
+    let fileStats: Stats
     try {
       fileStats = await fs.stat(fullFilePath)
-    } catch (e) {
+    } catch {
       continue
     }
 
@@ -220,7 +220,7 @@ export async function handleScan(
 
   // 5. Build Dependency Graph
   if (onProgress) {
-    onProgress({ stage: 'parsing', message: 'Résolution des dépendances du projet...' })
+    onProgress({ stage: 'parsing', message: 'Resolving project dependencies...' })
   }
   const nodesMap = new Map<string, { id: string; type: 'file' | 'package' }>()
   for (const file of files) {
@@ -290,13 +290,13 @@ export async function handleScan(
 
   // 6. Git Analysis (Async)
   if (onProgress) {
-    onProgress({ stage: 'git', message: 'Analyse des hotspots Git...' })
+    onProgress({ stage: 'git', message: 'Analyzing Git hotspots...' })
   }
   const git = await analyzeGit(resolvedPath, filesSet)
 
   // 7. Update Cache & Save
   if (onProgress) {
-    onProgress({ stage: 'saving', message: 'Sauvegarde du cache global...' })
+    onProgress({ stage: 'saving', message: 'Saving global cache...' })
   }
   cache.projects[resolvedPath] = {
     lastScanned: Date.now(),
@@ -326,7 +326,7 @@ export async function handleScan(
   }
 
   if (onProgress) {
-    onProgress({ stage: 'complete', message: 'Scan terminé avec succès !' })
+    onProgress({ stage: 'complete', message: 'Scan completed successfully!' })
   }
 
   return scanResult

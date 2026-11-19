@@ -37,7 +37,7 @@ export const GitPanel: React.FC<GitPanelProps> = ({
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>
         <Activity size={16} color="var(--bottleneck)" />
         <h2 style={{ fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', margin: 0 }}>
-          Friction Git / Hotspots
+          Git Friction / Hotspots
         </h2>
       </div>
 
@@ -46,6 +46,8 @@ export const GitPanel: React.FC<GitPanelProps> = ({
           {(['score', 'commits', 'authors'] as const).map((mode) => (
             <button
               key={mode}
+              type="button"
+              aria-pressed={gitSortBy === mode}
               onClick={() => setGitSortBy(mode)}
               style={{
                 flex: 1,
@@ -53,14 +55,14 @@ export const GitPanel: React.FC<GitPanelProps> = ({
                 borderRadius: '4px',
                 border: 'none',
                 backgroundColor: gitSortBy === mode ? 'var(--accent)' : 'var(--input-bg)',
-                color: gitSortBy === mode ? '#fff' : 'var(--text-muted)',
+                color: gitSortBy === mode ? 'var(--accent-fg)' : 'var(--text-muted)',
                 fontSize: '11px',
                 fontWeight: 500,
                 cursor: 'pointer',
                 transition: 'background-color 0.2s, color 0.2s'
               }}
             >
-              {mode === 'score' ? 'Score' : mode === 'commits' ? 'Modifications' : 'Auteurs'}
+              {mode === 'score' ? 'Score' : mode === 'commits' ? 'Commits' : 'Authors'}
             </button>
           ))}
         </div>
@@ -75,7 +77,7 @@ export const GitPanel: React.FC<GitPanelProps> = ({
 
                 return (
                   <div
-                    key={idx}
+                    key={item.file || idx}
                     onClick={() => onSelectFile && onSelectFile(item.file)}
                     style={{
                       padding: '10px',
@@ -119,10 +121,10 @@ export const GitPanel: React.FC<GitPanelProps> = ({
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <span style={{ fontSize: '10px', color: 'var(--text-muted)', backgroundColor: 'var(--accent-muted)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--border)' }}>
-                          {item.commits} modifs
+                          {item.commits} commits
                         </span>
                         <span style={{ fontSize: '10px', color: 'var(--text-muted)', backgroundColor: 'var(--package-muted)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--border)' }}>
-                          {item.authors} aut.
+                          {item.authors} auth.
                         </span>
                       </div>
                       <button
@@ -133,7 +135,7 @@ export const GitPanel: React.FC<GitPanelProps> = ({
                           }
                         }}
                         disabled={item.hasConflicts}
-                        title={item.hasConflicts ? "Option désactivée : Résolvez les conflits Git avant de scanner" : "Scanner ce fichier"}
+                        title={item.hasConflicts ? "Disabled: Resolve Git conflicts before scanning" : "Scan this file"}
                         style={{
                           display: 'flex',
                           alignItems: 'center',
@@ -141,8 +143,8 @@ export const GitPanel: React.FC<GitPanelProps> = ({
                           padding: '3px 8px',
                           borderRadius: '4px',
                           border: 'none',
-                          backgroundColor: item.hasConflicts ? 'rgba(255, 255, 255, 0.02)' : 'var(--accent)',
-                          color: item.hasConflicts ? 'var(--text-muted)' : '#fff',
+                          backgroundColor: item.hasConflicts ? 'var(--input-bg)' : 'var(--accent)',
+                          color: item.hasConflicts ? 'var(--text-muted)' : 'var(--accent-fg)',
                           fontSize: '10px',
                           fontWeight: 500,
                           cursor: item.hasConflicts ? 'not-allowed' : 'pointer',
@@ -151,7 +153,7 @@ export const GitPanel: React.FC<GitPanelProps> = ({
                         }}
                       >
                         <Play size={8} fill={item.hasConflicts ? "none" : "currentColor"} />
-                        <span>Scanner</span>
+                        <span>Scan</span>
                       </button>
                     </div>
 
@@ -169,20 +171,20 @@ export const GitPanel: React.FC<GitPanelProps> = ({
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '8px', color: 'var(--text-muted)', textAlign: 'center', padding: '16px' }}>
                 <Activity size={28} style={{ opacity: 0.5 }} />
-                <span style={{ fontSize: '12px' }}>Aucun fichier suivi dans le dépôt Git.</span>
+                <span style={{ fontSize: '12px' }}>No tracked files in this Git repository.</span>
               </div>
             )
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '8px', color: 'var(--bottleneck)', textAlign: 'center', padding: '16px' }}>
               <AlertTriangle size={28} style={{ opacity: 0.8 }} />
-              <span style={{ fontSize: '12px', fontWeight: 'bold' }}>Dépôt Git non détecté.</span>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Initialisez Git pour suivre la friction des fichiers.</span>
+              <span style={{ fontSize: '12px', fontWeight: 'bold' }}>Git repository not detected.</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Initialize Git to track file friction.</span>
             </div>
           )
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '8px', color: 'var(--text-muted)', textAlign: 'center', padding: '16px' }}>
             <Activity size={28} style={{ opacity: 0.5 }} />
-            <span style={{ fontSize: '12px' }}>Scannez le projet pour analyser l'historique de friction Git.</span>
+            <span style={{ fontSize: '12px' }}>Scan the project to analyze Git friction history.</span>
           </div>
         )}
       </div>

@@ -1,11 +1,6 @@
-import type { Node, Edge } from '@xyflow/react'
+import type { Template } from '../types'
 
-export interface Template {
-  name: string
-  description: string
-  nodes: Node[]
-  edges: Edge[]
-}
+export type { Template }
 
 export { buildLoopTemplates } from './builders/loopBuilder'
 export { buildRepeatLoopTemplates } from './builders/repeatLoopBuilder'

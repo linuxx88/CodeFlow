@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { MiniMap, useReactFlow, useNodes } from '@xyflow/react'
-import { useTheme } from '../hooks/useTheme'
+import React, { useState } from 'react'
+import { MiniMap } from '@xyflow/react'
 import { Map, ChevronDown } from 'lucide-react'
 
 interface MiniMapPanelProps {
@@ -9,38 +8,24 @@ interface MiniMapPanelProps {
 }
 
 export const MiniMapPanel: React.FC<MiniMapPanelProps> = ({ style, nodeColor }) => {
-  const nodes = useNodes()
-  const { theme } = useTheme()
-  const { fitView } = useReactFlow()
   const [isCollapsed, setIsCollapsed] = useState(false)
-  
-  // Create a unique key based on node count, node IDs, and theme to force MiniMap re-initialization
-  const mapKey = `${theme}-${nodes.length}-${nodes.map(n => n.id).join(',')}`
-
-  useEffect(() => {
-    // Enforce explicit canvas layer clear-rect routines
-    const canvases = document.querySelectorAll('.react-flow__minimap canvas')
-    canvases.forEach((canvas) => {
-      const ctx = (canvas as HTMLCanvasElement).getContext('2d')
-      if (ctx) {
-        ctx.clearRect(0, 0, (canvas as HTMLCanvasElement).width, (canvas as HTMLCanvasElement).height)
-      }
-    })
-
-    // Re-trigger viewport coordinate syncs on theme switches and file transitions
-    const timer = setTimeout(() => {
-      fitView({ duration: 0 })
-    }, 50)
-    return () => clearTimeout(timer)
-  }, [theme, nodes.length, fitView])
 
   return (
     <>
       <MiniMap
-        key={mapKey}
         pannable
+        zoomable
+        bgColor="var(--dropdown-bg)"
+        maskColor="color-mix(in srgb, var(--bg) 72%, transparent)"
+        nodeStrokeColor="var(--border)"
+        nodeBorderRadius={4}
         style={{
+          backgroundColor: 'var(--dropdown-bg)',
+          border: '1px solid var(--border)',
+          borderRadius: '10px',
+          boxShadow: '0 8px 24px var(--shadow)',
           ...style,
+          zIndex: 50,
           width: 200,
           height: 150,
           transform: isCollapsed 
@@ -54,12 +39,15 @@ export const MiniMapPanel: React.FC<MiniMapPanelProps> = ({ style, nodeColor }) 
         nodeColor={nodeColor}
       />
       <button
+        type="button"
         onClick={() => setIsCollapsed(!isCollapsed)}
+        aria-label={isCollapsed ? 'Show MiniMap' : 'Hide MiniMap'}
+        aria-expanded={!isCollapsed}
         style={{
           position: 'absolute',
           right: '16px',
           bottom: isCollapsed ? '16px' : '176px',
-          zIndex: 1000,
+          zIndex: 60,
           width: '36px',
           height: '36px',
           borderRadius: '50%',
@@ -74,7 +62,7 @@ export const MiniMapPanel: React.FC<MiniMapPanelProps> = ({ style, nodeColor }) 
           boxShadow: '0 4px 12px var(--shadow)',
           transition: 'bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s, transform 0.2s',
         }}
-        title={isCollapsed ? 'Afficher la MiniMap' : 'Masquer la MiniMap'}
+        title={isCollapsed ? 'Show MiniMap' : 'Hide MiniMap'}
         onMouseEnter={(e) => {
           e.currentTarget.style.backgroundColor = 'var(--accent-muted)'
           e.currentTarget.style.transform = 'scale(1.05)'

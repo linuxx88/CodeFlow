@@ -2,8 +2,8 @@ import path from 'path'
 
 export function parseConditionalsFromFile(file: string, content: string): any[] {
   const result: any[] = []
-  const lines = content.split('\n')
-  const ext = path.extname(file)
+  const lines = content.split(/\r?\n/)
+  const ext = path.extname(file).toLowerCase()
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
@@ -78,28 +78,42 @@ export function parseConditionalsFromFile(file: string, content: string): any[] 
 
         let hasBrace = line.includes('{')
         let j = i + 1
-        if (!hasBrace && j < lines.length && lines[j].includes('{')) {
+        let sameLineClosed = false
+        if (hasBrace) {
+          const afterOpen = line.slice(line.indexOf('{') + 1)
+          const openOnLine = (afterOpen.match(/\{/g) || []).length
+          const closeOnLine = (afterOpen.match(/\}/g) || []).length
+          if (1 + openOnLine - closeOnLine <= 0) {
+            sameLineClosed = true
+            const inlineBody = afterOpen.slice(0, afterOpen.lastIndexOf('}')).trim()
+            if (inlineBody) {
+              thenBlock = inlineBody.length > 80 ? inlineBody.substring(0, 80) + '...' : inlineBody
+            }
+          }
+        } else if (j < lines.length && lines[j].includes('{')) {
           hasBrace = true
           j++
         }
 
         if (hasBrace) {
-          let braceCount = 1
-          const thenLines: string[] = []
-          while (j < lines.length && braceCount > 0) {
-            const l = lines[j]
-            const openMatches = l.match(/\{/g)
-            const closeMatches = l.match(/\}/g)
-            braceCount += openMatches ? openMatches.length : 0
-            braceCount -= closeMatches ? closeMatches.length : 0
-            if (braceCount > 0 && l.trim() !== '') {
-              thenLines.push(l.trim())
+          if (!sameLineClosed) {
+            let braceCount = 1
+            const thenLines: string[] = []
+            while (j < lines.length && braceCount > 0) {
+              const l = lines[j]
+              const openMatches = l.match(/\{/g)
+              const closeMatches = l.match(/\}/g)
+              braceCount += openMatches ? openMatches.length : 0
+              braceCount -= closeMatches ? closeMatches.length : 0
+              if (braceCount > 0 && l.trim() !== '') {
+                thenLines.push(l.trim())
+              }
+              j++
             }
-            j++
-          }
-          if (thenLines.length > 0) {
-            thenBlock = thenLines.join(' ')
-            if (thenBlock.length > 80) thenBlock = thenBlock.substring(0, 80) + '...'
+            if (thenLines.length > 0) {
+              thenBlock = thenLines.join(' ')
+              if (thenBlock.length > 80) thenBlock = thenBlock.substring(0, 80) + '...'
+            }
           }
 
           const nextLines = lines.slice(j, j + 3).join(' ')
@@ -161,19 +175,30 @@ export function parseConditionalsFromFile(file: string, content: string): any[] 
         const expression = switchMatch[1].trim()
         const cases: string[] = []
         let j = i + 1
+        let switchBraceCount = line.includes('{') ? 1 : 0
         while (j < lines.length) {
           const l = lines[j]
-          if (l.includes('switch') || l.includes('function') || l.includes('class')) break
-          const caseMatch = l.match(/\bcase\s+([^:]+):/)
-          if (caseMatch) {
-            cases.push(caseMatch[1].trim())
+          if (switchBraceCount === 0 && l.includes('{')) {
+            switchBraceCount = 1
+            j++
+            continue
           }
-          const defaultMatch = l.match(/\bdefault\s*:/)
-          if (defaultMatch) {
-            cases.push('default')
+          if (switchBraceCount > 0) {
+            const openMatches = l.match(/\{/g)
+            const closeMatches = l.match(/\}/g)
+            switchBraceCount += openMatches ? openMatches.length : 0
+            switchBraceCount -= closeMatches ? closeMatches.length : 0
+            if (switchBraceCount <= 0) break
           }
-          if (l.includes('}') && !l.includes('{')) {
-            break
+          if (switchBraceCount <= 1) {
+            const caseMatch = l.match(/\bcase\s+([^:]+):/)
+            if (caseMatch) {
+              cases.push(caseMatch[1].trim())
+            }
+            const defaultMatch = l.match(/\bdefault\s*:/)
+            if (defaultMatch) {
+              cases.push('default')
+            }
           }
           j++
         }

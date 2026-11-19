@@ -51,63 +51,63 @@ async function cleanupMockProject() {
 }
 
 async function runTests() {
-  console.log('--- Configuration du projet mocké ---')
+  console.log('--- Setting up mock project ---')
   await setupMockProject()
 
   try {
-    console.log('--- Exécution du scanner ---')
+    console.log('--- Running scanner ---')
     const result = await handleScan(MOCK_DIR)
 
-    console.log('--- Vérification des résultats ---')
+    console.log('--- Verifying results ---')
     
     // Check files scanned
     const scannedFiles = result.dependencies.nodes.filter(n => n.type === 'file').map(n => n.id)
-    console.log('Fichiers scannés:', scannedFiles)
+    console.log('Scanned files:', scannedFiles)
 
     // Check links
     const links = result.dependencies.links
-    console.log('Liens détectés:')
+    console.log('Detected links:')
     links.forEach(l => console.log(`  ${l.source} -> ${l.target} (${l.type})`))
 
     // Verification of multi-line import in JS
     const hasJsDep1 = links.some(l => l.source === 'js_multi.js' && l.target === 'js_dep.js')
     const hasJsDep2 = links.some(l => l.source === 'js_multi.js' && l.target === 'js_dep2.js')
 
-    console.log(`Vérification JS multi-line (js_dep.js): ${hasJsDep1 ? 'SUCCESS' : 'FAILED'}`)
-    console.log(`Vérification JS simple import (js_dep2.js): ${hasJsDep2 ? 'SUCCESS' : 'FAILED'}`)
+    console.log(`Check JS multi-line (js_dep.js): ${hasJsDep1 ? 'SUCCESS' : 'FAILED'}`)
+    console.log(`Check JS simple import (js_dep2.js): ${hasJsDep2 ? 'SUCCESS' : 'FAILED'}`)
 
     // Verification of Python imports
     const hasPyDep1 = links.some(l => l.source === 'py_rel.py' && l.target === 'py_dep.py')
     const hasPyDep2 = links.some(l => l.source === 'py_rel.py' && l.target === 'py_dep2.py')
 
-    console.log(`Vérification Python relative import (py_dep.py): ${hasPyDep1 ? 'SUCCESS' : 'FAILED'}`)
-    console.log(`Vérification Python absolute import (py_dep2.py): ${hasPyDep2 ? 'SUCCESS' : 'FAILED'}`)
+    console.log(`Check Python relative import (py_dep.py): ${hasPyDep1 ? 'SUCCESS' : 'FAILED'}`)
+    console.log(`Check Python absolute import (py_dep2.py): ${hasPyDep2 ? 'SUCCESS' : 'FAILED'}`)
 
     // Verification of Cycles
     const cycleInfo = findCycles(result.dependencies.nodes, result.dependencies.links)
-    console.log('Cycles détectés (sccs):', cycleInfo.sccs)
+    console.log('Detected cycles (sccs):', cycleInfo.sccs)
     const hasCycle = cycleInfo.cycleNodes.has('cycle_a.js') && cycleInfo.cycleNodes.has('cycle_b.js') && cycleInfo.cycleNodes.has('cycle_c.js')
-    console.log(`Vérification détection de cycle (cycle_a,b,c): ${hasCycle ? 'SUCCESS' : 'FAILED'}`)
+    console.log(`Check cycle detection (cycle_a,b,c): ${hasCycle ? 'SUCCESS' : 'FAILED'}`)
 
     // Verification of unreadable directory error propagation
     const unreadableNode = result.structure?.children?.find((c: any) => c.name === 'unreadable_dir')
     const hasUnreadableDirNode = !!unreadableNode
     const hasUnreadableError = unreadableNode?.error !== undefined && (unreadableNode?.error?.code === 'EACCES' || unreadableNode?.error?.code === 'EPERM')
-    console.log(`Vérification présence dossier illisible: ${hasUnreadableDirNode ? 'SUCCESS' : 'FAILED'}`)
-    console.log(`Vérification erreur propagée sur dossier illisible: ${hasUnreadableError ? 'SUCCESS' : 'FAILED'} (code: ${unreadableNode?.error?.code}, message: ${unreadableNode?.error?.message})`)
+    console.log(`Check unreadable directory presence: ${hasUnreadableDirNode ? 'SUCCESS' : 'FAILED'}`)
+    console.log(`Check error propagated on unreadable directory: ${hasUnreadableError ? 'SUCCESS' : 'FAILED'} (code: ${unreadableNode?.error?.code}, message: ${unreadableNode?.error?.message})`)
 
     if (!hasJsDep1 || !hasJsDep2 || !hasPyDep1 || !hasPyDep2 || !hasCycle || !hasUnreadableDirNode || !hasUnreadableError) {
-      console.error('\nFAIL: Certains tests ont échoué.')
+      console.error('\nFAIL: Some tests failed.')
       process.exitCode = 1
     } else {
-      console.log('\nSUCCESS: Tous les tests du scanner ont réussi !')
+      console.log('\nSUCCESS: All scanner tests passed!')
     }
 
   } catch (error) {
-    console.error('Erreur durant le test:', error)
+    console.error('Error during test:', error)
     process.exitCode = 1
   } finally {
-    console.log('--- Nettoyage ---')
+    console.log('--- Cleanup ---')
     await cleanupMockProject()
   }
 }

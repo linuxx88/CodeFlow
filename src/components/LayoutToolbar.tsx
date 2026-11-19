@@ -43,7 +43,10 @@ export const LayoutToolbar: React.FC<LayoutToolbarProps> = ({
     >
       {/* Toggle Button */}
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
+        aria-label="Layout options"
+        aria-expanded={isOpen}
         style={{
           width: '38px',
           height: '38px',
@@ -51,7 +54,7 @@ export const LayoutToolbar: React.FC<LayoutToolbarProps> = ({
           border: '1.5px solid var(--border)',
           backgroundColor: isOpen ? 'var(--accent)' : 'var(--panel-bg)',
           backdropFilter: 'blur(16px)',
-          color: isOpen ? '#fff' : 'var(--text)',
+          color: isOpen ? 'var(--accent-fg)' : 'var(--text)',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
@@ -59,7 +62,7 @@ export const LayoutToolbar: React.FC<LayoutToolbarProps> = ({
           boxShadow: '0 8px 32px 0 var(--shadow)',
           transition: 'all 0.2s ease',
         }}
-        title="Options de disposition"
+        title="Layout options"
       >
         <SlidersHorizontal size={16} />
       </button>
@@ -83,13 +86,13 @@ export const LayoutToolbar: React.FC<LayoutToolbarProps> = ({
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
-            <span>Disposition du graphe</span>
+            <span>Graph Layout</span>
           </div>
 
           {/* Layout Strategy Selection */}
           {layoutType && setLayoutType && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Moteur de Layout</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Layout Engine</span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 <button
                   onClick={() => setLayoutType('dagre')}
@@ -131,7 +134,7 @@ export const LayoutToolbar: React.FC<LayoutToolbarProps> = ({
                   }}
                 >
                   <Cpu size={12} style={{ color: layoutType === 'elk' ? 'var(--accent)' : 'var(--text-muted)' }} />
-                  <span>ELK JS (Gros graphes)</span>
+                  <span>ELK JS (Large graphs)</span>
                 </button>
                 <button
                   onClick={() => setLayoutType('python')}
@@ -152,7 +155,7 @@ export const LayoutToolbar: React.FC<LayoutToolbarProps> = ({
                   }}
                 >
                   <GitFork size={12} style={{ color: layoutType === 'python' ? 'var(--accent)' : 'var(--text-muted)' }} />
-                  <span>Custom Python (Séquentiel)</span>
+                  <span>Custom Python (Sequential)</span>
                 </button>
               </div>
             </div>
@@ -182,7 +185,7 @@ export const LayoutToolbar: React.FC<LayoutToolbarProps> = ({
                 }}
               >
                 <ArrowRight size={12} />
-                <span>Gauche-Droite</span>
+                <span>Left-to-Right</span>
               </button>
               <button
                 onClick={() => setDirection('TB')}
@@ -204,7 +207,7 @@ export const LayoutToolbar: React.FC<LayoutToolbarProps> = ({
                 }}
               >
                 <ArrowDown size={12} />
-                <span>Haut-Bas</span>
+                <span>Top-to-Bottom</span>
               </button>
             </div>
           </div>
@@ -212,7 +215,7 @@ export const LayoutToolbar: React.FC<LayoutToolbarProps> = ({
           {/* Node Spacing Slider */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
-              <span>Espacement nœuds</span>
+              <span>Node spacing</span>
               <span>{nodesep}px</span>
             </div>
             <input
@@ -220,6 +223,7 @@ export const LayoutToolbar: React.FC<LayoutToolbarProps> = ({
               min="20"
               max="150"
               value={nodesep}
+              aria-label="Node spacing"
               onChange={(e) => setNodesep(Number(e.target.value))}
               style={{
                 width: '100%',
@@ -235,7 +239,7 @@ export const LayoutToolbar: React.FC<LayoutToolbarProps> = ({
           {/* Rank/Level Spacing Slider */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
-              <span>Espacement niveaux</span>
+              <span>Rank spacing</span>
               <span>{ranksep}px</span>
             </div>
             <input
@@ -243,6 +247,7 @@ export const LayoutToolbar: React.FC<LayoutToolbarProps> = ({
               min="20"
               max="150"
               value={ranksep}
+              aria-label="Rank spacing"
               onChange={(e) => setRanksep(Number(e.target.value))}
               style={{
                 width: '100%',

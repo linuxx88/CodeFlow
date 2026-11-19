@@ -10,21 +10,21 @@ export interface AlgoTemplate {
 
 export const ALGO_TEMPLATES: Record<string, AlgoTemplate> = {
   demo: {
-    name: 'Somme d\'Éléments (Démo)',
-    description: 'Algorithme simple de sommation de liste.',
+    name: 'Sum of Elements (Demo)',
+    description: 'Simple list summation algorithm.',
     nodes: [
       {
         id: 'start',
         type: 'customNode',
         position: { x: 250, y: 20 },
-        data: { label: 'Début: calculateSum(list)', type: 'start' },
+        data: { label: 'Start: calculateSum(list)', type: 'start' },
         sourcePosition: Position.Bottom
       },
       {
         id: 'step-0',
         type: 'customNode',
         position: { x: 250, y: 120 },
-        data: { label: 'Initialiser total = 0', type: 'action' },
+        data: { label: 'Initialize total = 0', type: 'action' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       },
@@ -32,7 +32,7 @@ export const ALGO_TEMPLATES: Record<string, AlgoTemplate> = {
         id: 'step-1',
         type: 'customNode',
         position: { x: 250, y: 220 },
-        data: { label: 'Pour chaque element dans list : total += element', type: 'action' },
+        data: { label: 'For each element in list: total += element', type: 'action' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       },
@@ -40,7 +40,7 @@ export const ALGO_TEMPLATES: Record<string, AlgoTemplate> = {
         id: 'step-2',
         type: 'customNode',
         position: { x: 250, y: 320 },
-        data: { label: 'Retourner total', type: 'action' },
+        data: { label: 'Return total', type: 'action' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       }

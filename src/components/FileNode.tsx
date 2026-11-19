@@ -6,16 +6,16 @@ export const FileNode = React.memo(({ data, sourcePosition, targetPosition }: an
   const isBottleneck = data.isBottleneck
   const isPackage = data.isPackage
   const isPartOfCycle = data.isPartOfCycle
-  
+
   let borderColor = 'var(--accent)'
   const bgColor = 'var(--panel-bg)'
   let textColor = 'var(--text)'
   let glowColor = 'var(--accent-glow)'
-  
+
   if (isBottleneck) {
     borderColor = 'var(--bottleneck)'
-    glowColor = 'rgba(244, 63, 94, 0.35)'
-    textColor = '#fff'
+    glowColor = 'var(--bottleneck-muted)'
+    textColor = 'var(--text)'
   } else if (isPackage) {
     borderColor = 'var(--border)'
     glowColor = 'transparent'
@@ -24,32 +24,43 @@ export const FileNode = React.memo(({ data, sourcePosition, targetPosition }: an
 
   if (isPartOfCycle) {
     borderColor = 'var(--cycle)'
-    glowColor = 'rgba(245, 158, 11, 0.35)'
+    glowColor = 'var(--cycle-muted)'
   }
 
   const highPerformance = data.highPerformanceMode
+  const rawLabel = String(data.fullPath || data.label || '')
+  const normalized = rawLabel.replace(/\\/g, '/')
+  const lastSlash = normalized.lastIndexOf('/')
+  const derivedFileName = data.fileName || (lastSlash >= 0 ? normalized.slice(lastSlash + 1) : normalized)
+  const derivedFolderPath = data.folderPath !== undefined
+    ? data.folderPath
+    : (lastSlash >= 0 ? normalized.slice(0, lastSlash) : '')
+  const inDegree: number | undefined = typeof data.inDegree === 'number' ? data.inDegree : undefined
 
   return (
     <div
+      title={rawLabel}
       style={{
-        padding: '10px 18px',
+        padding: '8px 12px',
         borderRadius: '10px',
         backgroundColor: bgColor,
         backdropFilter: highPerformance ? 'none' : 'blur(16px)',
         border: `1.5px solid ${borderColor}`,
         color: textColor,
-        fontSize: '13px',
-        fontFamily: 'monospace',
-        boxShadow: highPerformance ? 'none' : `0 8px 32px 0 var(--shadow), 0 0 12px ${glowColor}`,
+        fontSize: '12px',
+        fontFamily: "'Inter', system-ui, sans-serif",
+        boxShadow: highPerformance ? 'none' : `0 6px 20px 0 var(--shadow), 0 0 10px ${glowColor}`,
         display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: '10px',
-        opacity: data.isDimmed ? 0.25 : 1,
-        transition: highPerformance ? 'none' : 'all 0.3s ease',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        gap: '3px',
+        opacity: data.isDimmed ? 0.2 : 1,
+        transition: highPerformance ? 'opacity 0.2s ease' : 'all 0.25s ease',
         position: 'relative',
-        minWidth: '120px',
-        maxWidth: '320px',
+        width: data.width ? `${Math.min(280, Math.max(180, data.width))}px` : undefined,
+        minWidth: '180px',
+        maxWidth: '280px',
+        minHeight: derivedFolderPath ? '54px' : '42px',
         boxSizing: 'border-box'
       }}
     >
@@ -65,26 +76,71 @@ export const FileNode = React.memo(({ data, sourcePosition, targetPosition }: an
           flexShrink: 0
         }}
       />
-      {isPackage ? (
-        <span style={{ fontSize: '10px', opacity: 0.7, fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--text-muted)', flexShrink: 0 }}>[pkg]</span>
-      ) : (
-        <FileText size={14} color={isPartOfCycle ? 'var(--cycle)' : (isBottleneck ? 'var(--bottleneck)' : 'var(--accent)')} style={{ flexShrink: 0 }} />
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: '7px', minWidth: 0 }}>
+        {isPackage ? (
+          <span style={{ fontSize: '9px', opacity: 0.75, fontWeight: 700, textTransform: 'uppercase', color: 'var(--package)', flexShrink: 0 }}>
+            [pkg]
+          </span>
+        ) : (
+          <FileText size={13} color={isPartOfCycle ? 'var(--cycle)' : (isBottleneck ? 'var(--bottleneck)' : 'var(--accent)')} style={{ flexShrink: 0 }} />
+        )}
+
+        <span
+          style={{
+            fontWeight: 600,
+            fontFamily: 'monospace',
+            textOverflow: 'ellipsis',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            minWidth: 0,
+            flex: 1
+          }}
+        >
+          {derivedFileName}
+        </span>
+
+        {isPartOfCycle && (
+          <RefreshCw size={11} color="var(--cycle)" style={{ animation: 'spin 4s linear infinite', flexShrink: 0 }} />
+        )}
+
+        {inDegree !== undefined && (
+          <span
+            style={{
+              fontSize: '10px',
+              fontWeight: 600,
+              fontFamily: 'monospace',
+              padding: '1px 6px',
+              borderRadius: '999px',
+              backgroundColor: isBottleneck ? 'var(--bottleneck-muted)' : 'var(--accent-muted)',
+              color: isBottleneck ? 'var(--bottleneck)' : 'var(--text-muted)',
+              border: `1px solid ${isBottleneck ? 'var(--bottleneck)' : 'var(--border)'}`,
+              flexShrink: 0,
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {inDegree} in
+          </span>
+        )}
+      </div>
+
+      {derivedFolderPath && (
+        <div
+          style={{
+            fontSize: '10px',
+            fontFamily: 'monospace',
+            color: 'var(--text-muted)',
+            textOverflow: 'ellipsis',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            paddingLeft: '20px',
+            opacity: 0.85
+          }}
+        >
+          {derivedFolderPath}
+        </div>
       )}
-      <span
-        style={{
-          fontWeight: 500,
-          textOverflow: 'ellipsis',
-          overflow: 'hidden',
-          whiteSpace: 'nowrap',
-          minWidth: 0,
-          flex: 1
-        }}
-      >
-        {data.label}
-      </span>
-      {isPartOfCycle && (
-        <RefreshCw size={12} color="var(--cycle)" style={{ animation: 'spin 4s linear infinite', marginLeft: '4px', flexShrink: 0 }} />
-      )}
+
       <Handle
         type="source"
         position={sourcePosition || Position.Right}
@@ -106,6 +162,5 @@ export const FileNode = React.memo(({ data, sourcePosition, targetPosition }: an
     prevProps.sourcePosition === nextProps.sourcePosition &&
     prevProps.targetPosition === nextProps.targetPosition &&
     JSON.stringify(prevProps.data) === JSON.stringify(nextProps.data)
-  );
-});
-
+  )
+})

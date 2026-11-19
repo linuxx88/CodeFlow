@@ -39,11 +39,11 @@ export async function scanProjectStream(options: ScanOptions): Promise<void> {
 
   while (true) {
     if (signal?.aborted) {
-      throw new DOMException('Opération annulée par l\'utilisateur.', 'AbortError');
+      throw new DOMException('Operation cancelled by user.', 'AbortError');
     }
 
     if (!scanBreaker.allowRequest()) {
-      const errorMsg = 'Le scanner est indisponible (Circuit Breaker ouvert). Re-tentative bloquée pour 15s.';
+      const errorMsg = 'Scanner is unavailable (Circuit Breaker open). Retries blocked for 15s.';
       toast.warning(errorMsg);
       throw new Error(errorMsg);
     }
@@ -52,7 +52,7 @@ export async function scanProjectStream(options: ScanOptions): Promise<void> {
       if (attempt > 0) {
         onProgress({
           stage: 'connecting',
-          message: `Reconnexion automatique (tentative ${attempt}/${maxRetries})...`,
+          message: `Reconnecting automatically (attempt ${attempt}/${maxRetries})...`,
         });
       }
 
@@ -64,16 +64,16 @@ export async function scanProjectStream(options: ScanOptions): Promise<void> {
           // Client error, e.g. path invalid. Don't retry, don't trigger breaker
           scanBreaker.recordSuccess();
           const errData = await response.json().catch(() => ({}));
-          throw new Error(errData.error || `Erreur de configuration (${response.status})`);
+          throw new Error(errData.error || `Configuration error (${response.status})`);
         } else {
           // Server error 5xx, or other status
-          throw new Error(`Le serveur de scan a renvoyé une erreur (${response.status})`);
+          throw new Error(`Scan server returned an error (${response.status})`);
         }
       }
 
       const reader = response.body?.getReader();
       if (!reader) {
-        throw new Error('Le flux de réponse du scanner n\'est pas lisible.');
+        throw new Error('Scanner response stream is not readable.');
       }
 
       // Record success in Circuit Breaker on initial connection success
@@ -98,7 +98,7 @@ export async function scanProjectStream(options: ScanOptions): Promise<void> {
           try {
             parsed = JSON.parse(trimmed.substring(6));
           } catch (e) {
-            console.error('Erreur parsing SSE:', e);
+            console.error('SSE parsing error:', e);
             continue;
           }
 
@@ -130,12 +130,12 @@ export async function scanProjectStream(options: ScanOptions): Promise<void> {
 
       attempt++;
       if (attempt > maxRetries) {
-        toast.error(`Échec permanent du scan après ${maxRetries} tentatives : ${e.message}`);
+        toast.error(`Scan failed permanently after ${maxRetries} attempts: ${e.message}`);
         throw e;
       }
 
       const delay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 300;
-      toast.warning(`Flux interrompu (${e.message}). Nouvelle tentative ${attempt}/${maxRetries} dans ${Math.round(delay)}ms...`);
+      toast.warning(`Stream interrupted (${e.message}). Retrying ${attempt}/${maxRetries} in ${Math.round(delay)}ms...`);
 
       // Wait for delay or abort signal
       await new Promise((resolve) => {
@@ -161,14 +161,14 @@ export async function fetchWithRetry(url: string, options: RequestInit & { maxRe
 
   while (true) {
     if (signal?.aborted) {
-      throw new DOMException('Opération annulée.', 'AbortError');
+      throw new DOMException('Operation cancelled.', 'AbortError');
     }
 
     try {
       const response = await fetch(url, { ...fetchOptions, signal });
 
       if (response.status >= 500) {
-        throw new Error(`Erreur serveur (${response.status})`);
+        throw new Error(`Server error (${response.status})`);
       }
 
       return response;

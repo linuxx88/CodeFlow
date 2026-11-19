@@ -10,21 +10,21 @@ export interface ProcessTemplate {
 
 export const PROCESS_TEMPLATES: Record<string, ProcessTemplate> = {
   agile: {
-    name: 'Cycle Agile (Démo)',
-    description: 'Étapes classiques de développement logiciel Agile.',
+    name: 'Agile Cycle (Demo)',
+    description: 'Classic Agile software development lifecycle stages.',
     nodes: [
       {
         id: 'stage-plan',
         type: 'customNode',
         position: { x: 250, y: 20 },
-        data: { label: '1. Planification & Cahier des charges', type: 'start' },
+        data: { label: '1. Planning & Requirements', type: 'start' },
         sourcePosition: Position.Bottom
       },
       {
         id: 'stage-design',
         type: 'customNode',
         position: { x: 250, y: 120 },
-        data: { label: '2. Architecture & Choix technologiques', type: 'condition' },
+        data: { label: '2. Architecture & Tech Stack', type: 'condition' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       },
@@ -32,7 +32,7 @@ export const PROCESS_TEMPLATES: Record<string, ProcessTemplate> = {
         id: 'stage-code',
         type: 'customNode',
         position: { x: 250, y: 220 },
-        data: { label: '3. Développement & Tests Unitaires', type: 'action' },
+        data: { label: '3. Development & Unit Tests', type: 'action' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       },
@@ -40,7 +40,7 @@ export const PROCESS_TEMPLATES: Record<string, ProcessTemplate> = {
         id: 'stage-scan',
         type: 'customNode',
         position: { x: 250, y: 320 },
-        data: { label: '4. Audit de Code & Optimisations', type: 'action' },
+        data: { label: '4. Code Audit & Optimization', type: 'action' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       },
@@ -48,7 +48,7 @@ export const PROCESS_TEMPLATES: Record<string, ProcessTemplate> = {
         id: 'stage-deploy',
         type: 'customNode',
         position: { x: 250, y: 420 },
-        data: { label: '5. Production & Supervision', type: 'action' },
+        data: { label: '5. Production & Monitoring', type: 'action' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       }
