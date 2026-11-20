@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { GitBranch, Play, ChevronDown, Palette, X } from 'lucide-react'
-import { VIEW_OPTIONS, getViewLabel } from '../constants/views'
-import type { FlowchartView } from '../constants/views'
+import { VIEW_OPTIONS, VIEW_CATEGORY_LABELS, getViewLabel } from '../constants/views'
+import type { FlowchartView, ViewCategory } from '../constants/views'
 import { HealthIndicator } from './HealthIndicator'
 
 interface NavbarProps {
@@ -72,7 +72,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: '12px 24px',
+        padding: '8px 16px',
         borderBottom: '1px solid var(--border)',
         backgroundColor: 'var(--panel-bg)',
         backdropFilter: 'blur(12px)',
@@ -81,7 +81,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         transition: 'background-color 0.3s, border-color 0.3s, box-shadow 0.3s',
         overflow: 'visible',
         flexWrap: 'wrap',
-        gap: '12px'
+        gap: '8px'
       }}
     >
       <button
@@ -94,17 +94,18 @@ export const Navbar: React.FC<NavbarProps> = ({
           background: 'none',
           border: 'none',
           padding: 0,
-          textAlign: 'left'
+          textAlign: 'left',
+          flexShrink: 0
         }}
         onClick={() => onViewChange('all')}
       >
-        <GitBranch size={20} color="var(--accent)" />
-        <h1 style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--text)', margin: 0, letterSpacing: 'normal' }}>
+        <GitBranch size={18} color="var(--accent)" />
+        <h1 style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--text)', margin: 0, letterSpacing: 'normal', whiteSpace: 'nowrap' }}>
           Interactive Dependency Flow
         </h1>
       </button>
       
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
         <input
           type="text"
           aria-label="Project path"
@@ -117,13 +118,13 @@ export const Navbar: React.FC<NavbarProps> = ({
             }
           }}
           style={{
-            padding: '6px 12px',
+            padding: '5px 10px',
             borderRadius: '6px',
             border: '1px solid var(--border)',
             backgroundColor: 'var(--input-bg)',
             color: 'var(--text)',
-            fontSize: '13px',
-            width: '240px',
+            fontSize: '12px',
+            width: '190px',
             outline: 'none',
             textOverflow: 'ellipsis',
             overflow: 'hidden',
@@ -248,20 +249,22 @@ export const Navbar: React.FC<NavbarProps> = ({
               transition: 'background-color 0.2s, border-color 0.2s'
             }}
           >
-            <span>Flowchart Type: {getViewLabel(currentView)}</span>
+            <span>View: {getViewLabel(currentView)}</span>
             <ChevronDown size={14} style={{ display: 'inline-block', transform: isDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
           </button>
 
           {isDropdownOpen && (
             <div
               role="listbox"
-              aria-label="Select a flowchart type"
+              aria-label="Select a view"
               style={{
                 position: 'absolute',
                 top: '100%',
                 right: 0,
-                minWidth: '100%',
+                minWidth: '280px',
                 width: 'max-content',
+                maxHeight: 'calc(100vh - 70px)',
+                overflowY: 'auto',
                 backgroundColor: 'var(--dropdown-bg)',
                 border: '1px solid var(--border)',
                 borderRadius: '8px',
@@ -274,39 +277,70 @@ export const Navbar: React.FC<NavbarProps> = ({
                 zIndex: 100
               }}
             >
-              {VIEW_OPTIONS.map((opt) => {
-                const isActive = currentView === opt.value
+              {(['graph', 'code', 'overview'] as ViewCategory[]).map((category) => {
+                const items = VIEW_OPTIONS.filter((opt) => opt.category === category)
+                if (items.length === 0) return null
                 return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    role="option"
-                    aria-selected={isActive}
-                    onClick={() => {
-                      onViewChange(opt.value)
-                      setIsDropdownOpen(false)
-                    }}
-                    style={{
-                      padding: '8px 12px',
-                      borderRadius: '6px',
-                      border: 'none',
-                      backgroundColor: isActive ? 'var(--accent)' : 'transparent',
-                      color: isActive ? 'var(--accent-fg)' : 'var(--text)',
-                      fontSize: '13px',
-                      textAlign: 'left',
-                      cursor: 'pointer',
-                      transition: 'background-color 0.2s',
-                      fontWeight: isActive ? 600 : 400
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isActive) e.currentTarget.style.backgroundColor = 'var(--accent-muted)'
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isActive) e.currentTarget.style.backgroundColor = 'transparent'
-                    }}
-                  >
-                    {opt.label}
-                  </button>
+                  <div key={category} style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                    <div
+                      style={{
+                        fontSize: '10px',
+                        fontWeight: 700,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.06em',
+                        color: 'var(--text-muted)',
+                        padding: '3px 8px 1px'
+                      }}
+                    >
+                      {VIEW_CATEGORY_LABELS[category]}
+                    </div>
+                    {items.map((opt) => {
+                      const isActive = currentView === opt.value
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          role="option"
+                          aria-selected={isActive}
+                          onClick={() => {
+                            onViewChange(opt.value)
+                            setIsDropdownOpen(false)
+                          }}
+                          style={{
+                            padding: '5px 8px',
+                            borderRadius: '6px',
+                            border: 'none',
+                            backgroundColor: isActive ? 'var(--accent)' : 'transparent',
+                            color: isActive ? 'var(--accent-fg)' : 'var(--text)',
+                            fontSize: '12px',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            transition: 'background-color 0.2s',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '1px'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isActive) e.currentTarget.style.backgroundColor = 'var(--accent-muted)'
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isActive) e.currentTarget.style.backgroundColor = 'transparent'
+                          }}
+                        >
+                          <span style={{ fontWeight: isActive ? 600 : 500 }}>{opt.label}</span>
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              color: isActive ? 'var(--accent-fg)' : 'var(--text-muted)',
+                              opacity: isActive ? 0.85 : 0.8
+                            }}
+                          >
+                            {opt.description}
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
                 )
               })}
             </div>
@@ -331,7 +365,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             alignItems: 'center',
             gap: '6px',
             transition: 'background-color 0.2s',
-            marginLeft: '12px',
             opacity: canScan ? 1 : 0.5
           }}
           onMouseEnter={(e) => {

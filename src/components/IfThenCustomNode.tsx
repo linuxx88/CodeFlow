@@ -83,7 +83,7 @@ export const IfThenCustomNode = React.memo(({ data, sourcePosition, targetPositi
             gap: '6px'
           }}
         >
-          <span>{isStart ? 'Start' : isCondition ? 'IF (Condition)' : 'THEN / ELSE'}</span>
+          <span>{data.badgeLabel || data.roleLabel || (isStart ? 'Start' : isCondition ? 'IF (Condition)' : 'THEN / ELSE')}</span>
           {!isStart && (
             <button
               aria-expanded={isExpanded}

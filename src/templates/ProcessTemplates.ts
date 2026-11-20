@@ -1,12 +1,7 @@
-import type { Node, Edge } from '@xyflow/react'
 import { Position } from '@xyflow/react'
+import type { Template } from '../types'
 
-export interface ProcessTemplate {
-  name: string
-  description: string
-  nodes: Node[]
-  edges: Edge[]
-}
+export type ProcessTemplate = Template
 
 export const PROCESS_TEMPLATES: Record<string, ProcessTemplate> = {
   agile: {
@@ -17,14 +12,14 @@ export const PROCESS_TEMPLATES: Record<string, ProcessTemplate> = {
         id: 'stage-plan',
         type: 'customNode',
         position: { x: 250, y: 20 },
-        data: { label: '1. Planning & Requirements', type: 'start' },
+        data: { label: '1. Planning & Requirements', type: 'start', badgeLabel: 'Stage 1' },
         sourcePosition: Position.Bottom
       },
       {
         id: 'stage-design',
         type: 'customNode',
         position: { x: 250, y: 120 },
-        data: { label: '2. Architecture & Tech Stack', type: 'condition' },
+        data: { label: '2. Architecture & Tech Stack', type: 'condition', badgeLabel: 'Stage 2' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       },
@@ -32,7 +27,7 @@ export const PROCESS_TEMPLATES: Record<string, ProcessTemplate> = {
         id: 'stage-code',
         type: 'customNode',
         position: { x: 250, y: 220 },
-        data: { label: '3. Development & Unit Tests', type: 'action' },
+        data: { label: '3. Development & Unit Tests', type: 'action', badgeLabel: 'Stage 3' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       },
@@ -40,7 +35,7 @@ export const PROCESS_TEMPLATES: Record<string, ProcessTemplate> = {
         id: 'stage-scan',
         type: 'customNode',
         position: { x: 250, y: 320 },
-        data: { label: '4. Code Audit & Optimization', type: 'action' },
+        data: { label: '4. Code Audit & Optimization', type: 'action', badgeLabel: 'Stage 4' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       },
@@ -48,7 +43,7 @@ export const PROCESS_TEMPLATES: Record<string, ProcessTemplate> = {
         id: 'stage-deploy',
         type: 'customNode',
         position: { x: 250, y: 420 },
-        data: { label: '5. Production & Monitoring', type: 'action' },
+        data: { label: '5. Production & Monitoring', type: 'action', badgeLabel: 'Stage 5' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       }

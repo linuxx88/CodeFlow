@@ -1,12 +1,7 @@
-import type { Node, Edge } from '@xyflow/react'
 import { Position } from '@xyflow/react'
+import type { Template } from '../types'
 
-export interface RepeatTemplate {
-  name: string
-  description: string
-  nodes: Node[]
-  edges: Edge[]
-}
+export type RepeatTemplate = Template
 
 export const REPEAT_TEMPLATES: Record<string, RepeatTemplate> = {
   basicRepeat: {
@@ -17,14 +12,14 @@ export const REPEAT_TEMPLATES: Record<string, RepeatTemplate> = {
         id: 'start',
         type: 'customNode',
         position: { x: 250, y: 20 },
-        data: { label: 'Initialize: i = 0', type: 'start' },
+        data: { label: 'Initialize: i = 0', type: 'start', badgeLabel: 'Entry' },
         sourcePosition: Position.Bottom
       },
       {
         id: 'body',
         type: 'customNode',
         position: { x: 250, y: 120 },
-        data: { label: 'Execute loop body: i++', type: 'action' },
+        data: { label: 'Execute loop body: i++', type: 'action', badgeLabel: 'Loop Body' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       },
@@ -32,7 +27,7 @@ export const REPEAT_TEMPLATES: Record<string, RepeatTemplate> = {
         id: 'condition',
         type: 'customNode',
         position: { x: 250, y: 240 },
-        data: { label: 'Condition: i < 5 ?', type: 'condition' },
+        data: { label: 'Condition: i < 5 ?', type: 'condition', badgeLabel: 'Loop Check' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       },
@@ -40,7 +35,7 @@ export const REPEAT_TEMPLATES: Record<string, RepeatTemplate> = {
         id: 'exit',
         type: 'customNode',
         position: { x: 420, y: 360 },
-        data: { label: 'Exit Loop', type: 'action' },
+        data: { label: 'Exit Loop', type: 'action', badgeLabel: 'Exit' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       }

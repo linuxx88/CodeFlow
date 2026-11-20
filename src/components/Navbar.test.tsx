@@ -89,14 +89,14 @@ describe('Navbar Component', () => {
   it('should toggle view options dropdown and call onViewChange when clicked', async () => {
     await renderNavbar()
     
-    const viewBtn = screen.getByText(/Flowchart Type:/)
+    const viewBtn = screen.getByText(/View:/)
     expect(viewBtn).toBeInTheDocument()
     
     // Click view dropdown
     fireEvent.click(viewBtn)
     
     // Select conditional-statement option
-    const conditionalOption = screen.getByText('Conditional Statements Flowchart')
+    const conditionalOption = screen.getByText('Conditional Branches')
     expect(conditionalOption).toBeInTheDocument()
     
     fireEvent.click(conditionalOption)

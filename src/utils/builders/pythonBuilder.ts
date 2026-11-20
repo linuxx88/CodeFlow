@@ -34,6 +34,7 @@ export const buildPythonTemplates = (
       .withNodeType('start')
       .withPosition(250, 20)
       .withLabel(startLabel)
+      .withBadgeLabel('Module')
       .commit()
 
     let prevNodeId = 'start'
@@ -61,18 +62,21 @@ export const buildPythonTemplates = (
           .withNodeType('condition')
           .withPosition(250, cursorY)
           .withLabel(tryLabel)
+          .withBadgeLabel('Try Block')
           .commit()
 
           .addNode(successNodeId)
           .withNodeType('action')
           .withPosition(20, branchY)
           .withLabel(successLabel)
+          .withBadgeLabel('Try Branch')
           .commit()
 
           .addNode(exceptNodeId)
           .withNodeType('action')
           .withPosition(exceptX, branchY)
           .withLabel(exceptLabel)
+          .withBadgeLabel('Except Branch')
           .commit()
 
           .addEdge(`edge-to-try-${idx}`)
@@ -105,6 +109,7 @@ export const buildPythonTemplates = (
           .withNodeType('start')
           .withPosition(250, cursorY)
           .withLabel(decLabel)
+          .withBadgeLabel('Decorator')
           .commit()
 
           .addEdge(`edge-dec-${idx}`)
@@ -122,6 +127,7 @@ export const buildPythonTemplates = (
           .withNodeType('action')
           .withPosition(250, cursorY)
           .withLabel(mainLabel)
+          .withBadgeLabel('Entry Point')
           .commit()
 
           .addEdge(`edge-main-${idx}`)

@@ -61,8 +61,8 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = ({
         flexWrap: 'wrap',
         justifyContent: 'space-between',
         alignItems: 'center',
-        gap: '12px',
-        padding: '8px 16px',
+        gap: '8px',
+        padding: '6px 12px',
         borderBottom: '1px solid var(--border)',
         backgroundColor: 'var(--panel-bg)',
         backdropFilter: 'blur(12px)',
@@ -73,8 +73,8 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = ({
         ...style
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', minWidth: 0, flexShrink: 1 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'var(--input-bg)', padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--border)', flexShrink: 0, minWidth: '160px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', minWidth: 0, flexShrink: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'var(--input-bg)', padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--border)', flexShrink: 0, minWidth: '120px' }}>
           <Search size={13} color="var(--text-muted)" style={{ flexShrink: 0 }} />
           <input
             type="text"
@@ -88,7 +88,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = ({
               color: 'var(--text)',
               fontSize: '12px',
               outline: 'none',
-              width: '120px'
+              width: '100px'
             }}
           />
         </div>

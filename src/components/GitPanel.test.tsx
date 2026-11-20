@@ -59,23 +59,23 @@ describe('GitPanel Component', () => {
     expect(defaultProps.onSelectFile).toHaveBeenCalledWith('src/components/Explorer.tsx')
   })
 
-  it('should call onScan when scan button is clicked (if not conflicted)', () => {
+  it('should call onScan when focus button is clicked (if not conflicted)', () => {
     render(<GitPanel {...defaultProps} />)
     
-    const scanButtons = screen.getAllByRole('button', { name: /Scan/ })
+    const focusButtons = screen.getAllByRole('button', { name: /Focus/ })
     
-    // First scan button (App.tsx)
-    fireEvent.click(scanButtons[0])
+    // First focus button (App.tsx)
+    fireEvent.click(focusButtons[0])
     expect(defaultProps.onScan).toHaveBeenCalled()
   })
 
-  it('should disable scan button for conflict files', () => {
+  it('should disable focus button for conflict files', () => {
     render(<GitPanel {...defaultProps} />)
     
-    const scanButtons = screen.getAllByRole('button', { name: /Scan/ })
+    const focusButtons = screen.getAllByRole('button', { name: /Focus/ })
     
-    // Second scan button (Explorer.tsx - conflicted)
-    expect(scanButtons[1]).toBeDisabled()
+    // Second focus button (Explorer.tsx - conflicted)
+    expect(focusButtons[1]).toBeDisabled()
   })
 
   it('should display non-git repo message if isGitRepo is false', () => {

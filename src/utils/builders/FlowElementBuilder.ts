@@ -145,6 +145,11 @@ export class NodeBuilder {
     return this
   }
 
+  withBadgeLabel(badgeLabel: string): this {
+    this.node.data = { ...this.node.data, badgeLabel }
+    return this
+  }
+
   withNodeType(nodeType: FlowNodeType): this {
     this.node.data = { ...this.node.data, type: nodeType }
 

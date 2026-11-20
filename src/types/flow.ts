@@ -10,6 +10,7 @@ export type FlowNodeType = 'start' | 'condition' | 'action'
 export interface FlowNodeData extends Record<string, unknown> {
   label: string
   type: FlowNodeType
+  badgeLabel?: string
   width?: number
   height?: number
 }

@@ -20,6 +20,13 @@ export interface ScanResult {
   pythonStructures: any;
 }
 
+class NonRetryableError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'NonRetryableError';
+  }
+}
+
 interface ScanOptions {
   projectPath: string;
   onProgress: (progress: ScanProgress) => void;
@@ -64,7 +71,7 @@ export async function scanProjectStream(options: ScanOptions): Promise<void> {
           // Client error, e.g. path invalid. Don't retry, don't trigger breaker
           scanBreaker.recordSuccess();
           const errData = await response.json().catch(() => ({}));
-          throw new Error(errData.error || `Configuration error (${response.status})`);
+          throw new NonRetryableError(errData.error || `Configuration error (${response.status})`);
         } else {
           // Server error 5xx, or other status
           throw new Error(`Scan server returned an error (${response.status})`);
@@ -121,7 +128,7 @@ export async function scanProjectStream(options: ScanOptions): Promise<void> {
       return;
     } catch (e: any) {
       const isAbort = e.name === 'AbortError' || signal?.aborted;
-      if (isAbort) {
+      if (isAbort || e instanceof NonRetryableError) {
         throw e;
       }
 

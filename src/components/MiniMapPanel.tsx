@@ -18,7 +18,7 @@ export const MiniMapPanel: React.FC<MiniMapPanelProps> = ({ style, nodeColor }) 
         bgColor="var(--dropdown-bg)"
         maskColor="color-mix(in srgb, var(--bg) 72%, transparent)"
         nodeStrokeColor="var(--border)"
-        nodeBorderRadius={4}
+        nodeBorderRadius={3}
         style={{
           backgroundColor: 'var(--dropdown-bg)',
           border: '1px solid var(--border)',
@@ -26,8 +26,8 @@ export const MiniMapPanel: React.FC<MiniMapPanelProps> = ({ style, nodeColor }) 
           boxShadow: '0 8px 24px var(--shadow)',
           ...style,
           zIndex: 50,
-          width: 200,
-          height: 150,
+          width: 150,
+          height: 105,
           transform: isCollapsed 
             ? 'translate3d(40px, 40px, 0) scale(0)' 
             : 'translate3d(0, 0, 0) scale(1)',
@@ -46,7 +46,7 @@ export const MiniMapPanel: React.FC<MiniMapPanelProps> = ({ style, nodeColor }) 
         style={{
           position: 'absolute',
           right: '16px',
-          bottom: isCollapsed ? '16px' : '176px',
+          bottom: isCollapsed ? '16px' : '131px',
           zIndex: 60,
           width: '36px',
           height: '36px',

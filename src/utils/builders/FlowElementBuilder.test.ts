@@ -163,6 +163,8 @@ describe('templateBuilders', () => {
       {}
     )
     expect(algo['project-math.ts-sum'].nodes).toHaveLength(3)
+    expect(algo['project-math.ts-sum'].nodes[0].data.badgeLabel).toBe('Function')
+    expect(algo['project-math.ts-sum'].nodes[1].data.badgeLabel).toBe('Step')
     assertTemplateNoOverlaps(algo['project-math.ts-sum'].nodes)
 
     const cond = buildConditionalTemplates(
@@ -209,6 +211,8 @@ describe('templateBuilders', () => {
       {}
     )
     expect(loops['project-loop.ts'].nodes).toHaveLength(7)
+    expect(loops['project-loop.ts'].nodes[1].data.badgeLabel).toBe('Loop Check')
+    expect(loops['project-loop.ts'].nodes[2].data.badgeLabel).toBe('Loop Body')
     assertTemplateNoOverlaps(loops['project-loop.ts'].nodes)
 
     const repeats = buildRepeatLoopTemplates(

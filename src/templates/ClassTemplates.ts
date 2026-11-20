@@ -1,11 +1,6 @@
-import type { Node, Edge } from '@xyflow/react'
+import type { Template } from '../types'
 
-export interface ClassTemplate {
-  name: string
-  description: string
-  nodes: Node[]
-  edges: Edge[]
-}
+export type ClassTemplate = Template
 
 export const CLASS_TEMPLATES: Record<string, ClassTemplate> = {
   demo: {

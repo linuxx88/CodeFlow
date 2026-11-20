@@ -135,7 +135,7 @@ export const GitPanel: React.FC<GitPanelProps> = ({
                           }
                         }}
                         disabled={item.hasConflicts}
-                        title={item.hasConflicts ? "Disabled: Resolve Git conflicts before scanning" : "Scan this file"}
+                        title={item.hasConflicts ? "Disabled: Resolve Git conflicts before focusing" : "Focus on this file"}
                         style={{
                           display: 'flex',
                           alignItems: 'center',
@@ -153,7 +153,7 @@ export const GitPanel: React.FC<GitPanelProps> = ({
                         }}
                       >
                         <Play size={8} fill={item.hasConflicts ? "none" : "currentColor"} />
-                        <span>Scan</span>
+                        <span>Focus</span>
                       </button>
                     </div>
 

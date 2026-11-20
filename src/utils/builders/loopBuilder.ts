@@ -35,6 +35,7 @@ export const buildLoopTemplates = (
       .withNodeType('start')
       .withPosition(250, 20)
       .withLabel(startLabel)
+      .withBadgeLabel('Entry')
       .commit()
 
     let prevNodeId = 'start'
@@ -61,12 +62,14 @@ export const buildLoopTemplates = (
         .withNodeType('condition')
         .withPosition(250, cursorY)
         .withLabel(condLabel)
+        .withBadgeLabel('Loop Check')
         .commit()
 
         .addNode(bodyNodeId)
         .withNodeType('action')
         .withPosition(20, branchY)
         .withLabel(bodyLabel)
+        .withBadgeLabel('Loop Body')
         .withSourcePosition(Position.Top)
         .withTargetPosition(Position.Top)
         .commit()
@@ -75,6 +78,7 @@ export const buildLoopTemplates = (
         .withNodeType('action')
         .withPosition(exitX, branchY)
         .withLabel(exitLabel)
+        .withBadgeLabel('Exit')
         .commit()
 
         .addEdge(`edge-to-cond-${idx}`)

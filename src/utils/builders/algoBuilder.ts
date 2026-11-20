@@ -36,6 +36,7 @@ export const buildAlgoTemplates = (
         .withNodeType('start')
         .withPosition(250, 20)
         .withLabel(startLabel)
+        .withBadgeLabel('Function')
         .commit()
 
       let prevNodeId = 'start'
@@ -50,6 +51,7 @@ export const buildAlgoTemplates = (
           .withNodeType('action')
           .withPosition(250, cursorY)
           .withLabel(stepLabel)
+          .withBadgeLabel('Step')
           .commit()
 
           .addEdge(`edge-${sIdx}`)

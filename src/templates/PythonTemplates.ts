@@ -1,12 +1,7 @@
-import type { Node, Edge } from '@xyflow/react'
 import { Position } from '@xyflow/react'
+import type { Template } from '../types'
 
-export interface PythonTemplate {
-  name: string
-  description: string
-  nodes: Node[]
-  edges: Edge[]
-}
+export type PythonTemplate = Template
 
 export const PYTHON_TEMPLATES: Record<string, PythonTemplate> = {
   pyDemo: {
@@ -17,14 +12,14 @@ export const PYTHON_TEMPLATES: Record<string, PythonTemplate> = {
         id: 'start',
         type: 'customNode',
         position: { x: 250, y: 20 },
-        data: { label: '@auth_required: auth decorator', type: 'start' },
+        data: { label: '@auth_required: auth decorator', type: 'start', badgeLabel: 'Decorator' },
         sourcePosition: Position.Bottom
       },
       {
         id: 'try',
         type: 'customNode',
         position: { x: 250, y: 120 },
-        data: { label: 'Try Block: run_calculation()', type: 'condition' },
+        data: { label: 'Try Block: run_calculation()', type: 'condition', badgeLabel: 'Try Block' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       },
@@ -32,7 +27,7 @@ export const PYTHON_TEMPLATES: Record<string, PythonTemplate> = {
         id: 'try-success',
         type: 'customNode',
         position: { x: 80, y: 240 },
-        data: { label: 'Success: print("Calculation complete")', type: 'action' },
+        data: { label: 'Success: print("Calculation complete")', type: 'action', badgeLabel: 'Try Branch' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       },
@@ -40,7 +35,7 @@ export const PYTHON_TEMPLATES: Record<string, PythonTemplate> = {
         id: 'try-except',
         type: 'customNode',
         position: { x: 420, y: 240 },
-        data: { label: 'Except ZeroDivisionError: print("Error")', type: 'action' },
+        data: { label: 'Except ZeroDivisionError: print("Error")', type: 'action', badgeLabel: 'Except Branch' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       },
@@ -48,7 +43,7 @@ export const PYTHON_TEMPLATES: Record<string, PythonTemplate> = {
         id: 'main-entry',
         type: 'customNode',
         position: { x: 250, y: 360 },
-        data: { label: 'if __name__ == "__main__": start()', type: 'action' },
+        data: { label: 'if __name__ == "__main__": start()', type: 'action', badgeLabel: 'Entry Point' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       }

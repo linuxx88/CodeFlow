@@ -27,7 +27,7 @@ class ToastService {
     const id = Math.random().toString(36).substring(2, 9);
     const toast: Toast = { id, type, message, duration };
     
-    // Eviter les doublons exacts et successifs de messages d'erreur rapides
+    // Avoid consecutive exact duplicate messages
     if (this.toasts.length > 0 && this.toasts[this.toasts.length - 1].message === message) {
       return id;
     }

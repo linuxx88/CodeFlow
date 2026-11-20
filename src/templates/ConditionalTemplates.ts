@@ -1,12 +1,7 @@
-import type { Node, Edge } from '@xyflow/react'
 import { Position } from '@xyflow/react'
+import type { Template } from '../types'
 
-export interface Template {
-  name: string
-  description: string
-  nodes: Node[]
-  edges: Edge[]
-}
+export type { Template }
 
 export const CONDITIONAL_TEMPLATES: Record<string, Template> = {
   ifelse: {

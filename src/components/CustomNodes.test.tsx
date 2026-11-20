@@ -76,4 +76,17 @@ describe('Custom Node Sizing & Rendering', () => {
     expect(actionWrapper).toBeTruthy()
     expect(actionWrapper.style.width).toBe('250px')
   })
+
+  it('IfThenCustomNode renders custom badgeLabel when provided', () => {
+    render(
+      <ReactFlowProvider>
+        <IfThenCustomNode
+          id="loop-1"
+          data={{ label: 'i < items.length', type: 'condition', badgeLabel: 'Loop Check' }}
+        />
+      </ReactFlowProvider>
+    )
+    expect(screen.getByText('Loop Check')).toBeInTheDocument()
+    expect(screen.queryByText('IF (Condition)')).not.toBeInTheDocument()
+  })
 })

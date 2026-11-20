@@ -1,12 +1,7 @@
-import type { Node, Edge } from '@xyflow/react'
 import { Position } from '@xyflow/react'
+import type { Template } from '../types'
 
-export interface AlgoTemplate {
-  name: string
-  description: string
-  nodes: Node[]
-  edges: Edge[]
-}
+export type AlgoTemplate = Template
 
 export const ALGO_TEMPLATES: Record<string, AlgoTemplate> = {
   demo: {
@@ -17,14 +12,14 @@ export const ALGO_TEMPLATES: Record<string, AlgoTemplate> = {
         id: 'start',
         type: 'customNode',
         position: { x: 250, y: 20 },
-        data: { label: 'Start: calculateSum(list)', type: 'start' },
+        data: { label: 'Start: calculateSum(list)', type: 'start', badgeLabel: 'Function' },
         sourcePosition: Position.Bottom
       },
       {
         id: 'step-0',
         type: 'customNode',
         position: { x: 250, y: 120 },
-        data: { label: 'Initialize total = 0', type: 'action' },
+        data: { label: 'Initialize total = 0', type: 'action', badgeLabel: 'Step' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       },
@@ -32,7 +27,7 @@ export const ALGO_TEMPLATES: Record<string, AlgoTemplate> = {
         id: 'step-1',
         type: 'customNode',
         position: { x: 250, y: 220 },
-        data: { label: 'For each element in list: total += element', type: 'action' },
+        data: { label: 'For each element in list: total += element', type: 'action', badgeLabel: 'Step' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       },
@@ -40,7 +35,7 @@ export const ALGO_TEMPLATES: Record<string, AlgoTemplate> = {
         id: 'step-2',
         type: 'customNode',
         position: { x: 250, y: 320 },
-        data: { label: 'Return total', type: 'action' },
+        data: { label: 'Return total', type: 'action', badgeLabel: 'Step' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       }

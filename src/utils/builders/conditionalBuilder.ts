@@ -40,6 +40,7 @@ export const buildConditionalTemplates = (
       .withNodeType('start')
       .withPosition(250, 20)
       .withLabel(startLabel)
+      .withBadgeLabel('Entry')
       .commit()
 
     let prevNodeId = 'start'
@@ -56,6 +57,7 @@ export const buildConditionalTemplates = (
         .withNodeType('condition')
         .withPosition(250, cursorY)
         .withLabel(condLabel)
+        .withBadgeLabel(item.type === 'switch' ? 'Switch' : 'IF (Condition)')
         .commit()
 
         .addEdge(`edge-to-cond-${idx}`)
@@ -78,6 +80,7 @@ export const buildConditionalTemplates = (
           .withNodeType('action')
           .withPosition(20, branchY)
           .withLabel(thenLabel)
+          .withBadgeLabel('THEN Branch')
           .commit()
 
           .addEdge(`edge-then-${idx}`)
@@ -99,6 +102,7 @@ export const buildConditionalTemplates = (
             .withNodeType('action')
             .withPosition(elseX, branchY)
             .withLabel(elseLabel)
+            .withBadgeLabel('ELSE Branch')
             .commit()
 
             .addEdge(`edge-else-${idx}`)
@@ -129,6 +133,7 @@ export const buildConditionalTemplates = (
             .withNodeType('action')
             .withPosition(cursorX, branchY)
             .withLabel(`Action: ${caseText}`)
+            .withBadgeLabel('Case')
             .commit()
 
             .addEdge(`edge-case-${idx}-${caseIdx}`)

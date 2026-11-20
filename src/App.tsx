@@ -197,7 +197,9 @@ function App() {
       />
 
       {currentView !== 'all' && currentView !== 'web' ? (
-        <FlowchartRenderer currentView={currentView} scanData={scanData} />
+        <div style={{ flex: 1, minHeight: 0, display: 'flex', width: '100vw', overflow: 'hidden' }}>
+          <FlowchartRenderer currentView={currentView} scanData={scanData} />
+        </div>
       ) : isFullscreen ? (
         <div style={{ flex: 1, minHeight: 0, width: '100vw', position: 'relative' }}>
           <div

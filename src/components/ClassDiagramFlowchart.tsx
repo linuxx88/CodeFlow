@@ -78,9 +78,14 @@ export const ClassDiagramFlowchart: React.FC<ClassDiagramFlowchartProps> = ({ sc
         })
 
         items.forEach((item: any) => {
-          if (item.inherits) {
-            const parentId = `class-${item.inherits.toLowerCase()}`
-            const childId = `class-${item.name.toLowerCase()}`
+          const inheritsList = Array.isArray(item.inherits)
+            ? item.inherits
+            : typeof item.inherits === 'string' && item.inherits.trim()
+              ? [item.inherits.trim()]
+              : []
+          const childId = `class-${item.name.toLowerCase()}`
+          inheritsList.forEach((baseName: string) => {
+            const parentId = `class-${String(baseName).toLowerCase()}`
             if (nodes.some(n => n.id === parentId)) {
               edges.push({
                 id: `edge-inherits-${childId}-${parentId}`,
@@ -92,7 +97,7 @@ export const ClassDiagramFlowchart: React.FC<ClassDiagramFlowchartProps> = ({ sc
                 labelStyle: { fill: 'var(--accent)', fontWeight: 'bold' }
               })
             }
-          }
+          })
         })
         
         temps[`project-${file}`] = {

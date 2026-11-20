@@ -3,14 +3,14 @@ import {
   ReactFlow,
   Background,
   useNodesState,
-  useEdgesState,
-  Position
+  useEdgesState
 } from '@xyflow/react'
 import type { Node, Edge } from '@xyflow/react'
 import { Code, HelpCircle } from 'lucide-react'
 
 import { IfThenCustomNode } from './IfThenCustomNode'
 import { PROCESS_TEMPLATES } from '../templates'
+import { buildProcessTemplates } from '../utils/templateBuilders'
 import { getLayoutedElements } from '../utils/layoutUtils'
 import { LayoutToolbar } from './LayoutToolbar'
 import { ControlsOverlay } from './ControlsOverlay'
@@ -49,91 +49,33 @@ function getReachableNodes(_nodes: Node[], edges: Edge[], startNodeId: string): 
   return reachable
 }
 
-export const AppDevelopmentProcessFlowchart: React.FC<AppDevelopmentProcessFlowchartProps> = ({
-  scanData
-}) => {
+export const AppDevelopmentProcessFlowchart: React.FC<AppDevelopmentProcessFlowchartProps> = ({ scanData }) => {
   const projectTemplates = useMemo(() => {
-    const temps: Record<string, any> = { ...PROCESS_TEMPLATES }
-    
-    if (scanData) {
-      const fileCount = scanData.dependencies?.nodes?.filter((n: any) => n.type === 'file').length || 0
-      const pkgCount = scanData.dependencies?.nodes?.filter((n: any) => n.type === 'package').length || 0
-      const linkCount = scanData.dependencies?.links?.length || 0
-      const classCount = scanData.classes?.reduce((acc: number, f: any) => acc + f.items.length, 0) || 0
-      const functionCount = scanData.algorithms?.reduce((acc: number, f: any) => acc + f.items.length, 0) || 0
-      const hotspot = scanData.git?.hotspots?.[0]?.file || 'None'
-      const commits = scanData.git?.hotspots?.[0]?.commits || 0
-
-      const nodes: Node[] = [
-        {
-          id: 'live-plan',
-          type: 'customNode',
-          position: { x: 250, y: 20 },
-          data: { label: `1. Initialization: Project scanned with ${fileCount} files`, type: 'start' },
-          sourcePosition: Position.Bottom
-        },
-        {
-          id: 'live-arch',
-          type: 'customNode',
-          position: { x: 250, y: 120 },
-          data: { label: `2. Architecture: ${pkgCount} packages, ${linkCount} links`, type: 'condition' },
-          sourcePosition: Position.Bottom,
-          targetPosition: Position.Top
-        },
-        {
-          id: 'live-code',
-          type: 'customNode',
-          position: { x: 250, y: 220 },
-          data: { label: `3. Code: ${functionCount} functions, ${classCount} classes`, type: 'action' },
-          sourcePosition: Position.Bottom,
-          targetPosition: Position.Top
-        },
-        {
-          id: 'live-quality',
-          type: 'customNode',
-          position: { x: 250, y: 320 },
-          data: { label: `4. Git: Top hotspot: ${hotspot} (${commits} commits)`, type: 'action' },
-          sourcePosition: Position.Bottom,
-          targetPosition: Position.Top
-        },
-        {
-          id: 'live-status',
-          type: 'customNode',
-          position: { x: 250, y: 420 },
-          data: { label: '5. Status: Production ready (build OK)', type: 'action' },
-          sourcePosition: Position.Bottom,
-          targetPosition: Position.Top
-        }
-      ]
-
-      const edges: Edge[] = [
-        { id: 'el-1', source: 'live-plan', target: 'live-arch', type: 'smoothstep', style: { stroke: 'var(--accent)' } },
-        { id: 'el-2', source: 'live-arch', target: 'live-code', type: 'smoothstep', style: { stroke: 'var(--accent)' } },
-        { id: 'el-3', source: 'live-code', target: 'live-quality', type: 'smoothstep', style: { stroke: 'var(--accent)' } },
-        { id: 'el-4', source: 'live-quality', target: 'live-status', type: 'smoothstep', style: { stroke: 'var(--accent)' } }
-      ]
-
-      temps['project-lifecycle'] = {
-        name: 'Live Project Lifecycle',
-        description: 'Real-time lifecycle and metrics from the scan.',
-        nodes,
-        edges
-      }
-    }
-
-    return temps
+    return buildProcessTemplates(scanData, PROCESS_TEMPLATES)
   }, [scanData])
 
-  const defaultTemplateKey = Object.keys(projectTemplates)[0] || ''
-  const [activeTemplate, setActiveTemplate] = useState<string>(defaultTemplateKey)
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
+  const initialKey = projectTemplates['project-lifecycle']
+    ? 'project-lifecycle'
+    : (Object.keys(projectTemplates)[0] || '')
+
+  const [selectedTemplate, setSelectedTemplate] = useState<string>(initialKey)
+  const activeTemplate = projectTemplates[selectedTemplate] ? selectedTemplate : initialKey
 
   const [direction, setDirection] = useState<'LR' | 'TB'>('TB')
   const [nodesep, setNodesep] = useState<number>(50)
   const [ranksep, setRanksep] = useState<number>(60)
-
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null)
+
+  const layouted = useMemo(() => {
+    const template = projectTemplates[activeTemplate]
+    if (!template) {
+      return { nodes: [] as Node[], edges: [] as Edge[] }
+    }
+    return getLayoutedElements(template.nodes, template.edges, direction, nodesep, ranksep)
+  }, [activeTemplate, projectTemplates, direction, nodesep, ranksep])
+
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>(layouted.nodes)
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(layouted.edges)
 
   const nodesRef = useRef(nodes)
   const edgesRef = useRef(edges)
@@ -152,20 +94,20 @@ export const AppDevelopmentProcessFlowchart: React.FC<AppDevelopmentProcessFlowc
 
   useEffect(() => {
     if (!focusedNodeId) {
-      setNodes(nds => nds.map(n => ({
+      setNodes(layouted.nodes.map(n => ({
         ...n,
         data: { ...n.data, isDimmed: false }
       })))
-      setEdges(eds => eds.map(e => ({
+      setEdges(layouted.edges.map(e => ({
         ...e,
         style: { ...e.style, opacity: 1 }
       })))
       return
     }
 
-    const reachable = getReachableNodes(nodesRef.current, edgesRef.current, focusedNodeId)
+    const reachable = getReachableNodes(layouted.nodes, layouted.edges, focusedNodeId)
 
-    setNodes(nds => nds.map(n => ({
+    setNodes(layouted.nodes.map(n => ({
       ...n,
       data: {
         ...n.data,
@@ -173,7 +115,7 @@ export const AppDevelopmentProcessFlowchart: React.FC<AppDevelopmentProcessFlowc
       }
     })))
 
-    setEdges(eds => eds.map(e => {
+    setEdges(layouted.edges.map(e => {
       const isConnected = reachable.has(e.source) && reachable.has(e.target)
       return {
         ...e,
@@ -183,60 +125,7 @@ export const AppDevelopmentProcessFlowchart: React.FC<AppDevelopmentProcessFlowc
         }
       }
     }))
-  }, [focusedNodeId, setNodes, setEdges])
-
-  // Auto-switch to live project lifecycle if scan completes
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (projectTemplates['project-lifecycle']) {
-        setActiveTemplate('project-lifecycle')
-      } else {
-        const defaultKey = Object.keys(projectTemplates)[0] || ''
-        setActiveTemplate(defaultKey)
-      }
-      setFocusedNodeId(null)
-    }, 0)
-    return () => clearTimeout(timer)
-  }, [projectTemplates])
-
-  // Load template nodes & edges
-  useEffect(() => {
-    const template = projectTemplates[activeTemplate]
-    if (template) {
-      const timer = setTimeout(() => {
-        const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-          template.nodes,
-          template.edges,
-          direction,
-          nodesep,
-          ranksep
-        )
-        setNodes(layoutedNodes)
-        setEdges(layoutedEdges)
-      }, 0)
-      return () => clearTimeout(timer)
-    }
-  }, [activeTemplate, projectTemplates, direction, nodesep, ranksep, setNodes, setEdges])
-
-  const [lastLayoutKey, setLastLayoutKey] = useState('')
-  useEffect(() => {
-    const key = `${nodes.length}-${edges.length}-${direction}-${nodesep}-${ranksep}`
-    if (key !== lastLayoutKey && nodes.length > 0) {
-      const timer = setTimeout(() => {
-        setLastLayoutKey(key)
-        const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-          nodes,
-          edges,
-          direction,
-          nodesep,
-          ranksep
-        )
-        setNodes(layoutedNodes)
-        setEdges(layoutedEdges)
-      }, 0)
-      return () => clearTimeout(timer)
-    }
-  }, [nodes.length, edges.length, direction, nodesep, ranksep, lastLayoutKey, nodes, edges, setNodes, setEdges])
+  }, [layouted, focusedNodeId, setNodes, setEdges])
 
   const projectItems = Object.entries(projectTemplates).filter(([k]) => k === 'project-lifecycle')
   const staticItems = Object.entries(projectTemplates).filter(([k]) => k !== 'project-lifecycle')
@@ -271,7 +160,10 @@ export const AppDevelopmentProcessFlowchart: React.FC<AppDevelopmentProcessFlowc
                   {projectItems.map(([key, temp]) => (
                     <button
                       key={key}
-                      onClick={() => setActiveTemplate(key)}
+                      onClick={() => {
+                        setSelectedTemplate(key)
+                        setFocusedNodeId(null)
+                      }}
                       style={{
                         padding: '10px',
                         borderRadius: '6px',
@@ -304,7 +196,10 @@ export const AppDevelopmentProcessFlowchart: React.FC<AppDevelopmentProcessFlowc
                 {staticItems.map(([key, temp]) => (
                   <button
                     key={key}
-                    onClick={() => setActiveTemplate(key)}
+                    onClick={() => {
+                      setSelectedTemplate(key)
+                      setFocusedNodeId(null)
+                    }}
                     style={{
                       padding: '10px',
                       borderRadius: '6px',

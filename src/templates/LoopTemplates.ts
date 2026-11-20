@@ -1,12 +1,7 @@
-import type { Node, Edge } from '@xyflow/react'
 import { Position } from '@xyflow/react'
+import type { Template } from '../types'
 
-export interface LoopTemplate {
-  name: string
-  description: string
-  nodes: Node[]
-  edges: Edge[]
-}
+export type LoopTemplate = Template
 
 export const LOOP_TEMPLATES: Record<string, LoopTemplate> = {
   basicWhile: {
@@ -17,14 +12,14 @@ export const LOOP_TEMPLATES: Record<string, LoopTemplate> = {
         id: 'start',
         type: 'customNode',
         position: { x: 250, y: 20 },
-        data: { label: 'Initialize: i = 0', type: 'start' },
+        data: { label: 'Initialize: i = 0', type: 'start', badgeLabel: 'Entry' },
         sourcePosition: Position.Bottom
       },
       {
         id: 'condition',
         type: 'customNode',
         position: { x: 250, y: 120 },
-        data: { label: 'While: i < 5 ?', type: 'condition' },
+        data: { label: 'While: i < 5 ?', type: 'condition', badgeLabel: 'Loop Check' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       },
@@ -32,7 +27,7 @@ export const LOOP_TEMPLATES: Record<string, LoopTemplate> = {
         id: 'body',
         type: 'customNode',
         position: { x: 80, y: 240 },
-        data: { label: 'Execute: print(i); i++', type: 'action' },
+        data: { label: 'Execute: print(i); i++', type: 'action', badgeLabel: 'Loop Body' },
         sourcePosition: Position.Top,
         targetPosition: Position.Top
       },
@@ -40,7 +35,7 @@ export const LOOP_TEMPLATES: Record<string, LoopTemplate> = {
         id: 'exit',
         type: 'customNode',
         position: { x: 420, y: 240 },
-        data: { label: 'Exit Loop', type: 'action' },
+        data: { label: 'Exit Loop', type: 'action', badgeLabel: 'Exit' },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top
       }
